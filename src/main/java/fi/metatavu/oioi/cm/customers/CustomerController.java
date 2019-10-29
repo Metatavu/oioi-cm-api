@@ -26,8 +26,18 @@ public class CustomerController {
    * @param creatorId creator id
    * @return created customer
    */
-  public Customer createCustomer(Customer customer, String imageUrl, String name, UUID creatorId) {
+  public Customer createCustomer(String imageUrl, String name, UUID creatorId) {
     return customerDAO.create(UUID.randomUUID(), imageUrl, name, creatorId, creatorId);
+  }
+ 
+  /**
+   * Find customer by id
+   * 
+   * @param id customer id
+   * @return found customer or null if not found
+   */
+  public Customer findCustomerById(UUID id) {
+    return customerDAO.findById(id);
   }
 
   /**
@@ -42,5 +52,12 @@ public class CustomerController {
     customerDAO.updateImageUrl(customer, imageUrl, lastModifierId);
     customerDAO.updateName(customer, name, lastModifierId);
     return customer;
+  }
+ 
+  /**
+   * Delete customer
+   */
+  public void deleteCustomer(Customer customer) {
+    customerDAO.delete(customer);
   }
 }
