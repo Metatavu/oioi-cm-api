@@ -1294,6 +1294,12 @@ components:
           type: string
           format: date-time
           readOnly: true
+        creatorId:
+          type: string
+          format: uuid
+        lastModifierId:
+          type: string
+          format: uuid
         
     Device:
       type: object
@@ -1325,6 +1331,12 @@ components:
           type: string
           format: date-time
           readOnly: true
+        creatorId:
+          type: string
+          format: uuid
+        lastModifierId:
+          type: string
+          format: uuid
 
     Application:
       type: object
@@ -1354,6 +1366,12 @@ components:
           type: string
           format: date-time
           readOnly: true
+        creatorId:
+          type: string
+          format: uuid
+        lastModifierId:
+          type: string
+          format: uuid
           
     ResourceType:
       type: string
@@ -1415,6 +1433,12 @@ components:
           type: string
           format: date-time
           readOnly: true
+        creatorId:
+          type: string
+          format: uuid
+        lastModifierId:
+          type: string
+          format: uuid
 
     MediaType:
       type: string
@@ -1452,7 +1476,13 @@ components:
           type: string
           format: date-time
           readOnly: true
-            
+        creatorId:
+          type: string
+          format: uuid
+        lastModifierId:
+          type: string
+          format: uuid
+
     ErrorResponse:
       type: object
       properties:
