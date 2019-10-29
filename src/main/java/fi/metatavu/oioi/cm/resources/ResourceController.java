@@ -3,6 +3,7 @@ package fi.metatavu.oioi.cm.resources;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import java.util.List;
 import java.util.UUID;
 import fi.metatavu.oioi.cm.persistence.model.Resource;
 import fi.metatavu.oioi.cm.model.ResourceType;
@@ -123,6 +124,26 @@ public class ResourceController {
     resourceStyleDAO.updateValue(resourceStyle, value, lastModifierId);
     resourceStyleDAO.updateResource(resourceStyle, resource, lastModifierId);
     return resourceStyle;
+  }
+
+  /**
+   * Lists resource styles
+   * 
+   * @param resource resource
+   * @return resource styles
+   */
+  public List<ResourceStyle> listStyles(Resource resource) {
+    return resourceStyleDAO.listByResource(resource);
+  }
+
+  /**
+   * Lists resource properties
+   * 
+   * @param resource resource
+   * @return resource properties
+   */
+  public List<ResourceProperty> listProperties(Resource resource) {
+    return resourcePropertyDAO.listByResource(resource);
   }
   
 }

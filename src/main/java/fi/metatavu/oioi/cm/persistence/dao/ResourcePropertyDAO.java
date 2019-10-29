@@ -1,6 +1,12 @@
 package fi.metatavu.oioi.cm.persistence.dao;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.persistence.EntityManager;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
+
+import java.util.List;
 import java.util.UUID;
 import fi.metatavu.oioi.cm.persistence.model.*;
 
@@ -73,4 +79,23 @@ public class ResourcePropertyDAO extends AbstractDAO<ResourceProperty> {
     return persist(resourceProperty);
   }
 
+
+  /**
+   * Lists resource properties by resource
+   * 
+   * @param resource resource
+   * @return List of resource properties
+   */
+  public List<ResourceProperty> listByResource(Resource resource) {
+    EntityManager entityManager = getEntityManager();
+
+    CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+    CriteriaQuery<ResourceProperty> criteria = criteriaBuilder.createQuery(ResourceProperty.class);
+    Root<ResourceProperty> root = criteria.from(ResourceProperty.class);
+   
+    criteria.select(root);
+    criteria.where(criteriaBuilder.equal(root.get(ResourceProperty_.resource), resource));
+    
+    return entityManager.createQuery(criteria).getResultList();
+  }
 }

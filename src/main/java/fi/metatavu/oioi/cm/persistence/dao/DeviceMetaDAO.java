@@ -1,6 +1,12 @@
 package fi.metatavu.oioi.cm.persistence.dao;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.persistence.EntityManager;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
+
+import java.util.List;
 import java.util.UUID;
 import fi.metatavu.oioi.cm.persistence.model.*;
 
@@ -71,6 +77,25 @@ public class DeviceMetaDAO extends AbstractDAO<DeviceMeta> {
     deviceMeta.setLastModifierId(lastModifierId);
     deviceMeta.setValue(value);
     return persist(deviceMeta);
+  }
+
+  /**
+   * Lists device meta values by device
+   * 
+   * @param device device
+   * @return List of device meta values
+   */
+  public List<DeviceMeta> listByDevice(Device device) {
+    EntityManager entityManager = getEntityManager();
+
+    CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+    CriteriaQuery<DeviceMeta> criteria = criteriaBuilder.createQuery(DeviceMeta.class);
+    Root<DeviceMeta> root = criteria.from(DeviceMeta.class);
+   
+    criteria.select(root);
+    criteria.where(criteriaBuilder.equal(root.get(DeviceMeta_.device), device));
+    
+    return entityManager.createQuery(criteria).getResultList();
   }
 
 }

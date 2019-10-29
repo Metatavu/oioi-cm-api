@@ -1,13 +1,15 @@
 package fi.metatavu.oioi.cm.devices;
 
+import java.util.List;
+import java.util.UUID;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import java.util.UUID;
-import fi.metatavu.oioi.cm.persistence.model.Device;
-import fi.metatavu.oioi.cm.persistence.model.DeviceMeta;
 import fi.metatavu.oioi.cm.persistence.dao.DeviceDAO;
 import fi.metatavu.oioi.cm.persistence.dao.DeviceMetaDAO;
+import fi.metatavu.oioi.cm.persistence.model.Device;
+import fi.metatavu.oioi.cm.persistence.model.DeviceMeta;
 
 /**
  * Controller for Device
@@ -76,5 +78,15 @@ public class DeviceController {
      deviceMetaDAO.updateKey(deviceMeta, key, lastModifierId);
      deviceMetaDAO.updateValue(deviceMeta, value, lastModifierId);
      return deviceMeta;
+   }
+
+   /**
+    * Lists device meta values
+    * 
+    * @param device device
+    * @return device meta values
+    */
+   public List<DeviceMeta> listMetas(Device device) {
+     return deviceMetaDAO.listByDevice(device);
    }
 }
