@@ -125,13 +125,15 @@ public abstract class AbstractApi {
    * @return logged user id
    */
   protected UUID getLoggerUserId() {
-    HttpServletRequest httpServletRequest = getHttpServletRequest();
-    String remoteUser = httpServletRequest.getRemoteUser();
-    if (remoteUser == null) {
-      return null;
-    }
-    
-    return UUID.fromString(remoteUser);
+    // TODO: Fix when authentication is enabled
+    return UUID.randomUUID();
+//    HttpServletRequest httpServletRequest = getHttpServletRequest();
+//    String remoteUser = httpServletRequest.getRemoteUser();
+//    if (remoteUser == null) {
+//      return null;
+//    }
+//    
+//    return UUID.fromString(remoteUser);
   }
   
   /**

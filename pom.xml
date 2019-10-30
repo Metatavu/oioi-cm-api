@@ -46,6 +46,10 @@
     <!-- Project -->
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    
+    <!-- Java -->
+    
+    <annotation-api.version>1.3</annotation-api.version>
        
     <!-- Maven -->
 
@@ -71,6 +75,19 @@
     
     <liquibase.version>3.8.0</liquibase.version>
     
+    <!-- Findbugs -->
+    
+    <jsr305.version>3.0.2</jsr305.version>
+    
+    <!-- OpenAPI -->
+    
+    <openapitools.jackson-databind-nullable.version>0.2.0</openapitools.jackson-databind-nullable.version>
+    
+    <!-- Test -->
+    
+    <jsonassert.version>1.5.0</jsonassert.version>
+    <rest-assured.version>3.0.3</rest-assured.version>
+    
   </properties>
   
   <dependencyManagement>
@@ -94,18 +111,20 @@
   <build>
     <sourceDirectory>src/main/java</sourceDirectory>
     <plugins>
+    <!-- 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.0.0-M3</version>
       </plugin>
-      
+       -->
       <plugin>
         <groupId>org.openapitools</groupId>
         <artifactId>openapi-generator-maven-plugin</artifactId>
         <version>4.1.3</version>
         <executions>
           <execution>
+            <id>openapi-generate-jaxrs-spec</id>
             <goals>
               <goal>generate</goal>
             </goals>
@@ -122,6 +141,26 @@
                 <apiPackage>fi.metatavu.oioi.cm</apiPackage>
                 <modelPackage>fi.metatavu.oioi.cm.model</modelPackage>
                 <returnResponse>true</returnResponse>
+              </configOptions>
+            </configuration>
+          </execution>
+          
+          <execution>
+            <id>openapi-generate-java-client</id>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+            <configuration>
+              <inputSpec>${project.basedir}/src/main/resources/swagger.yaml</inputSpec>
+              <generatorName>java</generatorName>
+              <configOptions>
+                <sourceFolder>src/gen/java/main</sourceFolder>
+                <library>native</library>
+                <dateLibrary>java8</dateLibrary>
+                <java8>true</java8>
+                <groupId>fi.metatavu.oioi.cm</groupId>
+                <artifactId>oioi-cm-api-client</artifactId>
+                <invokerPackage>fi.metatavu.oioi.cm.client</invokerPackage>
               </configOptions>
             </configuration>
           </execution>
@@ -149,11 +188,11 @@
           <dependency>
             <groupId>javax.annotation</groupId>
             <artifactId>javax.annotation-api</artifactId>
-            <version>1.3.2</version>
+            <version>${annotation-api.version}</version>
           </dependency>
         </dependencies>
       </plugin>
-
+<!-- 
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
@@ -174,11 +213,11 @@
           </execution>
         </executions>
       </plugin>
+       -->
     </plugins>
   </build>
 
   <dependencies>
-  
     <dependency>
       <groupId>org.keycloak</groupId>
       <artifactId>keycloak-core</artifactId>
@@ -382,6 +421,44 @@
       <artifactId>liquibase-cdi</artifactId>
       <version>${liquibase.version}</version>
     </dependency>
+    
+    <!-- Findbugs -->
+    
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>jsr305</artifactId>
+      <version>${jsr305.version}</version>
+    </dependency>
+    
+    <!-- OpenAPI tools -->
+    
+    <dependency>
+      <groupId>org.openapitools</groupId>
+      <artifactId>jackson-databind-nullable</artifactId>
+      <version>${openapitools.jackson-databind-nullable.version}</version>
+    </dependency>
+    
+    <!-- Test -->
+    
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.skyscreamer</groupId>
+      <artifactId>jsonassert</artifactId>
+      <version>${jsonassert.version}</version>
+      <scope>test</scope>
+    </dependency>
+    
+    <dependency>
+      <groupId>io.rest-assured</groupId>
+      <artifactId>rest-assured</artifactId>
+      <scope>test</scope>
+    </dependency>
+    
   </dependencies>
 
   <profiles>
@@ -390,10 +467,12 @@
       <activation>
         <activeByDefault>false</activeByDefault>
       </activation>
+      <properties>
+        <it.port.http>8080</it.port.http>
+        <it.host>localhost</it.host>
+      </properties>
       <build>
-      
         <plugins>
-          
           <plugin>
             <groupId>io.fabric8</groupId>
             <artifactId>docker-maven-plugin</artifactId>
@@ -415,11 +494,31 @@
                     <wait>
                       <log>ready for connections.</log>
                     </wait>
+                    <cmd>--lower_case_table_names=1</cmd>
                   </run>
                 </image>
                 <image>
                   <name>jboss/keycloak:${keycloak.version}</name>
                   <alias>test-oioi-cm-keycloak</alias>
+                  <run>
+                    <env>
+                      <KEYCLOAK_USER>admin</KEYCLOAK_USER>
+                      <KEYCLOAK_PASSWORD>admin</KEYCLOAK_PASSWORD>
+                      <KEYCLOAK_IMPORT>/opt/docker/kc.json</KEYCLOAK_IMPORT>
+                    </env>
+                    <volumes>
+                      <bind>
+                        <volume>${project.basedir}/test-volumes/keycloak:/opt/docker</volume>
+                      </bind>
+                    </volumes>
+                    <ports>
+                      <port>8280:8080</port>
+                    </ports>
+                    <wait>
+                      <log>Resuming server</log>
+                      <time>120000</time>
+                    </wait>
+                  </run>
                 </image>
                 <image>
                   <name>test-oioi-cm-api</name>
@@ -433,6 +532,7 @@
                     </ports>
                     <links> 
                       <link>test-oioi-cm-mysql:test-oioi-cm-mysql</link>
+                      <link>test-oioi-cm-keycloak:test-oioi-cm-keycloak</link>
                     </links>                    
                     <env>
                       <OIOI_CM_API_HOST>localhost</OIOI_CM_API_HOST>
@@ -492,6 +592,41 @@
                   <maxcount>20</maxcount>
                   <timeout>10000</timeout>
                 </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <version>3.0.0-M3</version>
+            <configuration>
+              <failIfNoTests>true</failIfNoTests>
+              <skipAfterFailureCount>1</skipAfterFailureCount>
+              <argLine>-Xmx2G</argLine>
+              <includes>
+                <include>${it.tests}</include>
+              </includes>
+              <systemPropertyVariables>
+                <java.util.logging.config.file>${project.basedir}/src/test/resources/logging.properties</java.util.logging.config.file>
+                <jboss.home>${wildfly.home}</jboss.home>
+                <module.path>${wildfly.home}/modules</module.path>
+                <it.host>${it.host}</it.host>
+                <it.port.http>${it.port.http}</it.port.http>
+              </systemPropertyVariables>
+            </configuration>
+            <executions>
+              <execution>
+                <id>integration-test</id>
+                <goals>
+                  <goal>integration-test</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>verify</id>
+                <goals>
+                  <goal>verify</goal>
+                </goals>
               </execution>
             </executions>
           </plugin>

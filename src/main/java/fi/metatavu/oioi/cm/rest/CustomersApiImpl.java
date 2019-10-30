@@ -2,8 +2,12 @@ package fi.metatavu.oioi.cm.rest;
 
 import java.util.UUID;
 
+import javax.ejb.Stateful;
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.validation.Valid;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 
 import fi.metatavu.oioi.cm.CustomersApi;
@@ -16,6 +20,15 @@ import fi.metatavu.oioi.cm.model.MediaType;
 import fi.metatavu.oioi.cm.model.Resource;
 import fi.metatavu.oioi.cm.rest.translate.CustomerTranslator;
 
+/**
+ * REST - endpoints for customers
+ * 
+ * @author Antti Leppä
+ */
+@RequestScoped
+@Stateful
+@Consumes({ "application/json;charset=utf-8" })
+@Produces({ "application/json;charset=utf-8" })
 public class CustomersApiImpl extends AbstractApi implements CustomersApi {
 
   @Inject
