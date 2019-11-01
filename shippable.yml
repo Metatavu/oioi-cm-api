@@ -1,0 +1,11 @@
+language: java
+branches:
+  only:
+    - master
+
+env:
+  global:
+
+build:
+  ci:
+    - mvn clean package
