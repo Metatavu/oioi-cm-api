@@ -10,3 +10,9 @@ env:
 build:
   ci:
     - mvn clean package
+    - docker build -t Metatavu/oioi-cm-api:$BRANCH.BUILD_NUMBER .
+
+integrations:
+  hub:
+    - integrationName: awskeys
+      type: ecr
