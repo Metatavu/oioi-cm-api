@@ -1,4 +1,4 @@
-FROM jboss/wildfly:17.0.1.Final
+FROM jboss/wildfly:18.0.0.Final
 
 ADD --chown=jboss target/*.war /opt/jboss/wildfly/standalone/deployments/app.war
 ADD --chown=jboss ./docker/entrypoint.sh /opt/docker/entrypoint.sh 
@@ -9,7 +9,7 @@ ADD --chown=jboss ./docker/jdbc.cli /opt/docker/jdbc.cli
 ADD --chown=jboss ./docker/interfaces.cli /opt/docker/interfaces.cli
 RUN chmod a+x /opt/docker/entrypoint.sh
 
-ARG WILDFLY_VERSION=17.0.1.Final
+ARG WILDFLY_VERSION=18.0.0.Final
 ARG MYSQL_MODULE_VERSION=8.0.17
 ARG KEYCLOAK_MODULE_VERSION=7.0.0
 
