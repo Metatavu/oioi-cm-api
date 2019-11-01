@@ -3,11 +3,14 @@ jdk: openjdk11
 branches:
   only:
     - master
-
+    
 env:
   global:
 
 build:
+  cache: true
+  cache_dir_list:
+    - ~/.m2
   ci:
     - mvn clean package
     - docker build -t metatavu/oioi-cm-api:$BRANCH.BUILD_NUMBER .
@@ -16,3 +19,4 @@ integrations:
   hub:
     - integrationName: awskeys
       type: ecr
+
