@@ -15,7 +15,7 @@ build:
     - mvn clean package
     - docker build -t metatavu/oioi-cm-api:$BRANCH.BUILD_NUMBER .
   post_ci:
-    - docker push 414711980085.dkr.ecr.eu-central-1.amazonaws.com/oioi-cm-api/image-name:image-tag
+    - docker push 414711980085.dkr.ecr.eu-central-1.amazonaws.com/oioi-cm-api/metatavu/oioi-cm-api:$BRANCH.BUILD_NUMBER
     
 integrations:
   hub:
