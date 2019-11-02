@@ -81,6 +81,8 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
     
+    customerController.deleteCustomer(customer);
+    
     return createNoContent();
   }
 
