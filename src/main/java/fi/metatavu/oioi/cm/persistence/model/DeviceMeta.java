@@ -34,6 +34,7 @@ public class DeviceMeta {
   
   @NotNull
   @NotEmpty
+  @Column (name = "metakey")
   private String key;
   
   @NotNull

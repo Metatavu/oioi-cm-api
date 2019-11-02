@@ -79,7 +79,6 @@ public class ResourcePropertyDAO extends AbstractDAO<ResourceProperty> {
     return persist(resourceProperty);
   }
 
-
   /**
    * Lists resource properties by resource
    * 

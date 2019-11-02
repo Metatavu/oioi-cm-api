@@ -34,6 +34,16 @@ public class CustomerTestBuilderResource extends AbstractTestBuilderResource<Cus
   }
   
   /**
+   * Creates new customer with default values
+   * 
+   * @return created customer
+   * @throws ApiException 
+   */
+  public Customer create() throws ApiException {
+    return create("default name", "http://default.example.com");
+  }
+  
+  /**
    * Creates new customer
    * 
    * @param name name
@@ -45,7 +55,8 @@ public class CustomerTestBuilderResource extends AbstractTestBuilderResource<Cus
     Customer customer = new Customer();
     customer.setName(name);
     customer.setImageUrl(imageUrl);
-    return addClosable(getApi().createCustomer(customer));
+    Customer result = getApi().createCustomer(customer);
+    return addClosable(result);
   }
   
   /**
@@ -89,11 +100,12 @@ public class CustomerTestBuilderResource extends AbstractTestBuilderResource<Cus
     getApi().deleteCustomer(customer.getId());  
     
     removeCloseable(closable -> {
-      if (closable instanceof Customer) {
-        return !((Customer) closable).getId().equals(customer.getId());
+      if (!(closable instanceof Customer)) {
+        return false;
       }
-      
-      return false;
+
+      Customer closeableCustomer = (Customer) closable;
+      return closeableCustomer.getId().equals(customer.getId());
     });
   }
   

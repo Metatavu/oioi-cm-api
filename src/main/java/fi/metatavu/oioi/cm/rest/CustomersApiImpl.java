@@ -13,6 +13,7 @@ import javax.ws.rs.core.Response;
 
 import fi.metatavu.oioi.cm.CustomersApi;
 import fi.metatavu.oioi.cm.customers.CustomerController;
+import fi.metatavu.oioi.cm.devices.DeviceController;
 import fi.metatavu.oioi.cm.model.Application;
 import fi.metatavu.oioi.cm.model.Customer;
 import fi.metatavu.oioi.cm.model.Device;
@@ -20,6 +21,7 @@ import fi.metatavu.oioi.cm.model.Media;
 import fi.metatavu.oioi.cm.model.MediaType;
 import fi.metatavu.oioi.cm.model.Resource;
 import fi.metatavu.oioi.cm.rest.translate.CustomerTranslator;
+import fi.metatavu.oioi.cm.rest.translate.DeviceTranslator;
 
 /**
  * REST - endpoints for customers
@@ -38,6 +40,12 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
   @Inject
   private CustomerTranslator customerTranslator;
 
+  @Inject
+  private DeviceController deviceController;
+
+  @Inject
+  private DeviceTranslator deviceTranslator;
+  
   @Override
   public Response createApplication(UUID customerId, UUID deviceId, @Valid Application application) {
     // TODO Auto-generated method stub
@@ -52,9 +60,21 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
   }
 
   @Override
-  public Response createDevice(UUID customerId, @Valid Device device) {
-    // TODO Auto-generated method stub
-    return null;
+  public Response createDevice(UUID customerId, @Valid Device payload) {
+    UUID loggerUserId = getLoggerUserId();
+    
+    fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
+    if (customer == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    String apiKey = payload.getApiKey();
+    String name = payload.getName();
+    
+    fi.metatavu.oioi.cm.persistence.model.Device device = deviceController.createDevice(customer, apiKey, name, loggerUserId);
+    deviceController.setDeviceMetas(device, payload.getMetas(), loggerUserId);
+    
+    return createOk(deviceTranslator.translate(device));
   }
 
   @Override
@@ -89,8 +109,23 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
 
   @Override
   public Response deleteDevice(UUID customerId, UUID deviceId) {
-    // TODO Auto-generated method stub
-    return null;
+    fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
+    if (customer == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    fi.metatavu.oioi.cm.persistence.model.Device device = deviceController.findDeviceById(deviceId);
+    if (device == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    if (!device.getCustomer().getId().equals(customer.getId())) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    deviceController.deleteDevice(device);
+
+    return createNoContent();
   }
 
   @Override
@@ -123,8 +158,21 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
 
   @Override
   public Response findDevice(UUID customerId, UUID deviceId) {
-    // TODO Auto-generated method stub
-    return null;
+    fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
+    if (customer == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    fi.metatavu.oioi.cm.persistence.model.Device device = deviceController.findDeviceById(deviceId);
+    if (device == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    if (!device.getCustomer().getId().equals(customer.getId())) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    return createOk(deviceTranslator.translate(device));
   }
 
   @Override
@@ -152,8 +200,12 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
 
   @Override
   public Response listDevices(UUID customerId) {
-    // TODO Auto-generated method stub
-    return null;
+    fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
+    if (customer == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    return createOk(deviceController.listCustomerDevices(customer).stream().map(deviceTranslator::translate).collect(Collectors.toList()));
   }
 
   @Override
@@ -189,9 +241,27 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
   }
 
   @Override
-  public Response updateDevice(UUID customerId, UUID deviceId, @Valid Device device) {
-    // TODO Auto-generated method stub
-    return null;
+  public Response updateDevice(UUID customerId, UUID deviceId, @Valid Device payload) {
+    UUID loggerUserId = getLoggerUserId();
+    
+    fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
+    if (customer == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    fi.metatavu.oioi.cm.persistence.model.Device device = deviceController.findDeviceById(deviceId);
+    if (device == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    if (!device.getCustomer().getId().equals(customer.getId())) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    deviceController.updateDevice(device, customer, payload.getApiKey(), payload.getName(), loggerUserId);
+    deviceController.setDeviceMetas(device, payload.getMetas(), loggerUserId);
+    
+    return createOk(deviceTranslator.translate(device));
   }
 
   @Override

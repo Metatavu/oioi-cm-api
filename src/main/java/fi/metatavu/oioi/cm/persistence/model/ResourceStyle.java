@@ -33,6 +33,7 @@ public class ResourceStyle {
   
   @NotNull
   @NotEmpty
+  @Column (name = "stylekey")
   private String key;
   
   @NotNull

@@ -7,6 +7,7 @@ import javax.persistence.Cacheable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.validation.constraints.NotEmpty;
@@ -28,6 +29,9 @@ public class Device {
 
   @Id
   private UUID id;
+  
+  @ManyToOne (optional = false)
+  private Customer customer;
   
   @NotNull
   @NotEmpty
@@ -65,6 +69,24 @@ public class Device {
    */
   public void setId(UUID id) {
     this.id = id;
+  }
+
+  /**
+   * Returns device customer
+   * 
+   * @returns customer
+   */
+  public Customer getCustomer() {
+    return customer;
+  }
+  
+  /**
+   * Sets device customer
+   * 
+   * @param customer customer
+   */
+  public void setCustomer(Customer customer) {
+    this.customer = customer;
   }
   
   /**

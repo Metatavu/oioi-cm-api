@@ -109,7 +109,7 @@ public abstract class AbstractTestBuilderResource <T, A> implements TestBuilderR
    * @throws JSONException thrown when JSON serialization error occurs
    * @throws IOException thrown when IO Exception occurs
    */
-  protected void assertJsonsEqual(Object expected, Object actual) throws IOException, JSONException {
+  public void assertJsonsEqual(Object expected, Object actual) throws IOException, JSONException {
     JSONCompareResult compareResult = jsonCompare(expected, actual);
     assertTrue(compareResult.getMessage(), compareResult.passed());    
   }

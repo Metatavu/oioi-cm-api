@@ -89,7 +89,7 @@ public class TestBuilder implements AutoCloseable {
    */
   protected <T> void removeCloseable(Predicate<Object> predicate) {
     closables = closables.stream().filter((closeable) -> {
-      return predicate.test(closeable.getResource());
+      return !predicate.test(closeable.getResource());
     }).collect(Collectors.toList());
   }
 

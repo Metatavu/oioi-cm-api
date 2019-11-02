@@ -33,6 +33,7 @@ public class ResourceProperty {
   
   @NotNull
   @NotEmpty
+  @Column (name = "propertykey")
   private String key;
   
   @NotNull
