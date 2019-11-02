@@ -3,6 +3,7 @@ package fi.metatavu.oioi.cm.test.functional.tests;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.junit.Test;
@@ -36,6 +37,16 @@ public class CustomerTestsIT extends AbstractFunctionalTest {
   }
   
   @Test
+  public void testListCustomers() throws Exception {
+    try (TestBuilder builder = new TestBuilder()) {
+      Customer createdCustomer = builder.admin().customers().create("test customer", "http://example.com/great-image.jpg");
+      List<Customer> foundCustomers = builder.admin().customers().listCustomers();
+      assertEquals(1, foundCustomers.size());
+      builder.admin().customers().assertCustomersEqual(createdCustomer, foundCustomers.get(0));
+    }
+  }
+  
+  @Test
   public void testUpdateCustomer() throws Exception {
     try (TestBuilder builder = new TestBuilder()) {
       Customer createdCustomer = builder.admin().customers().create("test customer", "http://example.com/great-image.jpg");
@@ -52,7 +63,6 @@ public class CustomerTestsIT extends AbstractFunctionalTest {
       assertEquals(createdCustomer.getId(), foundCustomer.getId());
       assertEquals(updateCustomer.getName(), foundCustomer.getName());
       assertEquals(updateCustomer.getImageUrl(), foundCustomer.getImageUrl());
-     
     }
   }
 

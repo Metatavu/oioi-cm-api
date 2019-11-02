@@ -1,6 +1,7 @@
 package fi.metatavu.oioi.cm.rest;
 
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.ejb.Stateful;
 import javax.enterprise.context.RequestScoped;
@@ -146,8 +147,7 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
 
   @Override
   public Response listCustomers() {
-    // TODO Auto-generated method stub
-    return null;
+    return createOk(customerController.listAllCustomers().stream().map(customerTranslator::translate).collect(Collectors.toList()));
   }
 
   @Override

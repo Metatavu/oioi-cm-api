@@ -3,6 +3,7 @@ package fi.metatavu.oioi.cm.customers;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import java.util.List;
 import java.util.UUID;
 import fi.metatavu.oioi.cm.persistence.model.Customer;
 import fi.metatavu.oioi.cm.persistence.dao.CustomerDAO;
@@ -38,6 +39,15 @@ public class CustomerController {
    */
   public Customer findCustomerById(UUID id) {
     return customerDAO.findById(id);
+  }
+  
+  /**
+   * Lists all customers
+   * 
+   * @return all customers
+   */
+  public List<Customer> listAllCustomers() {
+    return customerDAO.listAll();
   }
 
   /**

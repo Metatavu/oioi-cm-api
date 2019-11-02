@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 
 import org.json.JSONException;
@@ -56,6 +57,16 @@ public class CustomerTestBuilderResource extends AbstractTestBuilderResource<Cus
    */
   public Customer findCustomer(UUID customerId) throws ApiException {
     return getApi().findCustomer(customerId);
+  }
+  
+  /**
+   * Lists customers
+   * 
+   * @return found customers
+   * @throws ApiException 
+   */
+  public List<Customer> listCustomers() throws ApiException {
+    return getApi().listCustomers();
   }
 
   /**
