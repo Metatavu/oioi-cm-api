@@ -1,0 +1,14 @@
+language: java
+cache:
+  directories:
+  - "$HOME/.sonar"
+  - "$HOME/.m2"
+addons:
+  sonarcloud:
+    organization: "metatavu-oy"
+    token:
+      secure: "i7/M+hjH8VuuD3WvFR85yNPLm3bBnT0xM5VvBeiJmkCgIbLyFBYS527uyBiSWVXUH+E22SYjb2w8hGlyEhIBN0xF/OujrtOBmly21t301erpSTq0gzaVP9+CFcxYPh2ScRss3vWKaNTMA7QREo+34OVMfRgFgwMPc+GKbXdakkwjqnR0NDsR/xYErod8AK7FEw0w9dxDRxzJOKToEiqLFo+vCrNkhiUFSZw5lc+wu8CZq7RDbfOOHgKFMHo1NxMoYdkcllrxz5//sCRnKXiIq27h6H6NFA+ePwJFGfWIZS5tF2pNU5kETqEInbzrRLh8vmdGkYLRxLcJuOmkzWpHHvcIuFLBl8oDEbUAGCxajZ1/fCgIwXHVgHTvhF1zWJIY0AKigZS/88K5TXcY1WxsEHtlKgjfjy3rGDpQMo/LWGct1ssgEOOTfxg5NGN5PY6JvchSIIa1ES/WQO2KjAvRL6lEe5qeXLPiZGacggGjvrBB1lSaDEZn1WuNJA0iASfFtg6kFlLMYrullfA9JR46lIDvtBBnfz3e9lBs6C8nqHJHpsGIkYj05Ptj7cFdFmke03a+qvxXwnkbMJd+z2jMwLc15JZntjgRrdoxsRaIwgy1i91KlEDxizbr4N0C647bbwYapTfWu8jJhYlNJIPkFrQpbNf+QmNIN8gSnZhZOG8="
+
+
+script:
+  - mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar -Dsonar.projectKey=Metatavu_oioi-cm-api

@@ -220,5 +220,10 @@
     </createTable>
 
   </changeSet>
+  <changeSet author="heikki.kurhinen" id="customer-image-url-allow-null">
+      <dropNotNullConstraint columnDataType="varchar(191)" columnName="imageurl" tableName="customer"/>
+  </changeSet>
+
+
   
 </databaseChangeLog>
