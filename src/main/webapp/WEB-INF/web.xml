@@ -19,26 +19,17 @@
       <url-pattern>/v1/system/ping</url-pattern>
     </web-resource-collection>
   </security-constraint>
-  
-  <security-constraint>
-    <web-resource-collection>
-      <web-resource-name>temp</web-resource-name>
-      <url-pattern>/v1/*</url-pattern>
-    </web-resource-collection>
-  </security-constraint>
-  
-  
-  <!-- 
+
   <security-constraint>
     <web-resource-collection>
       <web-resource-name>api</web-resource-name>
       <url-pattern>/v1/*</url-pattern>
     </web-resource-collection>
     <auth-constraint>
-      <role-name>*</role-name>
+      <role-name>user</role-name>
     </auth-constraint>
-  </security-constraint>   
-   -->
+  </security-constraint>
+
   <security-role>
     <role-name>user</role-name>
   </security-role>
