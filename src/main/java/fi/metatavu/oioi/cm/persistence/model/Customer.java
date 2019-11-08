@@ -34,8 +34,6 @@ public class Customer {
   @NotEmpty
   private String name;
   
-  @NotNull
-  @NotEmpty
   @URL
   private String imageUrl;
   
