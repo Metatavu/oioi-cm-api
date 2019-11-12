@@ -30,8 +30,11 @@ public class Application {
   @Id
   private UUID id;
   
-  @ManyToOne (optional = false)
+  @ManyToOne
   private Resource rootResource;
+
+  @ManyToOne (optional = false)
+  private Device device;
   
   @NotEmpty
   @NotNull
@@ -103,6 +106,20 @@ public class Application {
     this.rootResource = rootResource;
   }
   
+  /**
+   * @return the device
+   */
+  public Device getDevice() {
+    return device;
+  }
+
+  /**
+   * @param device the device to set
+   */
+  public void setDevice(Device device) {
+    this.device = device;
+  }
+
   /**
    * Returns creation time of the entity
    * 

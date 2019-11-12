@@ -14,10 +14,13 @@ import fi.metatavu.oioi.cm.model.ErrorResponse;
  * Abstract base class for all API services
  * 
  * @author Antti Leppä
+ * @author Heikki Kurhinen
  */
 public abstract class AbstractApi {
   
   protected static final String NOT_FOUND_MESSAGE = "Not found";
+  protected static final String CUSTOMER_DEVICE_MISMATCH_MESSAGE = "Device does not belong to this customer";
+  protected static final String APPLICATION_DEVICE_MISMATCH_MESSAGE = "Application does not belong to this device";
   
   /**
    * Constructs ok response
@@ -30,6 +33,20 @@ public abstract class AbstractApi {
       .status(Response.Status.OK)
       .entity(entity)
       .build();
+  }
+
+  /**
+   * Constructs ok or not found response if entity is null
+   * 
+   * @param entity payload
+   * @return response
+   */
+  protected Response createOkOrNotFound(Object entity) {
+    if (entity == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+
+    return createOk(entity);
   }
   
   /**
@@ -125,15 +142,13 @@ public abstract class AbstractApi {
    * @return logged user id
    */
   protected UUID getLoggerUserId() {
-    // TODO: Fix when authentication is enabled
-    return UUID.randomUUID();
-//    HttpServletRequest httpServletRequest = getHttpServletRequest();
-//    String remoteUser = httpServletRequest.getRemoteUser();
-//    if (remoteUser == null) {
-//      return null;
-//    }
-//    
-//    return UUID.fromString(remoteUser);
+    HttpServletRequest httpServletRequest = getHttpServletRequest();
+    String remoteUser = httpServletRequest.getRemoteUser();
+    if (remoteUser == null) {
+      return null;
+    }
+    
+    return UUID.fromString(remoteUser);
   }
   
   /**
