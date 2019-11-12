@@ -167,20 +167,28 @@
         </executions>
       </plugin>
 
-      <plugin> 
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId> 
-        <artifactId>maven-war-plugin</artifactId> 
-        <configuration> 
-          <webResources> 
-            <resource> 
-              <directory>${project.build.directory}</directory> 
-              <targetPath>WEB-INF</targetPath>
-              <includes> 
-                <include>keycloak.json</include> 
-              </includes> 
-            </resource> 
-          </webResources> 
-        </configuration> 
+        <artifactId>maven-war-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>add-keycloak-config</id>
+            <goals>
+              <goal>war</goal>
+            </goals>
+            <configuration> 
+              <webResources> 
+                <resource> 
+                  <directory>./</directory> 
+                  <targetPath>WEB-INF</targetPath>
+                  <includes> 
+                    <include>keycloak.json</include> 
+                  </includes> 
+                </resource> 
+              </webResources> 
+            </configuration>
+          </execution>
+        </executions>
       </plugin> 
 
       <plugin>
@@ -196,7 +204,7 @@
           </execution>
         </executions>
         <dependencies>
-          <dependency>        
+          <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-jpamodelgen</artifactId>
             <version>5.4.2.Final</version>
