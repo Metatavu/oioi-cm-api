@@ -42,6 +42,9 @@
   </organization>
 
   <properties>
+    <!-- Server running mode -->
+
+    <runmode>develop</runmode>
   
     <!-- Project -->
 
@@ -179,7 +182,7 @@
             <configuration> 
               <webResources> 
                 <resource> 
-                  <directory>./</directory> 
+                  <directory>./${runmode}-data</directory> 
                   <targetPath>WEB-INF</targetPath>
                   <includes> 
                     <include>keycloak.json</include> 
@@ -491,7 +494,13 @@
       <activation>
         <activeByDefault>false</activeByDefault>
       </activation>
-      <properties>
+      <properties>  
+        <!-- Server running mode -->
+
+        <runmode>test</runmode>        
+
+        <!-- Test properties -->
+  
         <it.port.http>8080</it.port.http>
         <it.host>localhost</it.host>
       </properties>
