@@ -1,9 +1,0 @@
-{
-  "realm": "oioi",
-  "bearer-only": true,
-  "auth-server-url": "https://oioi-auth.metatavu.io/auth",
-  "ssl-required": "external",
-  "resource": "api",
-  "confidential-port": 0,
-  "enable-cors" : true
-}
