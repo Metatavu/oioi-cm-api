@@ -501,7 +501,7 @@
 
         <!-- Test properties -->
   
-        <it.port.http>8080</it.port.http>
+        <it.port.http>1234</it.port.http>
         <it.host>localhost</it.host>
       </properties>
       <build>
@@ -545,7 +545,7 @@
                       </bind>
                     </volumes>
                     <ports>
-                      <port>8280:8080</port>
+                      <port>8080:8080</port>
                     </ports>
                     <wait>
                       <log>Resuming server</log>
@@ -561,7 +561,7 @@
                   </build>
                   <run>
                     <ports>
-                      <port>8080:8080</port>
+                      <port>1234:8080</port>
                     </ports>
                     <links> 
                       <link>test-oioi-cm-mysql:test-oioi-cm-mysql</link>
@@ -620,7 +620,7 @@
                 <configuration>
                   <protocol>http</protocol>
                   <host>localhost</host>
-                  <port>8080</port>
+                  <port>1234</port>
                   <file>/v1/system/ping</file>
                   <maxcount>20</maxcount>
                   <timeout>10000</timeout>

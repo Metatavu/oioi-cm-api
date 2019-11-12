@@ -6,6 +6,7 @@ import javax.inject.Inject;
 import java.util.List;
 import java.util.UUID;
 import fi.metatavu.oioi.cm.persistence.model.Customer;
+import fi.metatavu.oioi.cm.devices.DeviceController;
 import fi.metatavu.oioi.cm.persistence.dao.CustomerDAO;
 
 /**
@@ -18,6 +19,9 @@ public class CustomerController {
 
   @Inject
   private CustomerDAO customerDAO;
+
+  @Inject
+  private DeviceController deviceController;
 
  /**
    * Create customer
@@ -63,11 +67,12 @@ public class CustomerController {
     customerDAO.updateName(customer, name, lastModifierId);
     return customer;
   }
- 
+
   /**
    * Delete customer
    */
   public void deleteCustomer(Customer customer) {
+    deviceController.listCustomerDevices(customer).stream().forEach(deviceController::deleteDevice);
     customerDAO.delete(customer);
   }
 }

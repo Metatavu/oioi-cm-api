@@ -53,6 +53,14 @@
       "clientRole" : false,
       "containerId" : "oioi",
       "attributes" : { }
+    }, {
+      "id" : "83e654f8-8be0-4c0f-8385-4133e4288cd0",
+      "name" : "user",
+      "description" : "user",
+      "composite" : false,
+      "clientRole" : false,
+      "containerId" : "oioi",
+      "attributes" : { }
     } ],
     "client" : {
       "realm-management" : [ {
@@ -302,7 +310,7 @@
     } ],
     "disableableCredentialTypes" : [ "password" ],
     "requiredActions" : [ ],
-    "realmRoles" : [ "offline_access", "uma_authorization" ],
+    "realmRoles" : [ "offline_access", "uma_authorization", "user" ],
     "clientRoles" : {
       "account" : [ "view-profile", "manage-account" ]
     },
