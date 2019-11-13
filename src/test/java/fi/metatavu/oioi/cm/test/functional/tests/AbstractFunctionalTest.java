@@ -2,6 +2,10 @@ package fi.metatavu.oioi.cm.test.functional.tests;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.IOException;
+import java.io.InputStream;
+
+import org.apache.commons.codec.digest.DigestUtils;
 import org.junit.After;
 import org.openapitools.client.model.KeyValueProperty;
 
@@ -33,6 +37,20 @@ public abstract class AbstractFunctionalTest {
     result.setKey(key);
     result.setValue(value);
     return result;
+  }
+  
+  /**
+   * Calculates contents md5 from a resource
+   * 
+   * @param resourceName resource name
+   * @return resource contents md5
+   * @throws IOException thrown when file reading fails
+   */
+  protected String getResourceMd5(String resourceName) throws IOException {
+    ClassLoader classLoader = getClass().getClassLoader();
+    try (InputStream fileStream = classLoader.getResourceAsStream(resourceName)) {
+      return DigestUtils.md5Hex(fileStream);
+    }    
   }
   
 }

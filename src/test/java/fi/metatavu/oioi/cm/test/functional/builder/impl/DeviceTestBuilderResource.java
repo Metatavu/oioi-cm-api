@@ -18,7 +18,7 @@ import org.openapitools.client.model.KeyValueProperty;
 
 import fi.metatavu.oioi.cm.client.ApiClient;
 import fi.metatavu.oioi.cm.client.ApiException;
-import fi.metatavu.oioi.cm.test.functional.builder.AbstractTestBuilderResource;
+import fi.metatavu.oioi.cm.test.functional.builder.AbstractApiTestBuilderResource;
 import fi.metatavu.oioi.cm.test.functional.builder.TestBuilder;
 
 /**
@@ -26,7 +26,7 @@ import fi.metatavu.oioi.cm.test.functional.builder.TestBuilder;
  * 
  * @author Antti Leppä
  */
-public class DeviceTestBuilderResource extends AbstractTestBuilderResource<Device, DevicesApi> {
+public class DeviceTestBuilderResource extends AbstractApiTestBuilderResource<Device, DevicesApi> {
   
   private Map<UUID, UUID> customerDeviceIds = new HashMap<>();
   

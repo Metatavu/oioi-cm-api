@@ -27,7 +27,7 @@ public class TestBuilder implements AutoCloseable {
   private TestBuilderAuthentication admin;
   private TestBuilderAuthentication invalid;
   private TestBuilderAuthentication anonymous;
-  private List<CloseableResource<?, ?>> closables = new ArrayList<>();
+  private List<CloseableResource<?>> closables = new ArrayList<>();
 
   /**
    * Returns admin authenticated authentication resource
@@ -77,7 +77,7 @@ public class TestBuilder implements AutoCloseable {
    * @param closable closable
    * @return given instance
    */
-  protected <T extends CloseableResource<?, ?>> T addClosable(T closable) {
+  public <T extends CloseableResource<?>> T addClosable(T closable) {
     closables.add(closable);
     return closable;
   }

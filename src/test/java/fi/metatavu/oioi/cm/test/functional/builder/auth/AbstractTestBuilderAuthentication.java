@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import fi.metatavu.oioi.cm.client.ApiClient;
 import fi.metatavu.oioi.cm.test.functional.builder.TestBuilder;
+import fi.metatavu.oioi.cm.test.functional.builder.file.FileTestBuilderResource;
 import fi.metatavu.oioi.cm.test.functional.builder.impl.CustomerTestBuilderResource;
 import fi.metatavu.oioi.cm.test.functional.builder.impl.DeviceTestBuilderResource;
 
@@ -17,7 +18,13 @@ public abstract class AbstractTestBuilderAuthentication {
   private TestBuilder testBuilder;
   private CustomerTestBuilderResource customers;
   private DeviceTestBuilderResource devices;
+  private FileTestBuilderResource files;
   
+  /**
+   * Constructor
+   * 
+   * @param testBuilder test builder
+   */
   protected AbstractTestBuilderAuthentication(TestBuilder testBuilder) {
     this.testBuilder = testBuilder;
   }
@@ -48,6 +55,20 @@ public abstract class AbstractTestBuilderAuthentication {
     }
     
     return new DeviceTestBuilderResource(testBuilder, createClient());
+  }
+
+  /**
+   * Returns test builder resource for files
+   * 
+   * @return test builder resource for files
+   * @throws IOException thrown when authentication fails
+   */
+  public FileTestBuilderResource files() throws IOException {
+    if (files != null) {
+      return files;
+    }
+    
+    return new FileTestBuilderResource(testBuilder);
   }
   
   /**

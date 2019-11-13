@@ -575,7 +575,14 @@
                       <OIOI_CM_API_DB_USERNAME>root</OIOI_CM_API_DB_USERNAME>
                       <OIOI_CM_API_DB_PASSWORD>rootpass</OIOI_CM_API_DB_PASSWORD>
                       <KUBERNETES_NAMESPACE>test</KUBERNETES_NAMESPACE>
+                      <FILE_STORAGE_PROVIDER>LOCAL</FILE_STORAGE_PROVIDER>
+                      <LOCAL_FILE_STORAGE_PATH>${project.basedir}/test-volumes/uploads</LOCAL_FILE_STORAGE_PATH>
                     </env>
+                    <volumes>
+                      <bind>
+                        <volume>${project.basedir}/test-volumes/uploads:${project.basedir}/test-volumes/uploads</volume>
+                      </bind>
+                    </volumes>
                   </run>
                 </image>
               </images>
