@@ -9,6 +9,10 @@ public class CustomerTranslator extends AbstractTranslator<fi.metatavu.oioi.cm.p
 
   @Override
   public fi.metatavu.oioi.cm.model.Customer translate(fi.metatavu.oioi.cm.persistence.model.Customer entity) {
+    if (entity == null) {
+      return null;
+    }
+
     fi.metatavu.oioi.cm.model.Customer result = new fi.metatavu.oioi.cm.model.Customer();    
     result.setId(entity.getId());
     result.setImageUrl(entity.getImageUrl());

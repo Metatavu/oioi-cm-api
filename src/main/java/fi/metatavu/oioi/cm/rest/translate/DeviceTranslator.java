@@ -21,6 +21,10 @@ public class DeviceTranslator extends AbstractTranslator<fi.metatavu.oioi.cm.per
   
   @Override
   public fi.metatavu.oioi.cm.model.Device translate(fi.metatavu.oioi.cm.persistence.model.Device entity) {
+    if (entity == null) {
+      return null;
+    }
+
     fi.metatavu.oioi.cm.model.Device result = new fi.metatavu.oioi.cm.model.Device();    
     result.setId(entity.getId());
     result.setApiKey(entity.getApiKey());
