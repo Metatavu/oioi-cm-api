@@ -36,8 +36,11 @@ import fi.metatavu.oioi.cm.rest.translate.ResourceTranslator;
 @Stateful
 @Consumes({ "application/json;charset=utf-8" })
 @Produces({ "application/json;charset=utf-8" })
+@SuppressWarnings ("common-java:DuplicatedBlocks")
 public class CustomersApiImpl extends AbstractApi implements CustomersApi {
   
+  private static final String INVALID_PARENT_ID = "Invalid parent_id";
+
   @Inject
   private CustomerController customerController;
   
@@ -369,9 +372,9 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
     }
     
     UUID parentId = payload.getParentId();
-    fi.metatavu.oioi.cm.persistence.model.Resource parent = parentId == null ? null : resourceController.findResourceById(parentId);
-    if (parentId != null && parent == null) {
-      return createBadRequest("Invalid parent_id");
+    fi.metatavu.oioi.cm.persistence.model.Resource parent = resourceController.findResourceById(parentId);
+    if (parent == null) {
+      return createBadRequest(INVALID_PARENT_ID);
     }
     
     // TODO: parent permission?
@@ -411,7 +414,7 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
     
     fi.metatavu.oioi.cm.persistence.model.Resource parent = resourceController.findResourceById(parentId);
     if (parent == null) {
-      return createBadRequest("Invalid parent_id");
+      return createBadRequest(INVALID_PARENT_ID);
     }
     
     return createOk(resourceTranslator.translate(resourceController.listResourcesByParent(parent)));
@@ -491,9 +494,9 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
     }
     
     UUID parentId = payload.getParentId();    
-    fi.metatavu.oioi.cm.persistence.model.Resource parent = parentId == null ? null : resourceController.findResourceById(parentId);
-    if (parentId != null && parent == null) {
-      return createBadRequest("Invalid parent_id");
+    fi.metatavu.oioi.cm.persistence.model.Resource parent = resourceController.findResourceById(parentId);
+    if (parent == null) {
+      return createBadRequest(INVALID_PARENT_ID);
     }
     
     // TODO: parent permission?
