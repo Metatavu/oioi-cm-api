@@ -21,9 +21,11 @@ import fi.metatavu.oioi.cm.model.Device;
 import fi.metatavu.oioi.cm.model.Media;
 import fi.metatavu.oioi.cm.model.MediaType;
 import fi.metatavu.oioi.cm.model.Resource;
+import fi.metatavu.oioi.cm.resources.ResourceController;
 import fi.metatavu.oioi.cm.rest.translate.ApplicationTranslator;
 import fi.metatavu.oioi.cm.rest.translate.CustomerTranslator;
 import fi.metatavu.oioi.cm.rest.translate.DeviceTranslator;
+import fi.metatavu.oioi.cm.rest.translate.ResourceTranslator;
 
 /**
  * REST - endpoints for customers
@@ -34,7 +36,10 @@ import fi.metatavu.oioi.cm.rest.translate.DeviceTranslator;
 @Stateful
 @Consumes({ "application/json;charset=utf-8" })
 @Produces({ "application/json;charset=utf-8" })
+@SuppressWarnings ("common-java:DuplicatedBlocks")
 public class CustomersApiImpl extends AbstractApi implements CustomersApi {
+  
+  private static final String INVALID_PARENT_ID = "Invalid parent_id";
 
   @Inject
   private CustomerController customerController;
@@ -53,11 +58,17 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
 
   @Inject
   private ApplicationTranslator applicationTranslator;
+
+  @Inject
+  private ResourceController resourceController;
+
+  @Inject
+  private ResourceTranslator resourceTranslator;
   
   /** APPLICATIONS */
 
   @Override
-  public Response createApplication(UUID customerId, UUID deviceId, @Valid Application application) {
+  public Response createApplication(UUID customerId, UUID deviceId, @Valid Application payload) {
     fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
     if (customer == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
@@ -73,11 +84,8 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
     }
 
     UUID loggerUserId = getLoggerUserId();
-
-    fi.metatavu.oioi.cm.persistence.model.Application applicationEntity = applicationController.createApplication(application.getName(), null, device, loggerUserId);
-    // TODO: Create root resource and attach it to application
-
-    return createOk(applicationTranslator.translate(applicationEntity));
+    
+    return createOk(applicationTranslator.translate(applicationController.createApplication(getAuthzClient(), customer, device, payload.getName(), loggerUserId)));
   }
 
   @Override
@@ -102,7 +110,6 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
 
   @Override
   public Response findApplication(UUID customerId, UUID deviceId, UUID applicationId) {
-
     fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
     if (customer == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
@@ -185,8 +192,8 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
     if (!applicationEntity.getDevice().getId().equals(device.getId())) {
       return createBadRequest(APPLICATION_DEVICE_MISMATCH_MESSAGE);
     }
-
-    applicationController.deleteApplication(applicationEntity);
+    
+    applicationController.deleteApplication(getAuthzClient(), applicationEntity);
 
     return createNoContent();
   }
@@ -236,7 +243,7 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
     
-    customerController.deleteCustomer(customer);
+    customerController.deleteCustomer(getAuthzClient(), customer);
     
     return createNoContent();
   }
@@ -330,7 +337,7 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
     
-    deviceController.deleteDevice(device);
+    deviceController.deleteDevice(getAuthzClient(), device);
 
     return createNoContent();
   }
@@ -338,33 +345,210 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
   /** RESOURCES */
 
   @Override
-  public Response createResource(UUID customerId, UUID deviceId, UUID applicationId, @Valid Resource resource, UUID parentId) {
-    // TODO Auto-generated method stub
-    return null;
+  public Response createResource(UUID customerId, UUID deviceId, UUID applicationId, @Valid Resource payload) {
+    UUID loggerUserId = getLoggerUserId();
+
+    fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
+    if (customer == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    fi.metatavu.oioi.cm.persistence.model.Device device = deviceController.findDeviceById(deviceId);
+    if (device == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    if (!device.getCustomer().getId().equals(customer.getId())) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    fi.metatavu.oioi.cm.persistence.model.Application application = applicationController.findApplicationById(applicationId);
+    if (application == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    if (!application.getDevice().getId().equals(device.getId())) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    UUID parentId = payload.getParentId();
+    fi.metatavu.oioi.cm.persistence.model.Resource parent = resourceController.findResourceById(parentId);
+    if (parent == null) {
+      return createBadRequest(INVALID_PARENT_ID);
+    }
+    
+    // TODO: parent permission?
+    
+    String data = payload.getData();
+    String name = payload.getName();
+    String slug = payload.getSlug();
+    fi.metatavu.oioi.cm.model.ResourceType type = payload.getType();
+    
+    return createOk(resourceTranslator.translate(resourceController.createResource(getAuthzClient(), customer, device, application, parent, data, name, slug, type, payload.getProperties(), payload.getStyles(), loggerUserId)));
   }
 
   @Override
   public Response listResources(UUID customerId, UUID deviceId, UUID applicationId, UUID parentId) {
-    // TODO Auto-generated method stub
-    return null;
+    fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
+    if (customer == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    fi.metatavu.oioi.cm.persistence.model.Device device = deviceController.findDeviceById(deviceId);
+    if (device == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    if (!device.getCustomer().getId().equals(customer.getId())) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    fi.metatavu.oioi.cm.persistence.model.Application application = applicationController.findApplicationById(applicationId);
+    if (application == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    if (!application.getDevice().getId().equals(device.getId())) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    fi.metatavu.oioi.cm.persistence.model.Resource parent = resourceController.findResourceById(parentId);
+    if (parent == null) {
+      return createBadRequest(INVALID_PARENT_ID);
+    }
+    
+    return createOk(resourceTranslator.translate(resourceController.listResourcesByParent(parent)));
   }
 
   @Override
   public Response findResource(UUID customerId, UUID deviceId, UUID applicationId, UUID resourceId) {
-    // TODO Auto-generated method stub
-    return null;
+    fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
+    if (customer == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    fi.metatavu.oioi.cm.persistence.model.Device device = deviceController.findDeviceById(deviceId);
+    if (device == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    if (!device.getCustomer().getId().equals(customer.getId())) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    fi.metatavu.oioi.cm.persistence.model.Application application = applicationController.findApplicationById(applicationId);
+    if (application == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    if (!application.getDevice().getId().equals(device.getId())) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    fi.metatavu.oioi.cm.persistence.model.Resource resource = resourceController.findResourceById(resourceId);
+    if (resource == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    if (!resourceController.isApplicationResource(application, resource)) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+
+    return createOk(resourceTranslator.translate(resourceController.findResourceById(resourceId)));
   }
 
   @Override
-  public Response updateResource(UUID customerId, UUID deviceId, UUID applicationId, UUID resourceId, @Valid Resource resource) {
-    // TODO Auto-generated method stub
-    return null;
+  public Response updateResource(UUID customerId, UUID deviceId, UUID applicationId, UUID resourceId, @Valid Resource payload) {
+    UUID loggerUserId = getLoggerUserId();
+
+    fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
+    if (customer == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    fi.metatavu.oioi.cm.persistence.model.Device device = deviceController.findDeviceById(deviceId);
+    if (device == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    if (!device.getCustomer().getId().equals(customer.getId())) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    fi.metatavu.oioi.cm.persistence.model.Application application = applicationController.findApplicationById(applicationId);
+    if (application == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    if (!application.getDevice().getId().equals(device.getId())) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    fi.metatavu.oioi.cm.persistence.model.Resource resource = resourceController.findResourceById(resourceId);
+    if (resource == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    if (!resourceController.isApplicationResource(application, resource)) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    UUID parentId = payload.getParentId();    
+    fi.metatavu.oioi.cm.persistence.model.Resource parent = resourceController.findResourceById(parentId);
+    if (parent == null) {
+      return createBadRequest(INVALID_PARENT_ID);
+    }
+    
+    // TODO: parent permission?
+    
+    String data = payload.getData();
+    String name = payload.getName();
+    String slug = payload.getSlug();
+    fi.metatavu.oioi.cm.model.ResourceType type = payload.getType();
+    
+    resourceController.setResourceProperties(resource, payload.getProperties(), loggerUserId);
+    resourceController.setResourceStyles(resource, payload.getStyles(), loggerUserId);
+    
+    return createOk(resourceTranslator.translate(resourceController.updateResource(resource, data, name, parent, slug, type, loggerUserId)));
   }
 
   @Override
   public Response deleteResource(UUID customerId, UUID deviceId, UUID applicationId, UUID resourceId) {
-    // TODO Auto-generated method stub
-    return null;
+    fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
+    if (customer == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    fi.metatavu.oioi.cm.persistence.model.Device device = deviceController.findDeviceById(deviceId);
+    if (device == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    if (!device.getCustomer().getId().equals(customer.getId())) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    fi.metatavu.oioi.cm.persistence.model.Application application = applicationController.findApplicationById(applicationId);
+    if (application == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    if (!application.getDevice().getId().equals(device.getId())) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    fi.metatavu.oioi.cm.persistence.model.Resource resource = resourceController.findResourceById(resourceId);
+    if (resource == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    if (!resourceController.isApplicationResource(application, resource)) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    resourceController.delete(getAuthzClient(), resource);
+    
+    return createNoContent();
   }
 
   /** MEDIAS */
@@ -398,5 +582,4 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
     // TODO Auto-generated method stub
     return null;
   }
-
 }

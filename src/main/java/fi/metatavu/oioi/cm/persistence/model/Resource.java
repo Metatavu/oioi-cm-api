@@ -48,8 +48,6 @@ public class Resource   {
   private String name;
   
   @Column (nullable = false)
-  @NotNull
-  @NotEmpty
   @Lob
   private String data;
   

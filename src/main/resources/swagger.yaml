@@ -1032,12 +1032,6 @@ paths:
           schema:
             type: string
             format: uuid
-        - name: parentId
-          in: query
-          description: parent id
-          schema:
-            type: string
-            format: uuid
       responses:
         '200':
           description: Created resource
