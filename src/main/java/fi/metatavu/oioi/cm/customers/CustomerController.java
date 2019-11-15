@@ -3,6 +3,8 @@ package fi.metatavu.oioi.cm.customers;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import org.keycloak.authorization.client.AuthzClient;
+
 import java.util.List;
 import java.util.UUID;
 import fi.metatavu.oioi.cm.persistence.model.Customer;
@@ -70,9 +72,12 @@ public class CustomerController {
 
   /**
    * Delete customer
+   * 
+   * @param authzClient authz client
+   * @param customer customer 
    */
-  public void deleteCustomer(Customer customer) {
-    deviceController.listCustomerDevices(customer).stream().forEach(deviceController::deleteDevice);
+  public void deleteCustomer(AuthzClient authzClient, Customer customer) {
+    deviceController.listCustomerDevices(customer).stream().forEach(device -> deviceController.deleteDevice(authzClient, device));
     customerDAO.delete(customer);
   }
 }

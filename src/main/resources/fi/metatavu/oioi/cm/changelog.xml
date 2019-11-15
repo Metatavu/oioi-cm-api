@@ -244,5 +244,17 @@
       </column>
     </addColumn>
   </changeSet>
-  
+
+  <changeSet author="antti.leppa" id="application-root-resource">
+    <addNotNullConstraint columnDataType="binary(16)" columnName="rootresource_id" tableName="application"/>
+  </changeSet>
+
+  <changeSet author="antti.leppa" id="resource-data-nullable">
+    <dropNotNullConstraint columnDataType="longtext" columnName="data" tableName="resource"/>
+  </changeSet>
+
+  <changeSet author="antti.leppa" id="resource-parent-nullable">
+    <dropNotNullConstraint columnDataType="binary(16)" columnName="parent_id" tableName="resource"/>
+  </changeSet>
+
 </databaseChangeLog>

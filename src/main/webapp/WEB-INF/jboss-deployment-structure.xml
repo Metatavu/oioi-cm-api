@@ -8,6 +8,9 @@
       <module name="org.slf4j"/>
       <module name="org.jsoup"/>
       <module name="org.wildfly.clustering.api" services="export" />
+      <module name="org.keycloak.keycloak-authz-client"/>
+      <module name="org.keycloak.keycloak-adapter-core"/>
+      <module name="org.keycloak.keycloak-adapter-spi"/>
     </dependencies>
   </deployment>
 </jboss-deployment-structure>

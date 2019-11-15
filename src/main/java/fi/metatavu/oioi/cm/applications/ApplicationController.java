@@ -1,14 +1,19 @@
 package fi.metatavu.oioi.cm.applications;
 
+import java.util.List;
+import java.util.UUID;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import java.util.List;
-import java.util.UUID;
+import org.keycloak.authorization.client.AuthzClient;
+
+import fi.metatavu.oioi.cm.model.ResourceType;
+import fi.metatavu.oioi.cm.persistence.dao.ApplicationDAO;
 import fi.metatavu.oioi.cm.persistence.model.Application;
 import fi.metatavu.oioi.cm.persistence.model.Device;
 import fi.metatavu.oioi.cm.persistence.model.Resource;
-import fi.metatavu.oioi.cm.persistence.dao.ApplicationDAO;
+import fi.metatavu.oioi.cm.resources.ResourceController;
 
 /**
  * Controller for Application
@@ -19,19 +24,25 @@ import fi.metatavu.oioi.cm.persistence.dao.ApplicationDAO;
 public class ApplicationController {
 
   @Inject
+  private ResourceController resourceController;
+
+  @Inject
   private ApplicationDAO applicationDAO;
 
   /**
    * Create application
-   *
-   * @param name name
-   * @param rootResource rootResource
+   * 
+   * @param authzClient authz client
+   * @param customer customer
    * @param device device
+   * @param name name
    * @param creatorId creator id
    * @return created application
    */
-  public Application createApplication(String name, Resource rootResource, Device device, UUID creatorId) {
-    return applicationDAO.create(UUID.randomUUID(), name, rootResource, device, creatorId, creatorId);
+  public Application createApplication(AuthzClient authzClient, fi.metatavu.oioi.cm.persistence.model.Customer customer, fi.metatavu.oioi.cm.persistence.model.Device device, String name, UUID creatorId) {
+    UUID applicationId = UUID.randomUUID();
+    Resource rootResource = resourceController.createResource(authzClient, customer, device, applicationId, null, null, name, "[root]", ResourceType.ROOT, creatorId);
+    return applicationDAO.create(applicationId, name, rootResource, device, creatorId, creatorId);
   }
 
   /**
@@ -68,8 +79,13 @@ public class ApplicationController {
 
   /**
    * Delete application
+   * 
+   * @param authzClient authz client
+   * @param application application
    */
-  public void deleteApplication(Application application) {
+  public void deleteApplication(AuthzClient authzClient, Application application) {
+    Resource rootResource = application.getRootResource();
     applicationDAO.delete(application);
+    resourceController.delete(authzClient, rootResource);
   }
 }
