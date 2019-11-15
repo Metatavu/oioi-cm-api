@@ -273,5 +273,4 @@ public class ResourceTestBuilderResource extends AbstractApiTestBuilderResource<
     UUID applicationId = applicationResourceIds.remove(resource.getId());
     getApi().deleteResource(customerId, deviceId, applicationId, resource.getId());  
   }
-
 }
