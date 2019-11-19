@@ -256,5 +256,13 @@
   <changeSet author="antti.leppa" id="resource-parent-nullable">
     <dropNotNullConstraint columnDataType="binary(16)" columnName="parent_id" tableName="resource"/>
   </changeSet>
+  
+  <changeSet author="antti.leppa" id="media-customer">
+    <addColumn tableName="media">
+      <column name="customer_id" type="binary(16)">
+        <constraints nullable="false" foreignKeyName="FK_MEDIA_CUSTOMER_ID" referencedColumnNames="id" referencedTableName="customer"/>
+      </column>
+    </addColumn>
+  </changeSet>
 
 </databaseChangeLog>

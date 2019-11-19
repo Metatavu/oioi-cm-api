@@ -63,6 +63,7 @@ public class S3FileStorageProvider implements FileStorageProvider {
     AmazonS3 client = getClient();
     String key = UUID.randomUUID().toString();
     FileMeta meta = inputFile.getMeta();
+    String folder = inputFile.getFolder();
     
     ObjectMetadata objectMeta = new ObjectMetadata();
     objectMeta.setContentType(meta.getContentType());
@@ -75,8 +76,8 @@ public class S3FileStorageProvider implements FileStorageProvider {
       }
 
       try (FileInputStream fileInputStream = new FileInputStream(tempFile.toFile())) {
-        client.putObject(new PutObjectRequest(bucket, key, fileInputStream, objectMeta).withCannedAcl(CannedAccessControlList.PublicRead));
-        return new OutputFile(meta, URI.create(String.format("%s/%s", key)));
+        client.putObject(new PutObjectRequest(bucket, String.format("%s/%s", folder, key), fileInputStream, objectMeta).withCannedAcl(CannedAccessControlList.PublicRead));
+        return new OutputFile(meta, URI.create(String.format("%s/%s/%s", folder, key)));
       } catch (SdkClientException e) {
         throw new FileStorageException(e);
       }

@@ -8,6 +8,7 @@ import fi.metatavu.oioi.cm.test.functional.builder.file.FileTestBuilderResource;
 import fi.metatavu.oioi.cm.test.functional.builder.impl.ApplicationTestBuilderResource;
 import fi.metatavu.oioi.cm.test.functional.builder.impl.CustomerTestBuilderResource;
 import fi.metatavu.oioi.cm.test.functional.builder.impl.DeviceTestBuilderResource;
+import fi.metatavu.oioi.cm.test.functional.builder.impl.MediaTestBuilderResource;
 import fi.metatavu.oioi.cm.test.functional.builder.impl.ResourceTestBuilderResource;
 
 /**
@@ -24,6 +25,7 @@ public abstract class AbstractTestBuilderAuthentication {
   private FileTestBuilderResource files;
   private ApplicationTestBuilderResource applications;
   private ResourceTestBuilderResource resources;
+  private MediaTestBuilderResource medias;
   
   /**
    * Constructor
@@ -60,6 +62,20 @@ public abstract class AbstractTestBuilderAuthentication {
     }
     
     return new DeviceTestBuilderResource(testBuilder, createClient());
+  }
+
+  /**
+   * Returns test builder resource for customers
+   * 
+   * @return test builder resource for customers
+   * @throws IOException thrown when authentication fails
+   */
+  public MediaTestBuilderResource medias() throws IOException {
+    if (medias != null) {
+      return medias;
+    }
+    
+    return new MediaTestBuilderResource(testBuilder, createClient());
   }
 
   /**

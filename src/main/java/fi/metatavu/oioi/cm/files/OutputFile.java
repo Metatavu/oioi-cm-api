@@ -22,6 +22,7 @@ public class OutputFile {
   /**
    * Constructor
    * 
+   * @param folder folder
    * @param meta file meta
    * @param uri file uri
    */

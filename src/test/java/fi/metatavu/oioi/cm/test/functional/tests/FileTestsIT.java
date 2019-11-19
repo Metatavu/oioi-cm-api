@@ -23,7 +23,7 @@ public class FileTestsIT extends AbstractFunctionalTest {
   @Test
   public void testUploadFile() throws Exception {
     try (TestBuilder builder = new TestBuilder()) {
-      OutputFile uploadedFile = builder.admin().files().upload("test-image.jpg", "image/jpeg");
+      OutputFile uploadedFile = builder.admin().files().upload("folder", "test-image.jpg", "image/jpeg");
       
       File file = new File(uploadedFile.getUri());
       assertTrue(file.exists());
