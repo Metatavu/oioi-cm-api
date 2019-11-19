@@ -34,6 +34,9 @@ public class Resource   {
   private UUID id;
   
   @Column (nullable = false)
+  private Integer orderNumber;
+  
+  @Column (nullable = false)
   private UUID keycloakResorceId;
   
   @ManyToOne
@@ -84,6 +87,14 @@ public class Resource   {
    */
   public void setId(UUID id) {
     this.id = id;
+  }
+  
+  public Integer getOrderNumber() {
+    return orderNumber;
+  }
+  
+  public void setOrderNumber(Integer orderNumber) {
+    this.orderNumber = orderNumber;
   }
   
   public String getData() {

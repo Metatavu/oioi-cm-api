@@ -65,10 +65,10 @@ public class ResourceController {
    * @return created resource
    */
   @SuppressWarnings ("squid:S00107")
-  public Resource createResource(AuthzClient authzClient, fi.metatavu.oioi.cm.persistence.model.Customer customer, fi.metatavu.oioi.cm.persistence.model.Device device, fi.metatavu.oioi.cm.persistence.model.Application application, Resource parent, String data, String name, String slug, ResourceType type, List<KeyValueProperty> properties, List<KeyValueProperty> styles, UUID creatorId) {
+  public Resource createResource(AuthzClient authzClient, fi.metatavu.oioi.cm.persistence.model.Customer customer, fi.metatavu.oioi.cm.persistence.model.Device device, fi.metatavu.oioi.cm.persistence.model.Application application, Integer orderNumber, Resource parent, String data, String name, String slug, ResourceType type, List<KeyValueProperty> properties, List<KeyValueProperty> styles, UUID creatorId) {
     UUID resourceId = UUID.randomUUID();
     ResourceRepresentation keycloakResource = createProtectedResource(authzClient, customer.getId(), device.getId(), application.getId(), resourceId, creatorId);
-    Resource resource = resourceDAO.create(resourceId, data, UUID.fromString(keycloakResource.getId()), name, parent, slug, type, creatorId, creatorId);
+    Resource resource = resourceDAO.create(resourceId, orderNumber, data, UUID.fromString(keycloakResource.getId()), name, parent, slug, type, creatorId, creatorId);
     setResourceProperties(resource, properties, creatorId);
     setResourceStyles(resource, styles, creatorId);
     return resource;
@@ -90,10 +90,10 @@ public class ResourceController {
    * @return created resource
    */
   @SuppressWarnings ("squid:S00107")
-  public Resource createResource(AuthzClient authzClient, fi.metatavu.oioi.cm.persistence.model.Customer customer, fi.metatavu.oioi.cm.persistence.model.Device device, UUID applicationId, Resource parent, String data, String name, String slug, ResourceType type, UUID creatorId) {
+  public Resource createResource(AuthzClient authzClient, fi.metatavu.oioi.cm.persistence.model.Customer customer, fi.metatavu.oioi.cm.persistence.model.Device device, UUID applicationId, Integer orderNumber, Resource parent, String data, String name, String slug, ResourceType type, UUID creatorId) {
     UUID resourceId = UUID.randomUUID();
     ResourceRepresentation keycloakResource = createProtectedResource(authzClient, customer.getId(), device.getId(), applicationId, resourceId, creatorId);
-    return resourceDAO.create(resourceId, data, UUID.fromString(keycloakResource.getId()), name, parent, slug, type, creatorId, creatorId);
+    return resourceDAO.create(resourceId, orderNumber, data, UUID.fromString(keycloakResource.getId()), name, parent, slug, type, creatorId, creatorId);
   }
   
   /**
@@ -120,6 +120,7 @@ public class ResourceController {
    * Update resource
    *
    * @param resource resource
+   * @param orderNumber orderNumber
    * @param data data
    * @param name name
    * @param parent parent
@@ -128,12 +129,14 @@ public class ResourceController {
    * @param lastModifierId last modifier id
    * @return updated resource
    */
-  public Resource updateResource(Resource resource, String data, String name, Resource parent, String slug, ResourceType type, UUID lastModifierId) {
+  public Resource updateResource(Resource resource, Integer orderNumber, String data, String name, Resource parent, String slug, ResourceType type, UUID lastModifierId) {
     resourceDAO.updateData(resource, data, lastModifierId);
     resourceDAO.updateName(resource, name, lastModifierId);
     resourceDAO.updateParent(resource, parent, lastModifierId);
     resourceDAO.updateSlug(resource, slug, lastModifierId);
     resourceDAO.updateType(resource, type, lastModifierId);
+    resourceDAO.updateOrderNumber(resource, orderNumber, lastModifierId);
+    
     return resource;
   }
 

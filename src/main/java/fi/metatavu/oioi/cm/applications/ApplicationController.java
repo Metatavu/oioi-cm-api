@@ -41,7 +41,7 @@ public class ApplicationController {
    */
   public Application createApplication(AuthzClient authzClient, fi.metatavu.oioi.cm.persistence.model.Customer customer, fi.metatavu.oioi.cm.persistence.model.Device device, String name, UUID creatorId) {
     UUID applicationId = UUID.randomUUID();
-    Resource rootResource = resourceController.createResource(authzClient, customer, device, applicationId, null, null, name, "[root]", ResourceType.ROOT, creatorId);
+    Resource rootResource = resourceController.createResource(authzClient, customer, device, applicationId, 0, null, null, name, "[root]", ResourceType.ROOT, creatorId);
     return applicationDAO.create(applicationId, name, rootResource, device, creatorId, creatorId);
   }
 

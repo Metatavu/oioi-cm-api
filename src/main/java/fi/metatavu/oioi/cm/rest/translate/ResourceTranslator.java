@@ -29,6 +29,7 @@ public class ResourceTranslator extends AbstractTranslator<fi.metatavu.oioi.cm.p
     result.setId(entity.getId());
     result.setData(entity.getData());
     result.setName(entity.getName());
+    result.setOrderNumber(entity.getOrderNumber());    
     result.setParentId(entity.getParent() != null ? entity.getParent().getId() : null);
     result.setSlug(entity.getSlug());
     result.setType(entity.getType());

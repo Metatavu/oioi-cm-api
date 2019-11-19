@@ -390,9 +390,10 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
     String data = payload.getData();
     String name = payload.getName();
     String slug = payload.getSlug();
-    fi.metatavu.oioi.cm.model.ResourceType type = payload.getType();
+    Integer orderNumber = payload.getOrderNumber();    
+    fi.metatavu.oioi.cm.model.ResourceType type = payload.getType();         
     
-    return createOk(resourceTranslator.translate(resourceController.createResource(getAuthzClient(), customer, device, application, parent, data, name, slug, type, payload.getProperties(), payload.getStyles(), loggerUserId)));
+    return createOk(resourceTranslator.translate(resourceController.createResource(getAuthzClient(), customer, device, application, orderNumber, parent, data, name, slug, type, payload.getProperties(), payload.getStyles(), loggerUserId)));
   }
 
   @Override
@@ -513,11 +514,12 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
     String name = payload.getName();
     String slug = payload.getSlug();
     fi.metatavu.oioi.cm.model.ResourceType type = payload.getType();
+    Integer orderNumber = payload.getOrderNumber();
     
     resourceController.setResourceProperties(resource, payload.getProperties(), loggerUserId);
     resourceController.setResourceStyles(resource, payload.getStyles(), loggerUserId);
     
-    return createOk(resourceTranslator.translate(resourceController.updateResource(resource, data, name, parent, slug, type, loggerUserId)));
+    return createOk(resourceTranslator.translate(resourceController.updateResource(resource, orderNumber, data, name, parent, slug, type, loggerUserId)));
   }
 
   @Override

@@ -30,7 +30,7 @@ public class ResourceTestsIT extends AbstractFunctionalTest {
       Customer customer = builder.admin().customers().create();
       Device device = builder.admin().devices().create(customer);
       Application application = builder.admin().applications().create(customer, device);
-      assertNotNull(builder.admin().resources().create(customer, device, application, application.getRootResourceId(), "data", "name", "slug", ResourceType.MENU));
+      assertNotNull(builder.admin().resources().create(customer, device, application, 0, application.getRootResourceId(), "data", "name", "slug", ResourceType.MENU));
     }
   }
   
@@ -41,7 +41,7 @@ public class ResourceTestsIT extends AbstractFunctionalTest {
       Device device = builder.admin().devices().create(customer);
       Application application = builder.admin().applications().create(customer, device);      
       
-      Resource createdResource = builder.admin().resources().create(customer, device, application, application.getRootResourceId(), "data", "name", "slug", ResourceType.MENU);
+      Resource createdResource = builder.admin().resources().create(customer, device, application, 1, application.getRootResourceId(), "data", "name", "slug", ResourceType.MENU);
       
       builder.admin().resources().assertFindFailStatus(404, customer, device, application, UUID.randomUUID());
       builder.admin().resources().assertFindFailStatus(404, UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID());
@@ -60,11 +60,17 @@ public class ResourceTestsIT extends AbstractFunctionalTest {
       Device device = builder.admin().devices().create(customer);
       Application application = builder.admin().applications().create(customer, device);
 
-      Resource createdResource = builder.admin().resources().create(customer, device, application, application.getRootResourceId(), "data", "name", "slug", ResourceType.MENU);
+      Resource createdResource1 = builder.admin().resources().create(customer, device, application, 3, application.getRootResourceId(), "data", "name", "slug", ResourceType.MENU);
+      Resource createdResource2 = builder.admin().resources().create(customer, device, application, 1, application.getRootResourceId(), "data", "name", "slug", ResourceType.MENU);
+      Resource createdResource3 = builder.admin().resources().create(customer, device, application, 2, application.getRootResourceId(), "data", "name", "slug", ResourceType.MENU);
+      
       Resource rootResource = builder.admin().resources().findResource(customer, device, application, application.getRootResourceId());
       List<Resource> foundResources = builder.admin().resources().listResources(customer, device, application, rootResource);
-      assertEquals(1, foundResources.size());
-      builder.admin().resources().assertResourcesEqual(createdResource, foundResources.get(0));
+      assertEquals(3, foundResources.size());
+      
+      builder.admin().resources().assertResourcesEqual(createdResource2, foundResources.get(0));
+      builder.admin().resources().assertResourcesEqual(createdResource3, foundResources.get(1));
+      builder.admin().resources().assertResourcesEqual(createdResource1, foundResources.get(2));
     }
   }
   
@@ -76,7 +82,7 @@ public class ResourceTestsIT extends AbstractFunctionalTest {
       Application application = builder.admin().applications().create(customer, device);
 
       Resource createdResource = builder.admin().resources().create(customer, 
-          device, application, application.getRootResourceId(), "data", "name", "slug", ResourceType.MENU,
+          device, application, 0, application.getRootResourceId(), "data", "name", "slug", ResourceType.MENU,
           Arrays.asList(getKeyValue("prop-1", "value"), getKeyValue("prop-2", "value-2")),
           Arrays.asList(getKeyValue("style-1", "value"), getKeyValue("style-2", "value-2")));
   
@@ -102,7 +108,7 @@ public class ResourceTestsIT extends AbstractFunctionalTest {
       Customer customer = builder.admin().customers().create();
       Device device = builder.admin().devices().create(customer);
       Application application = builder.admin().applications().create(customer, device);
-      Resource createdResource = builder.admin().resources().create(customer, device, application, application.getRootResourceId(), "data", "name", "slug", ResourceType.MENU);
+      Resource createdResource = builder.admin().resources().create(customer, device, application, 0, application.getRootResourceId(), "data", "name", "slug", ResourceType.MENU);
       Resource foundResource = builder.admin().resources().findResource(customer, device, application, createdResource.getId());
       assertEquals(createdResource.getId(), foundResource.getId());
       builder.admin().resources().delete(customer, device, application, createdResource);
