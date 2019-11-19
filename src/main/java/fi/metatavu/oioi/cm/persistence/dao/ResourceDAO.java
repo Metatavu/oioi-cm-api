@@ -36,6 +36,7 @@ public class ResourceDAO extends AbstractDAO<Resource> {
    * @param lastModifierId last modifier's id
    * @return created resource
    */
+  @SuppressWarnings ("squid:S00107")
   public Resource create(UUID id, Integer orderNumber, String data, UUID keycloakResorceId, String name, Resource parent, String slug, ResourceType type, UUID creatorId, UUID lastModifierId) {
     Resource resource = new Resource();
     resource.setData(data);

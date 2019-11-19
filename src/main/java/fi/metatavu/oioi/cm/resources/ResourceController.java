@@ -129,6 +129,7 @@ public class ResourceController {
    * @param lastModifierId last modifier id
    * @return updated resource
    */
+  @SuppressWarnings ("squid:S00107")
   public Resource updateResource(Resource resource, Integer orderNumber, String data, String name, Resource parent, String slug, ResourceType type, UUID lastModifierId) {
     resourceDAO.updateData(resource, data, lastModifierId);
     resourceDAO.updateName(resource, name, lastModifierId);
