@@ -6,7 +6,6 @@ import static org.junit.Assert.assertNotNull;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Arrays;
 import java.util.UUID;
 
@@ -14,20 +13,17 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.Test;
 import org.openapitools.client.model.Application;
 import org.openapitools.client.model.Customer;
 import org.openapitools.client.model.Device;
+import org.openapitools.client.model.Resource;
 import org.openapitools.client.model.ResourceType;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import fi.metatavu.oioi.cm.files.OutputFile;
 import fi.metatavu.oioi.cm.test.functional.builder.TestBuilder;
 import fi.metatavu.oioi.cm.wall.WallResource;
 
@@ -47,8 +43,26 @@ public class WallExportTestsIT extends AbstractFunctionalTest {
       Application application = builder.admin().applications().create(customer, device);
       
       
-      builder.admin().resources().create(customer, device, application, application.getRootResourceId(), null, "fi", "fi", ResourceType.LANGUAGE, Arrays.asList(getKeyValue("description", "Finnish language page")), Arrays.asList(getKeyValue("background", "#fff"), getKeyValue("color", "#00f")));
-     
+      Resource langFi = builder.admin().resources().create(customer, device, application, application.getRootResourceId(), null, "fi", "fi", ResourceType.LANGUAGE, Arrays.asList(getKeyValue("description", "Finnish language page")), Arrays.asList(getKeyValue("background", "#fff"), getKeyValue("color", "#00f")));
+      
+      Resource intro = builder.admin().resources().create(customer, device, application, langFi.getId(), null, "Intro", "intro", ResourceType.INTRO);      
+      Resource introSlide = builder.admin().resources().create(customer, device, application, intro.getId(), null, "Intro slideshow", "slideshow", ResourceType.SLIDESHOW);
+      Resource introPage1 = builder.admin().resources().create(customer, device, application, introSlide.getId(), null, "Intro slideshow page 1", "page-1", ResourceType.PAGE);
+      builder.admin().resources().create(customer, device, application, introPage1.getId(), "https://oioi-static.metatavu.io/0f57bd21-7bb1-4308-bf52-0ab6d40bd88e/0f57bd21-7bb1-4308-bf52-0ab6d40bd88e", "Intro PDF", "pdf", ResourceType.PDF);
+      Resource introPage2 = builder.admin().resources().create(customer, device, application, introSlide.getId(), null, "Intro slideshow page 1", "page-2", ResourceType.PAGE);
+      builder.admin().resources().create(customer, device, application, introPage2.getId(), "https://oioi-static.metatavu.io/0f57bd21-7bb1-4308-bf52-0ab6d40bd88e/bc55c04e-1d9e-4e71-a384-d1621c90162a", "Intro Image", "image", ResourceType.IMAGE);
+      builder.admin().resources().create(customer, device, application, introPage2.getId(), "Heippa maailma", "Intro text", "text", ResourceType.TEXT);
+      
+      Resource menu = builder.admin().resources().create(customer, device, application, langFi.getId(), null, "Main Menu", "mainmenu", ResourceType.MENU);
+      
+      Resource menuPage1 = builder.admin().resources().create(customer, device, application, menu.getId(), null, "Menu Page 1", "page-1", ResourceType.PAGE);
+      builder.admin().resources().create(customer, device, application, menuPage1.getId(), "https://oioi-static.metatavu.io/0f57bd21-7bb1-4308-bf52-0ab6d40bd88e/71b700d7-1264-43f9-9686-a137780cef4b", "Video", "video", ResourceType.VIDEO);
+      
+      
+      Resource menuPage2 = builder.admin().resources().create(customer, device, application, menu.getId(), null, "Menu Page 2", "page-2", ResourceType.PAGE);
+      builder.admin().resources().create(customer, device, application, menuPage2.getId(), "https://oioi-static.metatavu.io/0f57bd21-7bb1-4308-bf52-0ab6d40bd88e/71b700d7-1264-43f9-9686-a137780cef4b", "Video", "video", ResourceType.VIDEO);
+      builder.admin().resources().create(customer, device, application, menuPage2.getId(), "Heippa taas", "Video text", "text", ResourceType.TEXT);
+      
       File testOut = new File("/tmp/wall.json");
       
       try (FileOutputStream fileOutputStream = new FileOutputStream(testOut)) {     

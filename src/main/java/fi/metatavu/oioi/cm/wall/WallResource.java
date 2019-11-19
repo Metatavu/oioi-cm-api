@@ -1,10 +1,13 @@
 package fi.metatavu.oioi.cm.wall;
 
+import java.util.List;
 import java.util.Map;
 
 import fi.metatavu.oioi.cm.model.ResourceType;
 
 public class WallResource {
+  
+  private String slug;
 
   private ResourceType type;
 
@@ -12,7 +15,7 @@ public class WallResource {
 
   private String data;
 
-  private Map<String, WallResource> children;
+  private List<WallResource> children;
 
   private Map<String, String> styles;
 
@@ -22,15 +25,24 @@ public class WallResource {
     // Empty
   }
 
-  public WallResource(ResourceType type, String name, String data, Map<String, WallResource> children, Map<String, String> styles,
+  public WallResource(String slug, ResourceType type, String name, String data, List<WallResource> children, Map<String, String> styles,
       Map<String, String> properties) {
     super();
+    this.slug = slug;
     this.type = type;
     this.name = name;
     this.data = data;
     this.children = children;
     this.styles = styles;
     this.properties = properties;
+  }
+  
+  public String getSlug() {
+    return slug;
+  }
+  
+  public void setSlug(String slug) {
+    this.slug = slug;
   }
 
   public ResourceType getType() {
@@ -56,12 +68,12 @@ public class WallResource {
   public void setData(String data) {
     this.data = data;
   }
-
-  public Map<String, WallResource> getChildren() {
+  
+  public List<WallResource> getChildren() {
     return children;
   }
-
-  public void setChildren(Map<String, WallResource> children) {
+  
+  public void setChildren(List<WallResource> children) {
     this.children = children;
   }
 

@@ -1,6 +1,5 @@
 package fi.metatavu.oioi.cm.rest.translate;
 
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -30,7 +29,8 @@ public class WallResourceTranslator extends AbstractTranslator<fi.metatavu.oioi.
     }
 
     WallResource result = new WallResource();
-    result.setChildren(getChildren(resourceController.listResourcesByParent(entity)));
+    result.setSlug(entity.getSlug());
+    result.setChildren(translate(resourceController.listResourcesByParent(entity)));
     result.setData(entity.getData());
     result.setName(entity.getName());
     result.setProperties(getProperties(entity));
@@ -38,10 +38,6 @@ public class WallResourceTranslator extends AbstractTranslator<fi.metatavu.oioi.
     result.setType(entity.getType());
     
     return result;
-  }
-
-  private Map<String, WallResource> getChildren(List<Resource> children) {
-    return children.stream().collect(Collectors.toMap(Resource::getSlug, this::translate));
   }
 
   /**
