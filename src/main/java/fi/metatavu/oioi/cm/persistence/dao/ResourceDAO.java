@@ -2,6 +2,7 @@ package fi.metatavu.oioi.cm.persistence.dao;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
@@ -24,6 +25,7 @@ public class ResourceDAO extends AbstractDAO<Resource> {
    * Creates new Resource
    * 
    * @param id id
+   * @param orderNumber orderNumber
    * @param data data
    * @param keycloakResorceId keycloakResorceId
    * @param name name
@@ -34,11 +36,13 @@ public class ResourceDAO extends AbstractDAO<Resource> {
    * @param lastModifierId last modifier's id
    * @return created resource
    */
-  public Resource create(UUID id, String data, UUID keycloakResorceId, String name, Resource parent, String slug, ResourceType type, UUID creatorId, UUID lastModifierId) {
+  @SuppressWarnings ("squid:S00107")
+  public Resource create(UUID id, Integer orderNumber, String data, UUID keycloakResorceId, String name, Resource parent, String slug, ResourceType type, UUID creatorId, UUID lastModifierId) {
     Resource resource = new Resource();
     resource.setData(data);
     resource.setKeycloakResorceId(keycloakResorceId);
     resource.setName(name);
+    resource.setOrderNumber(orderNumber);
     resource.setParent(parent);
     resource.setSlug(slug);
     resource.setType(type);
@@ -63,8 +67,24 @@ public class ResourceDAO extends AbstractDAO<Resource> {
 
     criteria.select(root);
     criteria.where(criteriaBuilder.equal(root.get(Resource_.parent), parent));
+    criteria.orderBy(criteriaBuilder.asc(root.get(Resource_.orderNumber)));
     
-    return entityManager.createQuery(criteria).getResultList();
+    TypedQuery<Resource> query = entityManager.createQuery(criteria);
+    
+    return query.getResultList();
+  }
+
+  /**
+   * Updates order number
+   *
+   * @param orderNumber order number
+   * @param lastModifierId last modifier's id
+   * @return updated resource
+   */
+  public Resource updateOrderNumber(Resource resource, Integer orderNumber, UUID lastModifierId) {
+    resource.setLastModifierId(lastModifierId);
+    resource.setOrderNumber(orderNumber);
+    return persist(resource);
   }
 
   /**

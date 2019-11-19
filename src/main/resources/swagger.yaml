@@ -1398,6 +1398,8 @@ components:
           description: Resource parent id.
           type: string
           format: uuid
+        orderNumber:
+          type: integer
         type:
           $ref: '#/components/schemas/ResourceType'
         styles:
