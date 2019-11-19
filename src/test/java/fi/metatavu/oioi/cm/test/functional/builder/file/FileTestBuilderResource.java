@@ -38,11 +38,12 @@ public class FileTestBuilderResource implements TestBuilderResource<OutputFile> 
   /**
    * Uploads resource into file store
    * 
+   * @param folder folder
    * @param resourceName resource name
    * @return upload response
    * @throws IOException thrown on upload failure
    */
-  public OutputFile upload(String resourceName, String contentType) throws IOException {
+  public OutputFile upload(String folder, String resourceName, String contentType) throws IOException {
     ClassLoader classLoader = getClass().getClassLoader();
     
     try (InputStream fileStream = classLoader.getResourceAsStream(resourceName)) {
@@ -52,6 +53,7 @@ public class FileTestBuilderResource implements TestBuilderResource<OutputFile> 
         MultipartEntityBuilder multipartEntityBuilder = MultipartEntityBuilder.create();
         
         multipartEntityBuilder.addBinaryBody("file", fileStream, ContentType.create(contentType), resourceName);
+        multipartEntityBuilder.addTextBody("folder", folder);
         
         post.setEntity(multipartEntityBuilder.build());
         HttpResponse response = client.execute(post);

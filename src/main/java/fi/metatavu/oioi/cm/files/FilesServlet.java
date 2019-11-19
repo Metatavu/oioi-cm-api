@@ -51,12 +51,13 @@ public class FilesServlet extends HttpServlet {
         return;
       }
       
+      String folder = req.getParameter("folder");      
       setCorsHeaders(resp);
       String contentType = file.getContentType();
       String fileName = file.getSubmittedFileName();
       InputStream inputStream = file.getInputStream();
       
-      try (InputFile inputFile = new InputFile(new FileMeta(contentType, fileName), inputStream)) {
+      try (InputFile inputFile = new InputFile(folder, new FileMeta(contentType, fileName), inputStream)) {
         OutputFile outputFile = fileController.storeFile(inputFile);
   
         resp.setContentType("application/json");

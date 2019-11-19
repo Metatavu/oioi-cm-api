@@ -43,7 +43,12 @@ public class LocalFileStorageProvider implements FileStorageProvider {
 
   @Override
   public OutputFile store(InputFile inputFile) throws FileStorageException {
-    File file = new File(folder, UUID.randomUUID().toString());
+    File parent = new File(folder, inputFile.getFolder());
+    if (!parent.exists()) {
+      parent.mkdirs();
+    }
+    
+    File file = new File(parent, UUID.randomUUID().toString());
     
     try (FileOutputStream fileStream = new FileOutputStream(file)) {
       IOUtils.copy(inputFile.getData(), fileStream);
