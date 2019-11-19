@@ -77,7 +77,7 @@ public class S3FileStorageProvider implements FileStorageProvider {
 
       try (FileInputStream fileInputStream = new FileInputStream(tempFile.toFile())) {
         client.putObject(new PutObjectRequest(bucket, String.format("%s/%s", folder, key), fileInputStream, objectMeta).withCannedAcl(CannedAccessControlList.PublicRead));
-        return new OutputFile(meta, URI.create(String.format("%s/%s/%s", folder, key)));
+        return new OutputFile(meta, URI.create(String.format("%s/%s/%s", prefix, folder, key)));
       } catch (SdkClientException e) {
         throw new FileStorageException(e);
       }
