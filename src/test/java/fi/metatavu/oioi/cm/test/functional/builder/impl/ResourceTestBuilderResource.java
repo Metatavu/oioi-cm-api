@@ -50,6 +50,7 @@ public class ResourceTestBuilderResource extends AbstractApiTestBuilderResource<
    * @param customer customer
    * @param device device
    * @param application application
+   * @param orderNumber order
    * @param parentId parentId
    * @param data data
    * @param name name
@@ -58,8 +59,8 @@ public class ResourceTestBuilderResource extends AbstractApiTestBuilderResource<
    * @return created resource
    * @throws ApiException 
    */
-  public Resource create(Customer customer, Device device, Application application, UUID parentId, String data, String name, String slug, ResourceType type) throws ApiException {
-    return create(customer, device, application, parentId, data, name, slug, type, Collections.emptyList(), Collections.emptyList());
+  public Resource create(Customer customer, Device device, Application application, Integer orderNumber, UUID parentId, String data, String name, String slug, ResourceType type) throws ApiException {
+    return create(customer, device, application, orderNumber, parentId, data, name, slug, type, Collections.emptyList(), Collections.emptyList());
   }
   
   /**
@@ -68,6 +69,7 @@ public class ResourceTestBuilderResource extends AbstractApiTestBuilderResource<
    * @param customer customer
    * @param device device
    * @param application application
+   * @param orderNumber order
    * @param parentId parentId
    * @param data data
    * @param name name
@@ -78,7 +80,7 @@ public class ResourceTestBuilderResource extends AbstractApiTestBuilderResource<
    * @return created resource
    * @throws ApiException 
    */
-  public Resource create(Customer customer, Device device, Application application, UUID parentId, String data, String name, String slug, ResourceType type, List<KeyValueProperty> properties, List<KeyValueProperty> styles) throws ApiException {
+  public Resource create(Customer customer, Device device, Application application, Integer orderNumber, UUID parentId, String data, String name, String slug, ResourceType type, List<KeyValueProperty> properties, List<KeyValueProperty> styles) throws ApiException {
     Resource resource = new Resource();
     resource.setData(data);
     resource.setName(name);
@@ -87,6 +89,7 @@ public class ResourceTestBuilderResource extends AbstractApiTestBuilderResource<
     resource.setStyles(styles);
     resource.setType(type);
     resource.setParentId(parentId);
+    resource.setOrderNumber(orderNumber);
     
     Resource result = getApi().createResource(customer.getId(), device.getId(), application.getId(), resource);
     
@@ -194,13 +197,20 @@ public class ResourceTestBuilderResource extends AbstractApiTestBuilderResource<
    * 
    * @param expectedStatus expected status code
    * @param customer customer
+   * @param device device
+   * @param application application
+   * @param orderNumber order
+   * @param parentId parentId
+   * @param data data
    * @param name name
-   * @param apiKey API key
-   * @param metas metas
+   * @param slug slug
+   * @param type type
+   * @param properties properties
+   * @param styles styles
    */
-  public void assertCreateFailStatus(int expectedStatus, Customer customer, Device device, Application application, UUID parentId, String data, String name, String slug, ResourceType type, List<KeyValueProperty> properties, List<KeyValueProperty> styles) {
+  public void assertCreateFailStatus(int expectedStatus, Customer customer, Device device, Application application, Integer orderNumber, UUID parentId, String data, String name, String slug, ResourceType type, List<KeyValueProperty> properties, List<KeyValueProperty> styles) {
     try {
-      create(customer, device, application, parentId, data, name, slug, type, properties, styles);
+      create(customer, device, application, orderNumber, parentId, data, name, slug, type, properties, styles);
       fail(String.format("Expected create to fail with status %d", expectedStatus));
     } catch (ApiException e) {
       assertEquals(expectedStatus, e.getCode());

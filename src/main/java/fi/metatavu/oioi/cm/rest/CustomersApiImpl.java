@@ -15,6 +15,7 @@ import fi.metatavu.oioi.cm.CustomersApi;
 import fi.metatavu.oioi.cm.applications.ApplicationController;
 import fi.metatavu.oioi.cm.customers.CustomerController;
 import fi.metatavu.oioi.cm.devices.DeviceController;
+import fi.metatavu.oioi.cm.medias.MediaController;
 import fi.metatavu.oioi.cm.model.Application;
 import fi.metatavu.oioi.cm.model.Customer;
 import fi.metatavu.oioi.cm.model.Device;
@@ -25,6 +26,7 @@ import fi.metatavu.oioi.cm.resources.ResourceController;
 import fi.metatavu.oioi.cm.rest.translate.ApplicationTranslator;
 import fi.metatavu.oioi.cm.rest.translate.CustomerTranslator;
 import fi.metatavu.oioi.cm.rest.translate.DeviceTranslator;
+import fi.metatavu.oioi.cm.rest.translate.MediaTranslator;
 import fi.metatavu.oioi.cm.rest.translate.ResourceTranslator;
 
 /**
@@ -64,7 +66,13 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
 
   @Inject
   private ResourceTranslator resourceTranslator;
-  
+
+  @Inject
+  private MediaController mediaController;
+
+  @Inject
+  private MediaTranslator mediaTranslator;
+
   /** APPLICATIONS */
 
   @Override
@@ -382,9 +390,10 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
     String data = payload.getData();
     String name = payload.getName();
     String slug = payload.getSlug();
-    fi.metatavu.oioi.cm.model.ResourceType type = payload.getType();
+    Integer orderNumber = payload.getOrderNumber();    
+    fi.metatavu.oioi.cm.model.ResourceType type = payload.getType();         
     
-    return createOk(resourceTranslator.translate(resourceController.createResource(getAuthzClient(), customer, device, application, parent, data, name, slug, type, payload.getProperties(), payload.getStyles(), loggerUserId)));
+    return createOk(resourceTranslator.translate(resourceController.createResource(getAuthzClient(), customer, device, application, orderNumber, parent, data, name, slug, type, payload.getProperties(), payload.getStyles(), loggerUserId)));
   }
 
   @Override
@@ -505,11 +514,12 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
     String name = payload.getName();
     String slug = payload.getSlug();
     fi.metatavu.oioi.cm.model.ResourceType type = payload.getType();
+    Integer orderNumber = payload.getOrderNumber();
     
     resourceController.setResourceProperties(resource, payload.getProperties(), loggerUserId);
     resourceController.setResourceStyles(resource, payload.getStyles(), loggerUserId);
     
-    return createOk(resourceTranslator.translate(resourceController.updateResource(resource, data, name, parent, slug, type, loggerUserId)));
+    return createOk(resourceTranslator.translate(resourceController.updateResource(resource, orderNumber, data, name, parent, slug, type, loggerUserId)));
   }
 
   @Override
@@ -555,31 +565,72 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
 
   @Override
   public Response createMedia(UUID customerId, @Valid Media media) {
-    // TODO Auto-generated method stub
-    return null;
+    UUID loggerUserId = getLoggerUserId();
+    
+    fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
+    if (customer == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    return createOk(mediaTranslator.translate(mediaController.createMedia(customer, media.getContentType(), media.getType(), media.getUrl(), loggerUserId)));
   }
 
   @Override
   public Response listMedias(UUID customerId, MediaType type) {
-    // TODO Auto-generated method stub
-    return null;
+    fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
+    if (customer == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    return createOk(mediaTranslator.translate(mediaController.listMedias(customer, type)));
   }
 
   @Override
   public Response findMedia(UUID customerId, UUID mediaId) {
-    // TODO Auto-generated method stub
-    return null;
+    fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
+    if (customer == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    fi.metatavu.oioi.cm.persistence.model.Media media = mediaController.findMediaById(mediaId);
+    if (media == null || !media.getCustomer().getId().equals(customer.getId())) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    return createOk(mediaTranslator.translate(media));
   }
 
   @Override
-  public Response updateMedia(UUID customerId, UUID mediaId, @Valid Media media) {
-    // TODO Auto-generated method stub
-    return null;
+  public Response updateMedia(UUID customerId, UUID mediaId, @Valid Media payload) {
+    UUID loggerUserId = getLoggerUserId();
+    
+    fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
+    if (customer == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    fi.metatavu.oioi.cm.persistence.model.Media media = mediaController.findMediaById(mediaId);
+    if (media == null || !media.getCustomer().getId().equals(customer.getId())) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    return createOk(mediaTranslator.translate(mediaController.updateMedia(media, payload.getContentType(), payload.getType(), payload.getUrl(), loggerUserId)));
   }
 
   @Override
   public Response deleteMedia(UUID customerId, UUID mediaId) {
-    // TODO Auto-generated method stub
-    return null;
+    fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
+    if (customer == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    fi.metatavu.oioi.cm.persistence.model.Media media = mediaController.findMediaById(mediaId);
+    if (media == null || !media.getCustomer().getId().equals(customer.getId())) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+    
+    mediaController.deleteMedia(media);
+    
+    return createNoContent();
   }
 }
