@@ -36,6 +36,7 @@ public class WallResourceTranslator extends AbstractTranslator<fi.metatavu.oioi.
     result.setProperties(getProperties(entity));
     result.setStyles(getStyles(entity));
     result.setType(entity.getType());
+    result.setModifiedAt(entity.getModifiedAt());
     
     return result;
   }

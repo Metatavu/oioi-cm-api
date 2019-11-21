@@ -15,7 +15,7 @@ import javax.ws.rs.core.Response;
 
 import fi.metatavu.oioi.cm.applications.ApplicationController;
 import fi.metatavu.oioi.cm.persistence.model.Application;
-import fi.metatavu.oioi.cm.rest.translate.WallResourceTranslator;
+import fi.metatavu.oioi.cm.rest.translate.WallApplicationTranslator;
 
 /**
  * System REST Services
@@ -33,7 +33,7 @@ public class WallRESTService {
   private ApplicationController applicationController;
 
   @Inject
-  private WallResourceTranslator wallResourceTranslator;
+  private WallApplicationTranslator wallApplicationTranslator;
   
   /**
    * Returns pong
@@ -49,7 +49,7 @@ public class WallRESTService {
       return Response.status(Response.Status.NOT_FOUND).build();
     }
     
-    return Response.ok(wallResourceTranslator.translate(application.getRootResource())).build();
+    return Response.ok(wallApplicationTranslator.translate(application)).build();
   }
   
 }
