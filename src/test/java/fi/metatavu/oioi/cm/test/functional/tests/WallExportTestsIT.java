@@ -72,22 +72,22 @@ public class WallExportTestsIT extends AbstractFunctionalTest {
       List<WallResource> exportRootChildren = exportWallApplication.getRoot().getChildren();
       
       assertEquals(1, exportRootChildren.size());
-      assertEquals(exportRootChildren.get(0).getSlug(), langFi.getSlug());
+      assertEquals(langFi.getSlug(), exportRootChildren.get(0).getSlug());
       
       WallResource exportIntro = exportRootChildren.get(0).getChildren().get(0);
-      assertEquals(exportIntro.getSlug(), intro.getSlug());
+      assertEquals(intro.getSlug(), exportIntro.getSlug());
       
       WallResource exportIntroSlide = exportIntro.getChildren().get(0);
-      assertEquals(exportIntroSlide.getSlug(), introSlide.getSlug());
+      assertEquals(introSlide.getSlug(), exportIntroSlide.getSlug());
       
       WallResource exportIntroPage2 = exportIntroSlide.getChildren().get(1);
-      assertEquals(exportIntroPage2.getSlug(), introPage2.getSlug());
+      assertEquals(introPage2.getSlug(), exportIntroPage2.getSlug());
       
       WallResource exportIntroPage2Image = exportIntroPage2.getChildren().get(0);
-      assertEquals(introPage2Image.getSlug(), exportIntroPage2Image.getSlug());
+      assertEquals(exportIntroPage2Image.getSlug(), introPage2Image.getSlug());
 
       WallResource exportIntroPage2Text = exportIntroPage2.getChildren().get(1);
-      assertEquals(introPage2Text.getSlug(), exportIntroPage2Text.getSlug());
+      assertEquals(exportIntroPage2Text.getSlug(), introPage2Text.getSlug());
     }
   }
   
