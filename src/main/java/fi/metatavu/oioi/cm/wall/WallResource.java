@@ -48,6 +48,7 @@ public class WallResource {
    * @param properties properties
    * @param modifiedAt modified at
    */
+  @SuppressWarnings ("squid:S00107")
   public WallResource(String slug, ResourceType type, String name, String data, List<WallResource> children, Map<String, String> styles,
       Map<String, String> properties, OffsetDateTime modifiedAt) {
     super();

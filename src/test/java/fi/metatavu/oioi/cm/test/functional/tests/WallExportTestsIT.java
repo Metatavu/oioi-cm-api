@@ -71,7 +71,7 @@ public class WallExportTestsIT extends AbstractFunctionalTest {
       
       List<WallResource> exportRootChildren = exportWallApplication.getRoot().getChildren();
       
-      assertEquals(exportRootChildren.size(), 1);
+      assertEquals(1, exportRootChildren.size());
       assertEquals(exportRootChildren.get(0).getSlug(), langFi.getSlug());
       
       WallResource exportIntro = exportRootChildren.get(0).getChildren().get(0);
