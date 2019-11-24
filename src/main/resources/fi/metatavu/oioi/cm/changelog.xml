@@ -233,20 +233,12 @@
     </addColumn>
   </changeSet>
 
-  <changeSet author="heikki.kurhinen" id="application-root-resource-allow-null">
-    <dropNotNullConstraint columnDataType="binary(16)" columnName="rootresource_id" tableName="application"/>
-  </changeSet>
-
   <changeSet author="heikki.kurhinen" id="application-name">
     <addColumn tableName="application">
       <column name="name" type="varchar(191)">
         <constraints nullable="false" />
       </column>
     </addColumn>
-  </changeSet>
-
-  <changeSet author="antti.leppa" id="application-root-resource">
-    <addNotNullConstraint columnDataType="binary(16)" columnName="rootresource_id" tableName="application"/>
   </changeSet>
 
   <changeSet author="antti.leppa" id="resource-data-nullable">
