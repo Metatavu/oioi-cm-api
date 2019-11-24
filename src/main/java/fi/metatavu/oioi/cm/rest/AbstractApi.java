@@ -1,12 +1,19 @@
 package fi.metatavu.oioi.cm.rest;
 
+import java.security.Principal;
 import java.util.Locale;
 import java.util.UUID;
 
+import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Response;
 
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
+import org.keycloak.KeycloakPrincipal;
+import org.keycloak.KeycloakSecurityContext;
+import org.keycloak.authorization.client.AuthzClient;
+import org.keycloak.authorization.client.ClientAuthorizationContext;
+import org.slf4j.Logger;
 
 import fi.metatavu.oioi.cm.model.ErrorResponse;
 
@@ -14,10 +21,16 @@ import fi.metatavu.oioi.cm.model.ErrorResponse;
  * Abstract base class for all API services
  * 
  * @author Antti Leppä
+ * @author Heikki Kurhinen
  */
 public abstract class AbstractApi {
   
   protected static final String NOT_FOUND_MESSAGE = "Not found";
+  protected static final String CUSTOMER_DEVICE_MISMATCH_MESSAGE = "Device does not belong to this customer";
+  protected static final String APPLICATION_DEVICE_MISMATCH_MESSAGE = "Application does not belong to this device";
+  
+  @Inject
+  private Logger logger;
   
   /**
    * Constructs ok response
@@ -30,6 +43,20 @@ public abstract class AbstractApi {
       .status(Response.Status.OK)
       .entity(entity)
       .build();
+  }
+
+  /**
+   * Constructs ok or not found response if entity is null
+   * 
+   * @param entity payload
+   * @return response
+   */
+  protected Response createOkOrNotFound(Object entity) {
+    if (entity == null) {
+      return createNotFound(NOT_FOUND_MESSAGE);
+    }
+
+    return createOk(entity);
   }
   
   /**
@@ -125,15 +152,13 @@ public abstract class AbstractApi {
    * @return logged user id
    */
   protected UUID getLoggerUserId() {
-    // TODO: Fix when authentication is enabled
-    return UUID.randomUUID();
-//    HttpServletRequest httpServletRequest = getHttpServletRequest();
-//    String remoteUser = httpServletRequest.getRemoteUser();
-//    if (remoteUser == null) {
-//      return null;
-//    }
-//    
-//    return UUID.fromString(remoteUser);
+    HttpServletRequest httpServletRequest = getHttpServletRequest();
+    String remoteUser = httpServletRequest.getRemoteUser();
+    if (remoteUser == null) {
+      return null;
+    }
+    
+    return UUID.fromString(remoteUser);
   }
   
   /**
@@ -153,5 +178,44 @@ public abstract class AbstractApi {
   protected HttpServletRequest getHttpServletRequest() {
     return ResteasyProviderFactory.getContextData(HttpServletRequest.class);
   }
+
+  /**
+   * Return Keycloak authorization client
+   */
+  protected AuthzClient getAuthzClient() {
+    ClientAuthorizationContext clientAuthorizationContext = getAuthorizationContext();
+    if (clientAuthorizationContext == null) {
+      logger.error("Failed to retrieve Keycloak authorization client");
+      return null;
+    }
+
+    return clientAuthorizationContext.getClient();
+  }
   
+  /**
+   * Return keycloak authorization client context or null if not available 
+   */
+  private ClientAuthorizationContext getAuthorizationContext() {
+    KeycloakSecurityContext keycloakSecurityContext = getKeycloakSecurityContext();
+    if (keycloakSecurityContext == null) {
+      logger.error("Failed to retrieve KeycloakSecurityContext");
+      return null;
+    }
+
+    return (ClientAuthorizationContext) keycloakSecurityContext.getAuthorizationContext();
+  }
+
+  /**
+   * Returns keycloak security context from request or null if not available
+   */
+  private KeycloakSecurityContext getKeycloakSecurityContext() {
+    HttpServletRequest request = getHttpServletRequest();
+    Principal userPrincipal = request.getUserPrincipal();
+    KeycloakPrincipal<?> kcPrincipal = (KeycloakPrincipal<?>) userPrincipal;
+    if (kcPrincipal == null) {
+      return null;
+    }
+    
+    return kcPrincipal.getKeycloakSecurityContext();
+  }
 }

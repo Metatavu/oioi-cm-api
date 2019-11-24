@@ -22,7 +22,7 @@ import io.restassured.specification.RequestSpecification;
  */
 public class DefaultAccessTokenProvider implements AccessTokenProvider {
   
-  private static final String AUTH_SERVER_URL = "http://localhost:8280";
+  private static final String AUTH_SERVER_URL = "http://test-oioi-cm-keycloak:8080";
   private static final int EXPIRE_SLACK = 30;
 
   private String realm;

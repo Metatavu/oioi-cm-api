@@ -220,10 +220,57 @@
     </createTable>
 
   </changeSet>
+
   <changeSet author="heikki.kurhinen" id="customer-image-url-allow-null">
-      <dropNotNullConstraint columnDataType="varchar(191)" columnName="imageurl" tableName="customer"/>
+    <dropNotNullConstraint columnDataType="varchar(191)" columnName="imageurl" tableName="customer"/>
   </changeSet>
 
+  <changeSet author="heikki.kurhinen" id="application-device-id">
+    <addColumn tableName="application">
+      <column name="device_id" type="binary(16)">
+        <constraints nullable="false" foreignKeyName="FK_APPLICATION_DEVICE_ID" referencedColumnNames="id" referencedTableName="device"/>
+      </column>
+    </addColumn>
+  </changeSet>
 
+  <changeSet author="heikki.kurhinen" id="application-root-resource-allow-null">
+    <dropNotNullConstraint columnDataType="binary(16)" columnName="rootresource_id" tableName="application"/>
+  </changeSet>
+
+  <changeSet author="heikki.kurhinen" id="application-name">
+    <addColumn tableName="application">
+      <column name="name" type="varchar(191)">
+        <constraints nullable="false" />
+      </column>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="antti.leppa" id="application-root-resource">
+    <addNotNullConstraint columnDataType="binary(16)" columnName="rootresource_id" tableName="application"/>
+  </changeSet>
+
+  <changeSet author="antti.leppa" id="resource-data-nullable">
+    <dropNotNullConstraint columnDataType="longtext" columnName="data" tableName="resource"/>
+  </changeSet>
+
+  <changeSet author="antti.leppa" id="resource-parent-nullable">
+    <dropNotNullConstraint columnDataType="binary(16)" columnName="parent_id" tableName="resource"/>
+  </changeSet>
   
+  <changeSet author="antti.leppa" id="media-customer">
+    <addColumn tableName="media">
+      <column name="customer_id" type="binary(16)">
+        <constraints nullable="false" foreignKeyName="FK_MEDIA_CUSTOMER_ID" referencedColumnNames="id" referencedTableName="customer"/>
+      </column>
+    </addColumn>
+  </changeSet>
+  
+  <changeSet author="antti.leppa" id="resource-ordernumber">
+    <addColumn tableName="resource">
+      <column name="ordernumber" type="integer" defaultValue="0">
+        <constraints nullable="false"/>
+      </column>
+    </addColumn>    
+  </changeSet>
+
 </databaseChangeLog>

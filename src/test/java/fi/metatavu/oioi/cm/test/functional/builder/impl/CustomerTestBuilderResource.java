@@ -13,7 +13,7 @@ import org.openapitools.client.model.Customer;
 
 import fi.metatavu.oioi.cm.client.ApiClient;
 import fi.metatavu.oioi.cm.client.ApiException;
-import fi.metatavu.oioi.cm.test.functional.builder.AbstractTestBuilderResource;
+import fi.metatavu.oioi.cm.test.functional.builder.AbstractApiTestBuilderResource;
 import fi.metatavu.oioi.cm.test.functional.builder.TestBuilder;
 
 /**
@@ -21,7 +21,7 @@ import fi.metatavu.oioi.cm.test.functional.builder.TestBuilder;
  * 
  * @author Antti Leppä
  */
-public class CustomerTestBuilderResource extends AbstractTestBuilderResource<Customer, CustomersApi> {
+public class CustomerTestBuilderResource extends AbstractApiTestBuilderResource<Customer, CustomersApi> {
   
   /**
    * Constructor

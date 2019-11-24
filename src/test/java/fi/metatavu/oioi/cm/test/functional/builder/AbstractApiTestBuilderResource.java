@@ -28,16 +28,16 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import fi.metatavu.oioi.cm.client.ApiClient;
 
 /**
- * Abstract base class for test builder resources
+ * Abstract base class for API test builder resources
  * 
  * @author Antti Leppä
  *
  * @param <T> type of resource
  * @param <A> type of API
  */
-public abstract class AbstractTestBuilderResource <T, A> implements TestBuilderResource <T> {
+public abstract class AbstractApiTestBuilderResource <T, A> implements TestBuilderResource <T> {
   
-  private static final Logger logger = LoggerFactory.getLogger(AbstractTestBuilderResource.class);
+  private static final Logger logger = LoggerFactory.getLogger(AbstractApiTestBuilderResource.class);
   private TestBuilder testBuilder;
   private ApiClient apiClient;
   
@@ -47,14 +47,14 @@ public abstract class AbstractTestBuilderResource <T, A> implements TestBuilderR
    * @param testBuilder testBuilder
    * @param apiClient API client
    */
-  public AbstractTestBuilderResource(TestBuilder testBuilder, ApiClient apiClient) {
+  public AbstractApiTestBuilderResource(TestBuilder testBuilder, ApiClient apiClient) {
     this.testBuilder = testBuilder;
     this.apiClient = apiClient;
   }
   
   @Override
   public T addClosable(T t) {
-    testBuilder.addClosable(new CloseableResource<T, A>(this, t));
+    testBuilder.addClosable(new CloseableApiResource<T, A>(this, t));
     return t;
   }
   

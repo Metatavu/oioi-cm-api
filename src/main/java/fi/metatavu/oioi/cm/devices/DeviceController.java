@@ -9,6 +9,9 @@ import java.util.stream.Collectors;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import org.keycloak.authorization.client.AuthzClient;
+
+import fi.metatavu.oioi.cm.applications.ApplicationController;
 import fi.metatavu.oioi.cm.model.KeyValueProperty;
 import fi.metatavu.oioi.cm.persistence.dao.DeviceDAO;
 import fi.metatavu.oioi.cm.persistence.dao.DeviceMetaDAO;
@@ -29,6 +32,9 @@ public class DeviceController {
 
   @Inject
   private DeviceMetaDAO deviceMetaDAO;
+
+  @Inject
+  private ApplicationController applicationController;
   
   /**
    * Create device
@@ -78,13 +84,15 @@ public class DeviceController {
     deviceDAO.updateName(device, name, lastModifierId);
     return device;
   }
- 
+
   /**
    * Delete device a device
    * 
    * @param device device
+   * @param authzClient authzClient
    */
-  public void deleteDevice(Device device) {
+  public void deleteDevice(AuthzClient authzClient, Device device) {
+    applicationController.listDeviceApplications(device).forEach(application -> applicationController.deleteApplication(authzClient, application));
     listMetas(device).forEach(this::deleteDeviceMeta);
     deviceDAO.delete(device);
   }

@@ -4,20 +4,34 @@ import java.io.IOException;
 
 import fi.metatavu.oioi.cm.client.ApiClient;
 import fi.metatavu.oioi.cm.test.functional.builder.TestBuilder;
+import fi.metatavu.oioi.cm.test.functional.builder.file.FileTestBuilderResource;
+import fi.metatavu.oioi.cm.test.functional.builder.impl.ApplicationTestBuilderResource;
 import fi.metatavu.oioi.cm.test.functional.builder.impl.CustomerTestBuilderResource;
 import fi.metatavu.oioi.cm.test.functional.builder.impl.DeviceTestBuilderResource;
+import fi.metatavu.oioi.cm.test.functional.builder.impl.MediaTestBuilderResource;
+import fi.metatavu.oioi.cm.test.functional.builder.impl.ResourceTestBuilderResource;
 
 /**
  * Abstract base class for all test builder authentication providers
  * 
  * @author Antti Leppä
+ * @author Heikki Kurhinen
  */
 public abstract class AbstractTestBuilderAuthentication {
 
   private TestBuilder testBuilder;
   private CustomerTestBuilderResource customers;
   private DeviceTestBuilderResource devices;
+  private FileTestBuilderResource files;
+  private ApplicationTestBuilderResource applications;
+  private ResourceTestBuilderResource resources;
+  private MediaTestBuilderResource medias;
   
+  /**
+   * Constructor
+   * 
+   * @param testBuilder test builder
+   */
   protected AbstractTestBuilderAuthentication(TestBuilder testBuilder) {
     this.testBuilder = testBuilder;
   }
@@ -49,7 +63,63 @@ public abstract class AbstractTestBuilderAuthentication {
     
     return new DeviceTestBuilderResource(testBuilder, createClient());
   }
+
+  /**
+   * Returns test builder resource for customers
+   * 
+   * @return test builder resource for customers
+   * @throws IOException thrown when authentication fails
+   */
+  public MediaTestBuilderResource medias() throws IOException {
+    if (medias != null) {
+      return medias;
+    }
+    
+    return new MediaTestBuilderResource(testBuilder, createClient());
+  }
+
+  /**
+   * Returns test builder resource for files
+   * 
+   * @return test builder resource for files
+   * @throws IOException thrown when authentication fails
+   */
+  public FileTestBuilderResource files() throws IOException {
+    if (files != null) {
+      return files;
+    }
+    
+    return new FileTestBuilderResource(testBuilder);
+  }
   
+  /**
+   * Returns test builder resource for applications
+   * 
+   * @return test builder resource for applications
+   * @throws IOException thrown when authentication fails
+   */
+  public ApplicationTestBuilderResource applications() throws IOException {
+    if (applications != null) {
+      return applications;
+    }
+    
+    return new ApplicationTestBuilderResource(testBuilder, createClient());
+  }
+  
+  /**
+   * Returns test builder resource for resources
+   * 
+   * @return test builder resource for resources
+   * @throws IOException thrown when authentication fails
+   */
+  public ResourceTestBuilderResource resources() throws IOException {
+    if (resources != null) {
+      return resources;
+    }
+    
+    return new ResourceTestBuilderResource(testBuilder, createClient());
+  }
+
   /**
    * Creates an API client
    * 

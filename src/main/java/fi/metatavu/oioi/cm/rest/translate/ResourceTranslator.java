@@ -21,10 +21,15 @@ public class ResourceTranslator extends AbstractTranslator<fi.metatavu.oioi.cm.p
 
   @Override
   public fi.metatavu.oioi.cm.model.Resource translate(fi.metatavu.oioi.cm.persistence.model.Resource entity) {
+    if (entity == null) {
+      return null;
+    }
+
     fi.metatavu.oioi.cm.model.Resource result = new fi.metatavu.oioi.cm.model.Resource();    
     result.setId(entity.getId());
     result.setData(entity.getData());
     result.setName(entity.getName());
+    result.setOrderNumber(entity.getOrderNumber());    
     result.setParentId(entity.getParent() != null ? entity.getParent().getId() : null);
     result.setSlug(entity.getSlug());
     result.setType(entity.getType());

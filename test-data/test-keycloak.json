@@ -1,9 +1,0 @@
-{
-  "realm": "oioi",
-  "bearer-only": true,
-  "auth-server-url": "http://localhost:8280/auth",
-  "ssl-required": "external",
-  "resource": "api",
-  "confidential-port": 0,
-  "enable-cors" : true
-}

@@ -82,6 +82,10 @@
     
     <jsr305.version>3.0.2</jsr305.version>
     
+    <!-- AWS SDK -->
+    
+    <aws-java-sdk.version>1.11.673</aws-java-sdk.version>
+    
     <!-- OpenAPI -->
     
     <openapitools.jackson-databind-nullable.version>0.2.0</openapitools.jackson-databind-nullable.version>
@@ -108,6 +112,15 @@
           </exclusion>
         </exclusions>
       </dependency>
+      
+      <dependency>
+        <groupId>com.amazonaws</groupId>
+        <artifactId>aws-java-sdk-bom</artifactId>
+        <version>${aws-java-sdk.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+
     </dependencies>
   </dependencyManagement>
 
@@ -288,6 +301,13 @@
         </exclusion>
       </exclusions>
     </dependency>
+    
+    <dependency>
+      <groupId>org.keycloak</groupId>
+      <artifactId>keycloak-authz-client</artifactId>
+      <version>${keycloak.version}</version>
+      <scope>provided</scope>
+    </dependency>
   
     <dependency>
       <groupId>org.jboss.spec.javax.servlet</groupId>
@@ -457,6 +477,13 @@
       <version>${jsr305.version}</version>
     </dependency>
     
+    <!-- AWS -->
+    
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-s3</artifactId>
+    </dependency>
+    
     <!-- OpenAPI tools -->
     
     <dependency>
@@ -501,7 +528,7 @@
 
         <!-- Test properties -->
   
-        <it.port.http>8080</it.port.http>
+        <it.port.http>1234</it.port.http>
         <it.host>localhost</it.host>
       </properties>
       <build>
@@ -545,7 +572,7 @@
                       </bind>
                     </volumes>
                     <ports>
-                      <port>8280:8080</port>
+                      <port>8080:8080</port>
                     </ports>
                     <wait>
                       <log>Resuming server</log>
@@ -561,7 +588,7 @@
                   </build>
                   <run>
                     <ports>
-                      <port>8080:8080</port>
+                      <port>1234:8080</port>
                     </ports>
                     <links> 
                       <link>test-oioi-cm-mysql:test-oioi-cm-mysql</link>
@@ -575,7 +602,14 @@
                       <OIOI_CM_API_DB_USERNAME>root</OIOI_CM_API_DB_USERNAME>
                       <OIOI_CM_API_DB_PASSWORD>rootpass</OIOI_CM_API_DB_PASSWORD>
                       <KUBERNETES_NAMESPACE>test</KUBERNETES_NAMESPACE>
+                      <FILE_STORAGE_PROVIDER>LOCAL</FILE_STORAGE_PROVIDER>
+                      <LOCAL_FILE_STORAGE_PATH>${project.basedir}/test-volumes/uploads</LOCAL_FILE_STORAGE_PATH>
                     </env>
+                    <volumes>
+                      <bind>
+                        <volume>${project.basedir}/test-volumes/uploads:${project.basedir}/test-volumes/uploads</volume>
+                      </bind>
+                    </volumes>
                   </run>
                 </image>
               </images>
@@ -620,7 +654,7 @@
                 <configuration>
                   <protocol>http</protocol>
                   <host>localhost</host>
-                  <port>8080</port>
+                  <port>1234</port>
                   <file>/v1/system/ping</file>
                   <maxcount>20</maxcount>
                   <timeout>10000</timeout>
