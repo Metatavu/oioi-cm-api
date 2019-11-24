@@ -246,7 +246,9 @@
   </changeSet>
 
   <changeSet author="antti.leppa" id="resource-parent-nullable">
+    <dropForeignKeyConstraint baseTableName="resource" constraintName="FK_RESOURC_PARENT_ID"/>
     <dropNotNullConstraint columnDataType="binary(16)" columnName="parent_id" tableName="resource"/>
+    <addForeignKeyConstraint baseColumnNames="parent_id" baseTableName="resource" constraintName="FK_RESOURC_PARENT_ID" referencedColumnNames="id" referencedTableName="resource" />
   </changeSet>
   
   <changeSet author="antti.leppa" id="media-customer">
