@@ -41,6 +41,8 @@ public class Device {
   @NotEmpty
   private String apiKey;
   
+  private String imageUrl;
+  
   @Column (nullable = false)
   private OffsetDateTime createdAt;
 
@@ -105,6 +107,24 @@ public class Device {
    */
   public void setApiKey(String apiKey) {
     this.apiKey = apiKey;
+  }
+  
+  /**
+   * Returns an image URL
+   * 
+   * @return an image URL
+   */
+  public String getImageUrl() {
+    return imageUrl;
+  }
+  
+  /**
+   * Sets an image URL
+   * 
+   * @param imageUrl image URL
+   */
+  public void setImageUrl(String imageUrl) {
+    this.imageUrl = imageUrl;
   }
   
   /**

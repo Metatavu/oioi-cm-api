@@ -28,15 +28,18 @@ public class DeviceDAO extends AbstractDAO<Device> {
    * @param customer customer
    * @param apiKey apiKey
    * @param name name
+   * @param imageUrl image URL
    * @param creatorId creator's id
    * @param lastModifierId last modifier's id
+   * @param imageUrl 
    * @return created device
    */
-  public Device create(UUID id, Customer customer, String apiKey, String name, UUID creatorId, UUID lastModifierId) {
+  public Device create(UUID id, Customer customer, String apiKey, String name, String imageUrl, UUID creatorId, UUID lastModifierId) {
     Device device = new Device();
     device.setCustomer(customer);
     device.setApiKey(apiKey);
     device.setName(name);
+    device.setImageUrl(imageUrl);
     device.setId(id);
     device.setCreatorId(creatorId);
     device.setLastModifierId(lastModifierId);
@@ -98,6 +101,19 @@ public class DeviceDAO extends AbstractDAO<Device> {
   public Device updateName(Device device, String name, UUID lastModifierId) {
     device.setLastModifierId(lastModifierId);
     device.setName(name);
+    return persist(device);
+  }
+
+  /**
+   * Updates image URL
+   *
+   * @param imageUrl image URL
+   * @param lastModifierId last modifier's id
+   * @return updated device
+   */
+  public Device updateImageUrl(Device device, String imageUrl, UUID lastModifierId) {
+    device.setLastModifierId(lastModifierId);
+    device.setImageUrl(imageUrl);
     return persist(device);
   }
 

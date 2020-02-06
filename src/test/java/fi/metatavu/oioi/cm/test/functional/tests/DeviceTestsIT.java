@@ -25,7 +25,7 @@ public class DeviceTestsIT extends AbstractFunctionalTest {
   public void testDevice() throws Exception {
     try (TestBuilder builder = new TestBuilder()) {
       Customer customer = builder.admin().customers().create();
-      assertNotNull(builder.admin().devices().create(customer, "test customer", "api key", Arrays.asList(getKeyValue("key-1", "value-1"))));
+      assertNotNull(builder.admin().devices().create(customer, "test customer", "api key", "http://www.example.com/image.png", Arrays.asList(getKeyValue("key-1", "value-1"))));
     }
   }
   
@@ -60,23 +60,26 @@ public class DeviceTestsIT extends AbstractFunctionalTest {
   public void testUpdateDevice() throws Exception {
     try (TestBuilder builder = new TestBuilder()) {
       Customer customer = builder.admin().customers().create();
-      Device createdDevice = builder.admin().devices().create(customer, "test customer", "api key", Arrays.asList(getKeyValue("key-1", "value-1"), getKeyValue("key-2", "value-2")));
+      Device createdDevice = builder.admin().devices().create(customer, "test customer", "api key", "http://www.example.com/image.png", Arrays.asList(getKeyValue("key-1", "value-1"), getKeyValue("key-2", "value-2")));
 
       Device updateDevice = builder.admin().devices().findDevice(customer, createdDevice.getId());
       updateDevice.setName("updated customer");
       updateDevice.setApiKey("api key");
+      updateDevice.setImageUrl("http://www.example.com/updated.png");
       updateDevice.setMetas(Arrays.asList(getKeyValue("key-1", "value-1"), getKeyValue("key-3", "value-3")));
       
       Device updatedDevice = builder.admin().devices().updateDevice(customer, updateDevice);
       assertEquals(createdDevice.getId(), updatedDevice.getId());
       assertEquals(updateDevice.getName(), updatedDevice.getName());
       assertEquals(updateDevice.getApiKey(), updatedDevice.getApiKey());
+      assertEquals(updateDevice.getImageUrl(), updatedDevice.getImageUrl());
       builder.admin().devices().assertJsonsEqual(updateDevice.getMetas(), updatedDevice.getMetas());
       
       Device foundDevice = builder.admin().devices().findDevice(customer, createdDevice.getId());
       assertEquals(createdDevice.getId(), foundDevice.getId());
       assertEquals(updateDevice.getName(), foundDevice.getName());
       assertEquals(updateDevice.getApiKey(), foundDevice.getApiKey());
+      assertEquals(updateDevice.getImageUrl(), foundDevice.getImageUrl());
       builder.admin().devices().assertJsonsEqual(updateDevice.getMetas(), foundDevice.getMetas());
     }
   }
