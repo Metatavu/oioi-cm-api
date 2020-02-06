@@ -30,6 +30,7 @@ public class DeviceTranslator extends AbstractTranslator<fi.metatavu.oioi.cm.per
     result.setApiKey(entity.getApiKey());
     result.setName(entity.getName());
     result.setMetas(getMetas(entity));
+    result.setImageUrl(entity.getImageUrl());
     result.setCreatorId(entity.getCreatorId());
     result.setLastModifierId(entity.getLastModifierId());
     result.setCreatedAt(entity.getCreatedAt());

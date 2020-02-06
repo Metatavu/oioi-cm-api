@@ -269,8 +269,9 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
     
     String apiKey = payload.getApiKey();
     String name = payload.getName();
+    String imageUrl = payload.getImageUrl();
     
-    fi.metatavu.oioi.cm.persistence.model.Device device = deviceController.createDevice(customer, apiKey, name, loggerUserId);
+    fi.metatavu.oioi.cm.persistence.model.Device device = deviceController.createDevice(customer, apiKey, name, imageUrl, loggerUserId);
     deviceController.setDeviceMetas(device, payload.getMetas(), loggerUserId);
     
     return createOk(deviceTranslator.translate(device));
@@ -322,8 +323,12 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
     if (!device.getCustomer().getId().equals(customer.getId())) {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
+
+    String apiKey = payload.getApiKey();
+    String name = payload.getName();
+    String imageUrl = payload.getImageUrl();
     
-    deviceController.updateDevice(device, customer, payload.getApiKey(), payload.getName(), loggerUserId);
+    deviceController.updateDevice(device, customer, apiKey, name, imageUrl, loggerUserId);
     deviceController.setDeviceMetas(device, payload.getMetas(), loggerUserId);
     
     return createOk(deviceTranslator.translate(device));
