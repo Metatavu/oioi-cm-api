@@ -1,4 +1,4 @@
 embed-server --server-config=standalone-full-ha.xml
 
-/subsystem=logging/console-handler=HANDLER:write-attribute(name="level", value="${env.ROOT_LOGLEVEL}") 
+/subsystem=logging/console-handler=CONSOLE:write-attribute(name="level", value="${env.ROOT_LOGLEVEL}") 
 /subsystem=logging/root-logger=ROOT:write-attribute(name="level", value="${env.ROOT_LOGLEVEL}")
