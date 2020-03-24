@@ -49,7 +49,7 @@ public class DeviceTestBuilderResource extends AbstractApiTestBuilderResource<De
    * @throws ApiException 
    */
   public Device create(Customer customer) throws ApiException {
-    return create(customer, "default name", "api-key", Collections.emptyList());
+    return create(customer, "default name", "api-key", null, Collections.emptyList());
   }
   
   /**
@@ -58,14 +58,16 @@ public class DeviceTestBuilderResource extends AbstractApiTestBuilderResource<De
    * @param customer customer
    * @param name name
    * @param apiKey API key
+   * @param imageUrl image URL
    * @param metas metas
    * @return created device
    * @throws ApiException 
    */
-  public Device create(Customer customer, String name, String apiKey, List<KeyValueProperty> metas) throws ApiException {
+  public Device create(Customer customer, String name, String apiKey, String imageUrl, List<KeyValueProperty> metas) throws ApiException {
     Device device = new Device();
     device.setName(name);
     device.setApiKey(apiKey);
+    device.setImageUrl(imageUrl);
     device.setMetas(metas);
     Device result = getApi().createDevice(customer.getId(), device);
     customerDeviceIds.put(result.getId(), customer.getId());
@@ -171,11 +173,12 @@ public class DeviceTestBuilderResource extends AbstractApiTestBuilderResource<De
    * @param customer customer
    * @param name name
    * @param apiKey API key
+   * @param imageUrl image URL
    * @param metas metas
    */
-  public void assertCreateFailStatus(int expectedStatus, Customer customer, String name, String apiKey, List<KeyValueProperty> metas) {
+  public void assertCreateFailStatus(int expectedStatus, Customer customer, String name, String apiKey, String imageUrl, List<KeyValueProperty> metas) {
     try {
-      create(customer, name, apiKey, metas);
+      create(customer, name, apiKey, imageUrl, metas);
       fail(String.format("Expected create to fail with status %d", expectedStatus));
     } catch (ApiException e) {
       assertEquals(expectedStatus, e.getCode());

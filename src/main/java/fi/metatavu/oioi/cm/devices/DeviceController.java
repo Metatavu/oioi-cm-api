@@ -42,11 +42,12 @@ public class DeviceController {
    * @param customer customer
    * @param apiKey apiKey
    * @param name name
+   * @param imageUrl device image URL
    * @param creatorId creator id
    * @return created device
    */
-  public Device createDevice(Customer customer, String apiKey, String name, UUID creatorId) {
-    return deviceDAO.create(UUID.randomUUID(), customer, apiKey, name, creatorId, creatorId);
+  public Device createDevice(Customer customer, String apiKey, String name, String imageUrl, UUID creatorId) {
+    return deviceDAO.create(UUID.randomUUID(), customer, apiKey, name, imageUrl, creatorId, creatorId);
   }
   
   /**
@@ -78,10 +79,11 @@ public class DeviceController {
    * @param lastModifierId last modifier id
    * @return updated device
    */
-  public Device updateDevice(Device device, Customer customer, String apiKey, String name, UUID lastModifierId) {
+  public Device updateDevice(Device device, Customer customer, String apiKey, String name, String imageUrl, UUID lastModifierId) {
     deviceDAO.updateCustomer(device, customer, lastModifierId);
     deviceDAO.updateApiKey(device, apiKey, lastModifierId);
     deviceDAO.updateName(device, name, lastModifierId);
+    deviceDAO.updateImageUrl(device, imageUrl, lastModifierId);
     return device;
   }
 
