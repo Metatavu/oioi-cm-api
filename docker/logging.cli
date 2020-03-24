@@ -1,0 +1,3 @@
+embed-server --server-config=standalone-full-ha.xml
+
+/subsystem=logging/root-logger=ROOT:write-attribute(name="level", value="${env.ROOT_LOGLEVEL}")

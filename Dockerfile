@@ -7,6 +7,7 @@ ADD --chown=jboss ./docker/host.cli /opt/docker/host.cli
 ADD --chown=jboss ./docker/kubernets-jgroups.cli /opt/docker/kubernets-jgroups.cli
 ADD --chown=jboss ./docker/jdbc.cli /opt/docker/jdbc.cli
 ADD --chown=jboss ./docker/interfaces.cli /opt/docker/interfaces.cli
+ADD --chown=jboss ./docker/logging.cli /opt/docker/logging.cli
 RUN chmod a+x /opt/docker/entrypoint.sh
 
 ARG WILDFLY_VERSION=18.0.0.Final
@@ -20,6 +21,7 @@ RUN unzip -o /tmp/keycloak-module.zip -d /opt/jboss/wildfly/
 RUN unzip -o /tmp/mysql-module.zip -d /opt/jboss/wildfly/
 
 RUN /opt/jboss/wildfly/bin/jboss-cli.sh --file=/opt/docker/host.cli
+RUN /opt/jboss/wildfly/bin/jboss-cli.sh --file=/opt/docker/logging.cli
 RUN /opt/jboss/wildfly/bin/jboss-cli.sh --file=/opt/docker/jdbc.cli
 RUN /opt/jboss/wildfly/bin/jboss-cli.sh --file=/opt/docker/kubernets-jgroups.cli
 RUN /opt/jboss/wildfly/bin/jboss-cli.sh --file=/opt/docker/interfaces.cli
