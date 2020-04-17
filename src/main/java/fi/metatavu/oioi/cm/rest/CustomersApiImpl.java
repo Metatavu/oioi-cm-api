@@ -22,6 +22,7 @@ import fi.metatavu.oioi.cm.model.Device;
 import fi.metatavu.oioi.cm.model.Media;
 import fi.metatavu.oioi.cm.model.MediaType;
 import fi.metatavu.oioi.cm.model.Resource;
+import fi.metatavu.oioi.cm.model.ResourceType;
 import fi.metatavu.oioi.cm.resources.ResourceController;
 import fi.metatavu.oioi.cm.rest.translate.ApplicationTranslator;
 import fi.metatavu.oioi.cm.rest.translate.CustomerTranslator;
@@ -502,6 +503,10 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
     if (resource == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
+
+    if (resource.getId().equals(payload.getParentId())) {
+      return createBadRequest(INVALID_PARENT_ID);
+    }
     
     if (!resourceController.isApplicationResource(application, resource)) {
       return createNotFound(NOT_FOUND_MESSAGE);
@@ -509,7 +514,11 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
     
     UUID parentId = payload.getParentId();    
     fi.metatavu.oioi.cm.persistence.model.Resource parent = resourceController.findResourceById(parentId);
-    if (parent == null) {
+    if (resource.getType().equals(ResourceType.ROOT)) {
+      resourceController.setResourceProperties(resource, payload.getProperties(), loggerUserId);
+      resourceController.setResourceStyles(resource, payload.getStyles(), loggerUserId);
+      return createOk(resourceTranslator.translate(resource));
+    } else if (parent == null) {
       return createBadRequest(INVALID_PARENT_ID);
     }
     
