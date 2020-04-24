@@ -1,10 +1,13 @@
 package fi.metatavu.oioi.cm.rest.translate;
 
+import javax.enterprise.context.ApplicationScoped;
+
 /**
- * Translator for Media REST entity 
+ * Translator for Media REST entity
  * 
  * @author Antti Leppä
  */
+@ApplicationScoped
 public class MediaTranslator extends AbstractTranslator<fi.metatavu.oioi.cm.persistence.model.Media, fi.metatavu.oioi.cm.model.Media> {
 
   @Override

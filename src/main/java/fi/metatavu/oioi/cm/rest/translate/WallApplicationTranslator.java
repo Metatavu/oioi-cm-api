@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import fi.metatavu.oioi.cm.wall.WallApplication;
@@ -15,6 +16,7 @@ import fi.metatavu.oioi.cm.wall.WallResource;
  * 
  * @author Antti Leppä
  */
+@ApplicationScoped
 public class WallApplicationTranslator extends AbstractTranslator<fi.metatavu.oioi.cm.persistence.model.Application, WallApplication> {
   
   @Inject
