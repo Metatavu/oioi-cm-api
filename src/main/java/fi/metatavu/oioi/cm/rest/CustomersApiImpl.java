@@ -78,6 +78,11 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
 
   @Override
   public Response createApplication(UUID customerId, UUID deviceId, @Valid Application payload) {
+
+    if (hasRealmRole(ADMIN_ROLE)) {
+      return createForbidden(FORBIDDEN_MESSAGE);
+    }
+
     fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
     if (customer == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
@@ -105,6 +110,10 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
 
+    if (!isAdminOrHasCustomerGroup(customer.getName())) {
+      return createForbidden(FORBIDDEN_MESSAGE);
+    }
+
     fi.metatavu.oioi.cm.persistence.model.Device device = deviceController.findDeviceById(deviceId);
     if (device == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
@@ -122,6 +131,10 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
     fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
     if (customer == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
+    }
+
+    if (!isAdminOrHasCustomerGroup(customer.getName())) {
+      return createForbidden(FORBIDDEN_MESSAGE);
     }
 
     fi.metatavu.oioi.cm.persistence.model.Device device = deviceController.findDeviceById(deviceId);
@@ -152,6 +165,10 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
 
+    if (!isAdminOrHasCustomerGroup(customer.getName())) {
+      return createForbidden(FORBIDDEN_MESSAGE);
+    }
+
     fi.metatavu.oioi.cm.persistence.model.Device device = deviceController.findDeviceById(deviceId);
     if (device == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
@@ -179,6 +196,10 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
 
   @Override
   public Response deleteApplication(UUID customerId, UUID deviceId, UUID applicationId) {
+    if (hasRealmRole(ADMIN_ROLE)) {
+      return createForbidden(FORBIDDEN_MESSAGE);
+    }
+
     fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
     if (customer == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
@@ -211,6 +232,10 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
 
   @Override
   public Response createCustomer(@Valid Customer customer) {
+    if (hasRealmRole(ADMIN_ROLE)) {
+      return createForbidden(FORBIDDEN_MESSAGE);
+    }
+
     UUID loggerUserId = getLoggerUserId();
     fi.metatavu.oioi.cm.persistence.model.Customer result = customerController.createCustomer(customer.getImageUrl(), customer.getName(), loggerUserId);
     return createOk(customerTranslator.translate(result));
@@ -218,7 +243,11 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
 
   @Override
   public Response listCustomers() {
-    return createOk(customerController.listAllCustomers().stream().map(customerTranslator::translate).collect(Collectors.toList()));
+    if (hasRealmRole(ADMIN_ROLE)) {
+      return createOk(customerController.listAllCustomers().stream().map(customerTranslator::translate).collect(Collectors.toList()));
+    } else {
+      return createOk(customerController.listCustomersByNameIn(getLoggedUserGroups()).stream().map(customerTranslator::translate).collect(Collectors.toList()));
+    }
   }
 
   @Override
@@ -227,12 +256,20 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
     if (customer == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
-    
+
+    if (!isAdminOrHasCustomerGroup(customer.getName())) {
+      return createForbidden(FORBIDDEN_MESSAGE);
+    }
+
     return createOk(customerTranslator.translate(customer));
   }
 
   @Override
   public Response updateCustomer(UUID customerId, @Valid Customer payload) {
+    if (hasRealmRole(ADMIN_ROLE)) {
+      return createForbidden(FORBIDDEN_MESSAGE);
+    }
+
     UUID loggerUserId = getLoggerUserId();
     
     fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
@@ -247,6 +284,10 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
 
   @Override
   public Response deleteCustomer(UUID customerId) {
+    if (hasRealmRole(ADMIN_ROLE)) {
+      return createForbidden(FORBIDDEN_MESSAGE);
+    }
+
     fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
     if (customer == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
@@ -261,8 +302,11 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
 
   @Override
   public Response createDevice(UUID customerId, @Valid Device payload) {
+    if (hasRealmRole(ADMIN_ROLE)) {
+      return createForbidden(FORBIDDEN_MESSAGE);
+    }
+
     UUID loggerUserId = getLoggerUserId();
-    
     fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
     if (customer == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
@@ -284,7 +328,11 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
     if (customer == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
-    
+
+    if (!isAdminOrHasCustomerGroup(customer.getName())) {
+      return createForbidden(FORBIDDEN_MESSAGE);
+    }
+
     return createOk(deviceController.listCustomerDevices(customer).stream().map(deviceTranslator::translate).collect(Collectors.toList()));
   }
 
@@ -294,7 +342,11 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
     if (customer == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
-    
+
+    if (!isAdminOrHasCustomerGroup(customer.getName())) {
+      return createForbidden(FORBIDDEN_MESSAGE);
+    }
+
     fi.metatavu.oioi.cm.persistence.model.Device device = deviceController.findDeviceById(deviceId);
     if (device == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
@@ -309,6 +361,9 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
 
   @Override
   public Response updateDevice(UUID customerId, UUID deviceId, @Valid Device payload) {
+    if (hasRealmRole(ADMIN_ROLE)) {
+      return createForbidden(FORBIDDEN_MESSAGE);
+    }
     UUID loggerUserId = getLoggerUserId();
     
     fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
@@ -337,6 +392,10 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
 
   @Override
   public Response deleteDevice(UUID customerId, UUID deviceId) {
+    if (hasRealmRole(ADMIN_ROLE)) {
+      return createForbidden(FORBIDDEN_MESSAGE);
+    }
+
     fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
     if (customer == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
@@ -366,7 +425,11 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
     if (customer == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
-    
+
+    if (!isAdminOrHasCustomerGroup(customer.getName())) {
+      return createForbidden(FORBIDDEN_MESSAGE);
+    }
+
     fi.metatavu.oioi.cm.persistence.model.Device device = deviceController.findDeviceById(deviceId);
     if (device == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
@@ -408,7 +471,11 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
     if (customer == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
-    
+
+    if (!isAdminOrHasCustomerGroup(customer.getName())) {
+      return createForbidden(FORBIDDEN_MESSAGE);
+    }
+
     fi.metatavu.oioi.cm.persistence.model.Device device = deviceController.findDeviceById(deviceId);
     if (device == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
@@ -441,7 +508,11 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
     if (customer == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
-    
+
+    if (!isAdminOrHasCustomerGroup(customer.getName())) {
+      return createForbidden(FORBIDDEN_MESSAGE);
+    }
+
     fi.metatavu.oioi.cm.persistence.model.Device device = deviceController.findDeviceById(deviceId);
     if (device == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
@@ -480,7 +551,11 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
     if (customer == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
-    
+
+    if (!isAdminOrHasCustomerGroup(customer.getName())) {
+      return createForbidden(FORBIDDEN_MESSAGE);
+    }
+
     fi.metatavu.oioi.cm.persistence.model.Device device = deviceController.findDeviceById(deviceId);
     if (device == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
@@ -547,7 +622,11 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
     if (customer == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
-    
+
+    if (!isAdminOrHasCustomerGroup(customer.getName())) {
+      return createForbidden(FORBIDDEN_MESSAGE);
+    }
+
     fi.metatavu.oioi.cm.persistence.model.Device device = deviceController.findDeviceById(deviceId);
     if (device == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
@@ -590,6 +669,10 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
     if (customer == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
+
+    if (!isAdminOrHasCustomerGroup(customer.getName())) {
+      return createForbidden(FORBIDDEN_MESSAGE);
+    }
     
     return createOk(mediaTranslator.translate(mediaController.createMedia(customer, media.getContentType(), media.getType(), media.getUrl(), loggerUserId)));
   }
@@ -600,7 +683,11 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
     if (customer == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
-    
+
+    if (!isAdminOrHasCustomerGroup(customer.getName())) {
+      return createForbidden(FORBIDDEN_MESSAGE);
+    }
+
     return createOk(mediaTranslator.translate(mediaController.listMedias(customer, type)));
   }
 
@@ -610,7 +697,11 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
     if (customer == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
-    
+
+    if (!isAdminOrHasCustomerGroup(customer.getName())) {
+      return createForbidden(FORBIDDEN_MESSAGE);
+    }
+
     fi.metatavu.oioi.cm.persistence.model.Media media = mediaController.findMediaById(mediaId);
     if (media == null || !media.getCustomer().getId().equals(customer.getId())) {
       return createNotFound(NOT_FOUND_MESSAGE);
@@ -627,6 +718,10 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
     if (customer == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
+
+    if (!isAdminOrHasCustomerGroup(customer.getName())) {
+      return createForbidden(FORBIDDEN_MESSAGE);
+    }
     
     fi.metatavu.oioi.cm.persistence.model.Media media = mediaController.findMediaById(mediaId);
     if (media == null || !media.getCustomer().getId().equals(customer.getId())) {
@@ -642,7 +737,11 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
     if (customer == null) {
       return createNotFound(NOT_FOUND_MESSAGE);
     }
-    
+
+    if (!isAdminOrHasCustomerGroup(customer.getName())) {
+      return createForbidden(FORBIDDEN_MESSAGE);
+    }
+
     fi.metatavu.oioi.cm.persistence.model.Media media = mediaController.findMediaById(mediaId);
     if (media == null || !media.getCustomer().getId().equals(customer.getId())) {
       return createNotFound(NOT_FOUND_MESSAGE);

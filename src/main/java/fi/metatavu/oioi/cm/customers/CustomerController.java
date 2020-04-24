@@ -6,6 +6,7 @@ import javax.inject.Inject;
 import org.keycloak.authorization.client.AuthzClient;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import fi.metatavu.oioi.cm.persistence.model.Customer;
 import fi.metatavu.oioi.cm.devices.DeviceController;
@@ -54,6 +55,16 @@ public class CustomerController {
    */
   public List<Customer> listAllCustomers() {
     return customerDAO.listAll();
+  }
+
+  /**
+   * Lists customers by customer name in names
+   * 
+   * @param names names to list customers by
+   * @return list of customers
+   */
+  public List<Customer> listCustomersByNameIn(Set<String> names) {
+    return customerDAO.listCustomersByNameIn(names);
   }
 
   /**
