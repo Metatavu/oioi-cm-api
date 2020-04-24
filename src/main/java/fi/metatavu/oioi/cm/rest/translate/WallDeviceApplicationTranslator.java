@@ -1,5 +1,6 @@
 package fi.metatavu.oioi.cm.rest.translate;
 
+import java.time.OffsetDateTime;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -10,36 +11,42 @@ import fi.metatavu.oioi.cm.persistence.model.Resource;
 import fi.metatavu.oioi.cm.persistence.model.ResourceProperty;
 import fi.metatavu.oioi.cm.persistence.model.ResourceStyle;
 import fi.metatavu.oioi.cm.resources.ResourceController;
-import fi.metatavu.oioi.cm.wall.WallResource;
+import fi.metatavu.oioi.cm.wall.WallDeviceApplication;
 
 /**
- * Translator for WallResource 
+ * Translator for wall device application
  * 
  * @author Antti Leppä
- * @author Heikki Kurhinen
+ * @author Heikki Kurhinen <heikki.kurhinen@metatavu.fi>
  */
 @ApplicationScoped
-public class WallResourceTranslator extends AbstractTranslator<fi.metatavu.oioi.cm.persistence.model.Resource, WallResource> {
+public class WallDeviceApplicationTranslator extends AbstractTranslator<fi.metatavu.oioi.cm.persistence.model.Application, WallDeviceApplication> {
   
   @Inject
   private ResourceController resourceController;
 
   @Override
-  public WallResource translate(fi.metatavu.oioi.cm.persistence.model.Resource entity) {
+  public WallDeviceApplication translate(fi.metatavu.oioi.cm.persistence.model.Application entity) {
     if (entity == null) {
       return null;
     }
 
-    WallResource result = new WallResource();
-    result.setSlug(entity.getSlug());
-    result.setChildren(translate(resourceController.listResourcesByParent(entity)));
-    result.setData(entity.getData());
+    WallDeviceApplication result = new WallDeviceApplication();
+    result.setId(entity.getId());
     result.setName(entity.getName());
-    result.setProperties(getProperties(entity));
-    result.setStyles(getStyles(entity));
-    result.setType(entity.getType());
-    result.setModifiedAt(entity.getModifiedAt());
-    
+
+    Resource rootResource = entity.getRootResource();
+    OffsetDateTime modifiedAt = entity.getModifiedAt();
+    if (rootResource != null) {
+      OffsetDateTime resourceModifiedAt = rootResource.getModifiedAt();
+      if (resourceModifiedAt.isAfter(modifiedAt)) {
+        modifiedAt = resourceModifiedAt;
+      }
+      result.setProperties(getProperties(rootResource));
+      result.setStyles(getStyles(rootResource));
+    }
+
+    result.setModifiedAt(modifiedAt);
     return result;
   }
 
