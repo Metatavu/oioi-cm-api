@@ -5,9 +5,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.UUID;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import fi.metatavu.oioi.cm.files.FileMeta;
 import fi.metatavu.oioi.cm.files.InputFile;
 import fi.metatavu.oioi.cm.files.OutputFile;
 
@@ -48,7 +50,17 @@ public class LocalFileStorageProvider implements FileStorageProvider {
       parent.mkdirs();
     }
     
-    File file = new File(parent, UUID.randomUUID().toString());
+    FileMeta meta = inputFile.getMeta();
+    String extension = FilenameUtils.getExtension(meta.getFileName());
+    StringBuilder fileNameBuilder = new StringBuilder();
+    fileNameBuilder.append(UUID.randomUUID().toString());
+    if (StringUtils.isNotBlank(extension)) {
+      fileNameBuilder
+        .append(".")
+        .append(extension);
+    }
+    String outputFileName = fileNameBuilder.toString();
+    File file = new File(parent, outputFileName);
     
     try (FileOutputStream fileStream = new FileOutputStream(file)) {
       IOUtils.copy(inputFile.getData(), fileStream);
