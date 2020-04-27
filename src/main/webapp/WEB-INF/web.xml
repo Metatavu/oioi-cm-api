@@ -22,8 +22,8 @@
   
   <security-constraint>
     <web-resource-collection>
-      <web-resource-name>wall</web-resource-name>
-      <url-pattern>/v1/wall/*</url-pattern>
+      <web-resource-name>application</web-resource-name>
+      <url-pattern>/v1/application/*</url-pattern>
     </web-resource-collection>
   </security-constraint>
 
