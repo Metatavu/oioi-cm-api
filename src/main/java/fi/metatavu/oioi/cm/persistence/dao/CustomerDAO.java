@@ -1,8 +1,17 @@
 package fi.metatavu.oioi.cm.persistence.dao;
 
-import javax.enterprise.context.ApplicationScoped;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
-import fi.metatavu.oioi.cm.persistence.model.*;
+
+import javax.enterprise.context.ApplicationScoped;
+import javax.persistence.EntityManager;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
+
+import fi.metatavu.oioi.cm.persistence.model.Customer;
+import fi.metatavu.oioi.cm.persistence.model.Customer_;
 
 /**
  * DAO class for Customer
@@ -56,6 +65,22 @@ public class CustomerDAO extends AbstractDAO<Customer> {
     customer.setLastModifierId(lastModifierId);
     customer.setName(name);
     return persist(customer);
+  }
+
+  /**
+   * Lists customers by name in set of names
+   * 
+   * @param names names to list customers by
+   * @return list of customers
+   */
+  public List<Customer> listCustomersByNameIn(Set<String> names) {
+    EntityManager entityManager = getEntityManager();
+    CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+    CriteriaQuery<Customer> criteria = criteriaBuilder.createQuery(Customer.class);
+    Root<Customer> root = criteria.from(Customer.class);
+    criteria.select(root);
+    criteria.where(root.get(Customer_.name).in(names));
+    return entityManager.createQuery(criteria).getResultList();
   }
 
 }
