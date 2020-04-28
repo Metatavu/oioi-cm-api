@@ -284,9 +284,9 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
 
   @Override
   public Response deleteCustomer(UUID customerId) {
-    if (hasRealmRole(ADMIN_ROLE)) {
+    /*if (hasRealmRole(ADMIN_ROLE)) {
       return createForbidden(FORBIDDEN_MESSAGE);
-    }
+    }*/
 
     fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
     if (customer == null) {
