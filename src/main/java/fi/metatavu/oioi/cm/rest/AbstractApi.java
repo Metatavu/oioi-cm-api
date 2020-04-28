@@ -211,24 +211,19 @@ public abstract class AbstractApi {
   protected Boolean hasRealmRole(String roleName) {
     KeycloakSecurityContext keycloakSecurityContext = getKeycloakSecurityContext();
     if (keycloakSecurityContext == null) {
-      System.out.println("Cannot get security context");
       return false;
     }
 
     AccessToken token = keycloakSecurityContext.getToken();
     if (token == null) {
-      System.out.println("Cannot get token");
       return false;
     }
 
     Access realmAccess = token.getRealmAccess();
     if (realmAccess == null) {
-      System.out.println("Cannot get realm access");
       return false;
     }
 
-    System.out.println("User roles: ");
-    realmAccess.getRoles().stream().forEach(r -> System.out.println(r));
     return realmAccess.isUserInRole(roleName);
   }
   
