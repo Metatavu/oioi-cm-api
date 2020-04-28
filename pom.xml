@@ -145,7 +145,7 @@
               <goal>generate</goal>
             </goals>
             <configuration>
-              <inputSpec>${project.basedir}/src/main/resources/swagger.yaml</inputSpec>
+              <inputSpec>${project.basedir}/oioi-cm-api-spec/swagger.yaml</inputSpec>
               <generatorName>jaxrs-spec</generatorName>
               <configOptions>
                 <sourceFolder>src/gen/java/main</sourceFolder>'
@@ -167,7 +167,7 @@
               <goal>generate</goal>
             </goals>
             <configuration>
-              <inputSpec>${project.basedir}/src/main/resources/swagger.yaml</inputSpec>
+              <inputSpec>${project.basedir}/oioi-cm-api-spec/swagger.yaml</inputSpec>
               <generatorName>java</generatorName>
               <configOptions>
                 <sourceFolder>src/gen/java/main</sourceFolder>

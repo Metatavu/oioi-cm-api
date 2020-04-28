@@ -1,8 +1,13 @@
 package fi.metatavu.oioi.cm.rest;
 
 import java.security.Principal;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
@@ -13,6 +18,8 @@ import org.keycloak.KeycloakPrincipal;
 import org.keycloak.KeycloakSecurityContext;
 import org.keycloak.authorization.client.AuthzClient;
 import org.keycloak.authorization.client.ClientAuthorizationContext;
+import org.keycloak.representations.AccessToken;
+import org.keycloak.representations.AccessToken.Access;
 import org.slf4j.Logger;
 
 import fi.metatavu.oioi.cm.model.ErrorResponse;
@@ -28,6 +35,9 @@ public abstract class AbstractApi {
   protected static final String NOT_FOUND_MESSAGE = "Not found";
   protected static final String CUSTOMER_DEVICE_MISMATCH_MESSAGE = "Device does not belong to this customer";
   protected static final String APPLICATION_DEVICE_MISMATCH_MESSAGE = "Application does not belong to this device";
+  protected static final String FORBIDDEN_MESSAGE = "Forbidden";
+
+  protected static final String ADMIN_ROLE = "admin";
   
   @Inject
   private Logger logger;
@@ -191,7 +201,72 @@ public abstract class AbstractApi {
 
     return clientAuthorizationContext.getClient();
   }
+
+  /**
+   * Returns whether logged user has role
+   * 
+   * @param role role
+   * @return whether logged user has specified role or not
+   */
+  protected Boolean hasRealmRole(String roleName) {
+    KeycloakSecurityContext keycloakSecurityContext = getKeycloakSecurityContext();
+    if (keycloakSecurityContext == null) {
+      return false;
+    }
+
+    AccessToken token = keycloakSecurityContext.getToken();
+    if (token == null) {
+      return false;
+    }
+
+    Access realmAccess = token.getRealmAccess();
+    if (realmAccess == null) {
+      return false;
+    }
+
+    return realmAccess.isUserInRole(roleName);
+  }
   
+  /**
+   * Returns group ids where logged user is a member of
+   * 
+   * @return group ids where logged user is a member of
+   */
+  protected Set<String> getLoggedUserGroups() {
+    KeycloakSecurityContext context = getKeycloakSecurityContext();
+    if (context == null) {
+      return Collections.emptySet();
+    }
+
+    AccessToken token = context.getToken();
+    if (token == null) {
+      return Collections.emptySet();
+    }
+    
+    Map<String, Object> otherClaims = context.getToken() .getOtherClaims();
+    if (otherClaims == null) {
+      return Collections.emptySet();
+    }
+    
+    @SuppressWarnings("unchecked") 
+    Collection<String> groupIds = (Collection<String>) otherClaims.get("groups");
+    if (groupIds == null) {
+      return Collections.emptySet();
+    }
+    
+    return groupIds.stream().map(group -> group).collect(Collectors.toSet());    
+  }
+
+  protected boolean isAdminOrHasCustomerGroup(String customerName) {
+    Boolean isAdmin = hasRealmRole(ADMIN_ROLE);
+    if (isAdmin) {
+      return true;
+    }
+
+    Set<String> groups = getLoggedUserGroups();
+    return groups.contains(customerName);
+  }
+
   /**
    * Return keycloak authorization client context or null if not available 
    */

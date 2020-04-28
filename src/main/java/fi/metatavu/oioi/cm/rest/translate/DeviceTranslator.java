@@ -3,6 +3,7 @@ package fi.metatavu.oioi.cm.rest.translate;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import fi.metatavu.oioi.cm.devices.DeviceController;
@@ -14,6 +15,7 @@ import fi.metatavu.oioi.cm.persistence.model.Device;
  * 
  * @author Antti Leppä
  */
+@ApplicationScoped
 public class DeviceTranslator extends AbstractTranslator<fi.metatavu.oioi.cm.persistence.model.Device, fi.metatavu.oioi.cm.model.Device> {
 
   @Inject
@@ -30,6 +32,7 @@ public class DeviceTranslator extends AbstractTranslator<fi.metatavu.oioi.cm.per
     result.setApiKey(entity.getApiKey());
     result.setName(entity.getName());
     result.setMetas(getMetas(entity));
+    result.setImageUrl(entity.getImageUrl());
     result.setCreatorId(entity.getCreatorId());
     result.setLastModifierId(entity.getLastModifierId());
     result.setCreatedAt(entity.getCreatedAt());

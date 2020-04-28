@@ -3,6 +3,7 @@ package fi.metatavu.oioi.cm.rest.translate;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import fi.metatavu.oioi.cm.model.KeyValueProperty;
@@ -14,6 +15,7 @@ import fi.metatavu.oioi.cm.resources.ResourceController;
  * 
  * @author Antti Leppä
  */
+@ApplicationScoped
 public class ResourceTranslator extends AbstractTranslator<fi.metatavu.oioi.cm.persistence.model.Resource, fi.metatavu.oioi.cm.model.Resource> {
   
   @Inject

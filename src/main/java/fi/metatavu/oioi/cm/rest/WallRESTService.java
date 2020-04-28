@@ -22,7 +22,7 @@ import fi.metatavu.oioi.cm.rest.translate.WallApplicationTranslator;
  * 
  * @author Antti Leppä
  */
-@Path ("/wall")
+@Path ("/application")
 @Stateful
 @RequestScoped
 @Produces (MediaType.APPLICATION_JSON)

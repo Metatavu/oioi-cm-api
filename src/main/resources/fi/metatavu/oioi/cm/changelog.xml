@@ -266,5 +266,11 @@
       </column>
     </addColumn>    
   </changeSet>
+  
+  <changeSet author="antti.leppa" id="device-imageurl">
+    <addColumn tableName="device">
+      <column name="imageurl" type="varchar(191)"/>
+    </addColumn>    
+  </changeSet>
 
 </databaseChangeLog>

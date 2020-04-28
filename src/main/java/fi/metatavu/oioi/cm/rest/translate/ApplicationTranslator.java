@@ -1,11 +1,14 @@
 package fi.metatavu.oioi.cm.rest.translate;
 
+import javax.enterprise.context.ApplicationScoped;
+
 /**
  * Translator for Application REST entity 
  * 
  * @author Antti Leppä
  * @author Heikki Kurhinen
  */
+@ApplicationScoped
 public class ApplicationTranslator extends AbstractTranslator<fi.metatavu.oioi.cm.persistence.model.Application, fi.metatavu.oioi.cm.model.Application> {
 
   @Override

@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -61,13 +62,22 @@ public class S3FileStorageProvider implements FileStorageProvider {
   @Override
   public OutputFile store(InputFile inputFile) throws FileStorageException {
     AmazonS3 client = getClient();
-    String key = UUID.randomUUID().toString();
     FileMeta meta = inputFile.getMeta();
     String folder = inputFile.getFolder();
-    
+
+    String originalFileName = meta.getFileName();
+    String extension = FilenameUtils.getExtension(originalFileName);
+    StringBuilder keyBuilder = new StringBuilder();
+    keyBuilder.append(UUID.randomUUID().toString());
+    if (StringUtils.isNotBlank(extension)) {
+      keyBuilder
+        .append(".")
+        .append(extension);
+    }
+    String key = keyBuilder.toString();
     ObjectMetadata objectMeta = new ObjectMetadata();
     objectMeta.setContentType(meta.getContentType());
-    objectMeta.addUserMetadata("x-file-name", meta.getFileName());
+    objectMeta.addUserMetadata("x-file-name", originalFileName);
     
     try {
       Path tempFile = Files.createTempFile("upload", "s3");
