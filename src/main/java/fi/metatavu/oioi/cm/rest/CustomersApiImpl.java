@@ -79,7 +79,7 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
   @Override
   public Response createApplication(UUID customerId, UUID deviceId, @Valid Application payload) {
 
-    if (hasRealmRole(ADMIN_ROLE)) {
+    if (!hasRealmRole(ADMIN_ROLE)) {
       return createForbidden(FORBIDDEN_MESSAGE);
     }
 
@@ -196,7 +196,7 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
 
   @Override
   public Response deleteApplication(UUID customerId, UUID deviceId, UUID applicationId) {
-    if (hasRealmRole(ADMIN_ROLE)) {
+    if (!hasRealmRole(ADMIN_ROLE)) {
       return createForbidden(FORBIDDEN_MESSAGE);
     }
 
@@ -232,7 +232,7 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
 
   @Override
   public Response createCustomer(@Valid Customer customer) {
-    if (hasRealmRole(ADMIN_ROLE)) {
+    if (!hasRealmRole(ADMIN_ROLE)) {
       return createForbidden(FORBIDDEN_MESSAGE);
     }
 
@@ -266,7 +266,7 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
 
   @Override
   public Response updateCustomer(UUID customerId, @Valid Customer payload) {
-    if (hasRealmRole(ADMIN_ROLE)) {
+    if (!hasRealmRole(ADMIN_ROLE)) {
       return createForbidden(FORBIDDEN_MESSAGE);
     }
 
@@ -284,9 +284,9 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
 
   @Override
   public Response deleteCustomer(UUID customerId) {
-    /*if (hasRealmRole(ADMIN_ROLE)) {
+    if (!hasRealmRole(ADMIN_ROLE)) {
       return createForbidden(FORBIDDEN_MESSAGE);
-    }*/
+    }
 
     fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
     if (customer == null) {
@@ -302,7 +302,7 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
 
   @Override
   public Response createDevice(UUID customerId, @Valid Device payload) {
-    if (hasRealmRole(ADMIN_ROLE)) {
+    if (!hasRealmRole(ADMIN_ROLE)) {
       return createForbidden(FORBIDDEN_MESSAGE);
     }
 
@@ -361,7 +361,7 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
 
   @Override
   public Response updateDevice(UUID customerId, UUID deviceId, @Valid Device payload) {
-    if (hasRealmRole(ADMIN_ROLE)) {
+    if (!hasRealmRole(ADMIN_ROLE)) {
       return createForbidden(FORBIDDEN_MESSAGE);
     }
     UUID loggerUserId = getLoggerUserId();
@@ -392,7 +392,7 @@ public class CustomersApiImpl extends AbstractApi implements CustomersApi {
 
   @Override
   public Response deleteDevice(UUID customerId, UUID deviceId) {
-    if (hasRealmRole(ADMIN_ROLE)) {
+    if (!hasRealmRole(ADMIN_ROLE)) {
       return createForbidden(FORBIDDEN_MESSAGE);
     }
 
