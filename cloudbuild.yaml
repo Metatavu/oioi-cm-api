@@ -8,13 +8,16 @@ steps:
       mkdir ${_ENV}-data &&
       gcloud secrets versions access latest --secret=oioi-cm-api-${_ENV}-keycloak --format='get(payload.data)' | tr '_-' '/+' | base64 -d > ${_ENV}-data/config.json
     fi
+- name: maven:3.6.3-jdk-11
+  entrypoint: 'bash'
+  args: 
+  - '-c'
+  - mvn --no-transfer-progress -Drunmode=${_ENV} clean package
 - name: 'gcr.io/cloud-builders/docker'
   entrypoint: 'bash'
   args: 
   - '-c'
-  - |
-    mvn --no-transfer-progress -Drunmode=${_ENV} clean package &&
-    docker build -t ${_DOCKER_REPO_URL}:$(echo ${BUILD_ID} | cut -b 1-8) .
+  - docker build -t ${_DOCKER_REPO_URL}:$(echo ${BUILD_ID} | cut -b 1-8) .
 - name: 'gcr.io/cloud-builders/docker'
   entrypoint: 'bash'
   env:
