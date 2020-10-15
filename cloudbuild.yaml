@@ -2,16 +2,13 @@ steps:
 - name: 'gcr.io/cloud-builders/git'
   entrypoint: 'bash'
   args:
-  - '-c'
-  - |
+    - '-c'
+    - |
       git init
       git remote add origin https://github.com/Metatavu/${REPO_NAME}.git
-      git fetch
-      git checkout ${BRANCH_NAME}
-      git branch --set-upstream-to=${BRANCH_NAME}/${BRANCH_NAME} ${BRANCH_NAME}
-      git pull
-      git submodule init
-      git submodule update
+      git fetch --depth=1 origin $COMMIT_SHA
+      git reset --hard FETCH_HEAD
+      git submodule update --init
 - name: gcr.io/cloud-builders/gcloud
   entrypoint: 'bash'
   args: 
