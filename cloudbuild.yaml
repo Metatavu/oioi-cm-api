@@ -27,7 +27,7 @@ steps:
   entrypoint: 'bash'
   args: 
   - '-c'
-  - echo ${_DOCKER_REPO_URL}:$(echo ${BUILD_ID}
+  - echo ${_DOCKER_REPO_URL}:$(echo ${BUILD_ID} | cut -b 1-8) &&
   - docker build -t ${_DOCKER_REPO_URL}:$(echo ${BUILD_ID} | cut -b 1-8) .
 - name: 'gcr.io/cloud-builders/docker'
   entrypoint: 'bash'
