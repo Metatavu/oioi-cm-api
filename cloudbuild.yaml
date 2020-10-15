@@ -8,8 +8,8 @@ steps:
       ls
       git init
       git remote add origin https://github.com/Metatavu/${REPO_NAME}.git
-      git checkout ${BRANCH_NAME}
       git pull
+      git checkout ${BRANCH_NAME}
       git submodule init
       git submodule update
 - name: gcr.io/cloud-builders/gcloud
