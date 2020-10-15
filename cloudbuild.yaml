@@ -1,7 +1,12 @@
 steps:
 - name: gcr.io/cloud-builders/gcloud
   entrypoint: 'bash'
-  args: [ '-c', "if [ -n '${_DEPLOYMENT}' ]; then gcloud secrets versions access latest --secret=oioi-cm-api-${_ENV}-keycloak --format='get(payload.data)' | tr '_-' '/+' | base64 -d > ${_ENV}-data/config.json" ]
+  args: 
+  - '-c'
+  - |
+    if [ -n '${_DEPLOYMENT}' ]; then 
+      gcloud secrets versions access latest --secret=oioi-cm-api-${_ENV}-keycloak --format='get(payload.data)' | tr '_-' '/+' | base64 -d > ${_ENV}-data/config.json
+    fi
 - name: 'gcr.io/cloud-builders/docker'
   entrypoint: 'bash'
   args: 
