@@ -7,8 +7,8 @@ steps:
       pwd
       ls
       git init
-      echo $_HEAD_REPO_URL
-      git remote add origin $_HEAD_REPO_URL
+      echo ${_HEAD_REPO_URL}
+      git remote add origin ${_HEAD_REPO_URL}
       git pull
       git submodule init
       git submodule update
