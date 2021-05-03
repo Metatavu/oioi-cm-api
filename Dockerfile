@@ -1,4 +1,4 @@
-FROM jboss/wildfly:18.0.0.Final
+FROM jboss/wildfly:18.0.1.Final
 
 ADD --chown=jboss target/*.war /opt/jboss/wildfly/standalone/deployments/app.war
 ADD --chown=jboss ./docker/entrypoint.sh /opt/docker/entrypoint.sh 
