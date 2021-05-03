@@ -11,5 +11,6 @@ addons:
 
 install: skip
 
+
 script:
   - mvn clean -Drunmode=test org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar -Dsonar.projectKey=Metatavu_oioi-cm-api
