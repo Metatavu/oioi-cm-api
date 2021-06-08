@@ -66,7 +66,7 @@
     
     <!-- Keycloak -->
     
-    <keycloak.version>7.0.0</keycloak.version>
+    <keycloak.version>13.0.0</keycloak.version>
     
     <!--  Logging -->
     
