@@ -94,15 +94,14 @@ public class WallExportTestsIT extends AbstractFunctionalTest {
   /**
    * Uploads resource into file store
    * 
-   * @param resourceName resource name
+   * @param applicationId application id
    * @return upload response
    * @throws IOException thrown on upload failure
    */
   private WallApplication downloadApplicationJson(UUID applicationId) throws IOException {
-    
     HttpClientBuilder clientBuilder = HttpClientBuilder.create();
     try (CloseableHttpClient client = clientBuilder.build()) {
-      HttpGet get = new HttpGet(String.format("%s/v1/wall/%s", getBasePath(), applicationId));
+      HttpGet get = new HttpGet(String.format("%s/v1/application/%s", getBasePath(), applicationId));
       HttpResponse response = client.execute(get);
       assertEquals(200, response.getStatusLine().getStatusCode());
       
