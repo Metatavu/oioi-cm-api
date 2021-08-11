@@ -4,6 +4,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
@@ -65,7 +67,7 @@ public class S3FileStorageProvider implements FileStorageProvider {
     FileMeta meta = inputFile.getMeta();
     String folder = inputFile.getFolder();
 
-    String originalFileName = meta.getFileName();
+    String originalFileName = URLEncoder.encode(meta.getFileName(), StandardCharsets.UTF_8);
     String extension = FilenameUtils.getExtension(originalFileName);
     StringBuilder keyBuilder = new StringBuilder();
     keyBuilder.append(UUID.randomUUID().toString());
