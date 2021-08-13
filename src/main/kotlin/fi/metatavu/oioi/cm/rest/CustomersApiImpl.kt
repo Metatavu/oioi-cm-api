@@ -1,754 +1,572 @@
-package fi.metatavu.oioi.cm.rest;
+package fi.metatavu.oioi.cm.rest
 
-import java.util.UUID;
-import java.util.stream.Collectors;
-
-import javax.ejb.Stateful;
-import javax.enterprise.context.RequestScoped;
-import javax.inject.Inject;
-import javax.validation.Valid;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Response;
-
-import fi.metatavu.oioi.cm.CustomersApi;
-import fi.metatavu.oioi.cm.applications.ApplicationController;
-import fi.metatavu.oioi.cm.customers.CustomerController;
-import fi.metatavu.oioi.cm.devices.DeviceController;
-import fi.metatavu.oioi.cm.medias.MediaController;
-import fi.metatavu.oioi.cm.model.Application;
-import fi.metatavu.oioi.cm.model.Customer;
-import fi.metatavu.oioi.cm.model.Device;
-import fi.metatavu.oioi.cm.model.Media;
-import fi.metatavu.oioi.cm.model.MediaType;
-import fi.metatavu.oioi.cm.model.Resource;
-import fi.metatavu.oioi.cm.model.ResourceType;
-import fi.metatavu.oioi.cm.resources.ResourceController;
-import fi.metatavu.oioi.cm.rest.translate.ApplicationTranslator;
-import fi.metatavu.oioi.cm.rest.translate.CustomerTranslator;
-import fi.metatavu.oioi.cm.rest.translate.DeviceTranslator;
-import fi.metatavu.oioi.cm.rest.translate.MediaTranslator;
-import fi.metatavu.oioi.cm.rest.translate.ResourceTranslator;
+import javax.enterprise.context.RequestScoped
+import javax.ws.rs.Consumes
+import fi.metatavu.oioi.cm.customers.CustomerController
+import fi.metatavu.oioi.cm.rest.translate.CustomerTranslator
+import fi.metatavu.oioi.cm.devices.DeviceController
+import fi.metatavu.oioi.cm.rest.translate.DeviceTranslator
+import fi.metatavu.oioi.cm.applications.ApplicationController
+import fi.metatavu.oioi.cm.rest.translate.ApplicationTranslator
+import fi.metatavu.oioi.cm.resources.ResourceController
+import fi.metatavu.oioi.cm.rest.translate.ResourceTranslator
+import fi.metatavu.oioi.cm.medias.MediaController
+import fi.metatavu.oioi.cm.model.*
+import fi.metatavu.oioi.cm.rest.translate.MediaTranslator
+import java.util.UUID
+import javax.validation.Valid
+import java.util.stream.Collectors
+import fi.metatavu.oioi.cm.spec.CustomersApi
+import javax.inject.Inject
+import javax.transaction.Transactional
+import javax.ws.rs.Produces
+import javax.ws.rs.core.Response
 
 /**
  * REST - endpoints for customers
- * 
+ *
  * @author Antti Leppä
  */
 @RequestScoped
-@Stateful
-@Consumes({ "application/json;charset=utf-8" })
-@Produces({ "application/json;charset=utf-8" })
-@SuppressWarnings ("common-java:DuplicatedBlocks")
-public class CustomersApiImpl extends AbstractApi implements CustomersApi {
-  
-  private static final String INVALID_PARENT_ID = "Invalid parent_id";
+@Transactional
+@Consumes("application/json;charset=utf-8")
+@Produces("application/json;charset=utf-8")
+class CustomersApiImpl : AbstractApi(), CustomersApi {
 
-  @Inject
-  private CustomerController customerController;
-  
-  @Inject
-  private CustomerTranslator customerTranslator;
+    @Inject
+    lateinit var customerController: CustomerController
 
-  @Inject
-  private DeviceController deviceController;
+    @Inject
+    lateinit var customerTranslator: CustomerTranslator
+
+    @Inject
+    lateinit var deviceController: DeviceController
+
+    @Inject
+    lateinit var deviceTranslator: DeviceTranslator
 
-  @Inject
-  private DeviceTranslator deviceTranslator;
+    @Inject
+    lateinit var applicationController: ApplicationController
 
-  @Inject
-  private ApplicationController applicationController;
+    @Inject
+    lateinit var applicationTranslator: ApplicationTranslator
 
-  @Inject
-  private ApplicationTranslator applicationTranslator;
+    @Inject
+    lateinit var resourceController: ResourceController
 
-  @Inject
-  private ResourceController resourceController;
+    @Inject
+    lateinit var resourceTranslator: ResourceTranslator
 
-  @Inject
-  private ResourceTranslator resourceTranslator;
+    @Inject
+    lateinit var mediaController: MediaController
 
-  @Inject
-  private MediaController mediaController;
+    @Inject
+    lateinit var mediaTranslator: MediaTranslator
 
-  @Inject
-  private MediaTranslator mediaTranslator;
+    /** APPLICATIONS  */
 
-  /** APPLICATIONS */
+    override fun createApplication(customerId: UUID, deviceId: UUID, payload: @Valid Application?): Response {
+        if (!hasRealmRole(ADMIN_ROLE)) {
+            return createForbidden(FORBIDDEN_MESSAGE)
+        }
 
-  @Override
-  public Response createApplication(UUID customerId, UUID deviceId, @Valid Application payload) {
+        val customer = customerController.findCustomerById(customerId) ?: return createNotFound(NOT_FOUND_MESSAGE)
+        val device = deviceController.findDeviceById(deviceId) ?: return createNotFound(NOT_FOUND_MESSAGE)
+        if (device.customer.id != customer.id) {
+            return createBadRequest(CUSTOMER_DEVICE_MISMATCH_MESSAGE)
+        }
 
-    if (!hasRealmRole(ADMIN_ROLE)) {
-      return createForbidden(FORBIDDEN_MESSAGE);
-    }
-
-    fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
-    if (customer == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-
-    fi.metatavu.oioi.cm.persistence.model.Device device = deviceController.findDeviceById(deviceId);
-    if (device == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-
-    if (!device.getCustomer().getId().equals(customer.getId())) {
-      return createBadRequest(CUSTOMER_DEVICE_MISMATCH_MESSAGE);
-    }
-
-    UUID loggerUserId = getLoggerUserId();
-    
-    return createOk(applicationTranslator.translate(applicationController.createApplication(getAuthzClient(), customer, device, payload.getName(), loggerUserId)));
-  }
-
-  @Override
-  public Response listApplications(UUID customerId, UUID deviceId) {
-
-    fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
-    if (customer == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-
-    if (!isAdminOrHasCustomerGroup(customer.getName())) {
-      return createForbidden(FORBIDDEN_MESSAGE);
-    }
-
-    fi.metatavu.oioi.cm.persistence.model.Device device = deviceController.findDeviceById(deviceId);
-    if (device == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-
-    if (!device.getCustomer().getId().equals(customer.getId())) {
-      return createBadRequest(CUSTOMER_DEVICE_MISMATCH_MESSAGE);
-    }
-
-    return createOk(applicationTranslator.translate(applicationController.listDeviceApplications(device)));
-  }
-
-  @Override
-  public Response findApplication(UUID customerId, UUID deviceId, UUID applicationId) {
-    fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
-    if (customer == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-
-    if (!isAdminOrHasCustomerGroup(customer.getName())) {
-      return createForbidden(FORBIDDEN_MESSAGE);
-    }
-
-    fi.metatavu.oioi.cm.persistence.model.Device device = deviceController.findDeviceById(deviceId);
-    if (device == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-
-    if (!device.getCustomer().getId().equals(customer.getId())) {
-      return createBadRequest(CUSTOMER_DEVICE_MISMATCH_MESSAGE);
-    }
-
-    fi.metatavu.oioi.cm.persistence.model.Application applicationEntity = applicationController.findApplicationById(applicationId);
-    if (applicationEntity == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-
-    if (!applicationEntity.getDevice().getId().equals(device.getId())) {
-      return createBadRequest(APPLICATION_DEVICE_MISMATCH_MESSAGE);
-    }
-
-    return createOk(applicationTranslator.translate(applicationEntity));
-  }
-
-  @Override
-  public Response updateApplication(UUID customerId, UUID deviceId, UUID applicationId, @Valid Application application) {
-    fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
-    if (customer == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-
-    if (!isAdminOrHasCustomerGroup(customer.getName())) {
-      return createForbidden(FORBIDDEN_MESSAGE);
-    }
-
-    fi.metatavu.oioi.cm.persistence.model.Device device = deviceController.findDeviceById(deviceId);
-    if (device == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-
-    if (!device.getCustomer().getId().equals(customer.getId())) {
-      return createBadRequest(CUSTOMER_DEVICE_MISMATCH_MESSAGE);
-    }
-
-    fi.metatavu.oioi.cm.persistence.model.Application applicationEntity = applicationController.findApplicationById(applicationId);
-    if (applicationEntity == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-
-    if (!applicationEntity.getDevice().getId().equals(device.getId())) {
-      return createBadRequest(APPLICATION_DEVICE_MISMATCH_MESSAGE);
-    }
-
-    UUID loggerUserId = getLoggerUserId();
-
-    fi.metatavu.oioi.cm.persistence.model.Application updatedApplicationEntity = applicationController.updateApplication(applicationEntity, application.getName(), loggerUserId);
-
-    return createOk(applicationTranslator.translate(updatedApplicationEntity));
-  }
-
-  @Override
-  public Response deleteApplication(UUID customerId, UUID deviceId, UUID applicationId) {
-    if (!hasRealmRole(ADMIN_ROLE)) {
-      return createForbidden(FORBIDDEN_MESSAGE);
-    }
-
-    fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
-    if (customer == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-
-    fi.metatavu.oioi.cm.persistence.model.Device device = deviceController.findDeviceById(deviceId);
-    if (device == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-
-    if (!device.getCustomer().getId().equals(customer.getId())) {
-      return createBadRequest(CUSTOMER_DEVICE_MISMATCH_MESSAGE);
-    }
-
-    fi.metatavu.oioi.cm.persistence.model.Application applicationEntity = applicationController.findApplicationById(applicationId);
-    if (applicationEntity == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-
-    if (!applicationEntity.getDevice().getId().equals(device.getId())) {
-      return createBadRequest(APPLICATION_DEVICE_MISMATCH_MESSAGE);
-    }
-    
-    applicationController.deleteApplication(getAuthzClient(), applicationEntity);
-
-    return createNoContent();
-  }
-
-  /** CUSTOMERS */
-
-  @Override
-  public Response createCustomer(@Valid Customer customer) {
-    if (!hasRealmRole(ADMIN_ROLE)) {
-      return createForbidden(FORBIDDEN_MESSAGE);
-    }
-
-    UUID loggerUserId = getLoggerUserId();
-    fi.metatavu.oioi.cm.persistence.model.Customer result = customerController.createCustomer(customer.getImageUrl(), customer.getName(), loggerUserId);
-    return createOk(customerTranslator.translate(result));
-  }
-
-  @Override
-  public Response listCustomers() {
-    if (hasRealmRole(ADMIN_ROLE)) {
-      return createOk(customerController.listAllCustomers().stream().map(customerTranslator::translate).collect(Collectors.toList()));
-    } else {
-      return createOk(customerController.listCustomersByNameIn(getLoggedUserGroups()).stream().map(customerTranslator::translate).collect(Collectors.toList()));
-    }
-  }
-
-  @Override
-  public Response findCustomer(UUID customerId) {
-    fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
-    if (customer == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-
-    if (!isAdminOrHasCustomerGroup(customer.getName())) {
-      return createForbidden(FORBIDDEN_MESSAGE);
-    }
-
-    return createOk(customerTranslator.translate(customer));
-  }
-
-  @Override
-  public Response updateCustomer(UUID customerId, @Valid Customer payload) {
-    if (!hasRealmRole(ADMIN_ROLE)) {
-      return createForbidden(FORBIDDEN_MESSAGE);
-    }
-
-    UUID loggerUserId = getLoggerUserId();
-    
-    fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
-    if (customer == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    customerController.updateCustomer(customer, payload.getImageUrl(), payload.getName(), loggerUserId);
-    
-    return createOk(customerTranslator.translate(customer));
-  }
-
-  @Override
-  public Response deleteCustomer(UUID customerId) {
-    if (!hasRealmRole(ADMIN_ROLE)) {
-      return createForbidden(FORBIDDEN_MESSAGE);
-    }
-
-    fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
-    if (customer == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    customerController.deleteCustomer(getAuthzClient(), customer);
-    
-    return createNoContent();
-  }
-
-  /** DEVICES */
-
-  @Override
-  public Response createDevice(UUID customerId, @Valid Device payload) {
-    if (!hasRealmRole(ADMIN_ROLE)) {
-      return createForbidden(FORBIDDEN_MESSAGE);
-    }
-
-    UUID loggerUserId = getLoggerUserId();
-    fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
-    if (customer == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    String apiKey = payload.getApiKey();
-    String name = payload.getName();
-    String imageUrl = payload.getImageUrl();
-    
-    fi.metatavu.oioi.cm.persistence.model.Device device = deviceController.createDevice(customer, apiKey, name, imageUrl, loggerUserId);
-    deviceController.setDeviceMetas(device, payload.getMetas(), loggerUserId);
-    
-    return createOk(deviceTranslator.translate(device));
-  }
-
-  @Override
-  public Response listDevices(UUID customerId) {
-    fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
-    if (customer == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-
-    if (!isAdminOrHasCustomerGroup(customer.getName())) {
-      return createForbidden(FORBIDDEN_MESSAGE);
-    }
-
-    return createOk(deviceController.listCustomerDevices(customer).stream().map(deviceTranslator::translate).collect(Collectors.toList()));
-  }
-
-  @Override
-  public Response findDevice(UUID customerId, UUID deviceId) {
-    fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
-    if (customer == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-
-    if (!isAdminOrHasCustomerGroup(customer.getName())) {
-      return createForbidden(FORBIDDEN_MESSAGE);
-    }
-
-    fi.metatavu.oioi.cm.persistence.model.Device device = deviceController.findDeviceById(deviceId);
-    if (device == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    if (!device.getCustomer().getId().equals(customer.getId())) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    return createOk(deviceTranslator.translate(device));
-  }
-
-  @Override
-  public Response updateDevice(UUID customerId, UUID deviceId, @Valid Device payload) {
-    if (!hasRealmRole(ADMIN_ROLE)) {
-      return createForbidden(FORBIDDEN_MESSAGE);
-    }
-    UUID loggerUserId = getLoggerUserId();
-    
-    fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
-    if (customer == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    fi.metatavu.oioi.cm.persistence.model.Device device = deviceController.findDeviceById(deviceId);
-    if (device == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    if (!device.getCustomer().getId().equals(customer.getId())) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-
-    String apiKey = payload.getApiKey();
-    String name = payload.getName();
-    String imageUrl = payload.getImageUrl();
-    
-    deviceController.updateDevice(device, customer, apiKey, name, imageUrl, loggerUserId);
-    deviceController.setDeviceMetas(device, payload.getMetas(), loggerUserId);
-    
-    return createOk(deviceTranslator.translate(device));
-  }
-
-  @Override
-  public Response deleteDevice(UUID customerId, UUID deviceId) {
-    if (!hasRealmRole(ADMIN_ROLE)) {
-      return createForbidden(FORBIDDEN_MESSAGE);
-    }
-
-    fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
-    if (customer == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    fi.metatavu.oioi.cm.persistence.model.Device device = deviceController.findDeviceById(deviceId);
-    if (device == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    if (!device.getCustomer().getId().equals(customer.getId())) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    deviceController.deleteDevice(getAuthzClient(), device);
-
-    return createNoContent();
-  }
-
-  /** RESOURCES */
-
-  @Override
-  public Response createResource(UUID customerId, UUID deviceId, UUID applicationId, @Valid Resource payload) {
-    UUID loggerUserId = getLoggerUserId();
-
-    fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
-    if (customer == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-
-    if (!isAdminOrHasCustomerGroup(customer.getName())) {
-      return createForbidden(FORBIDDEN_MESSAGE);
-    }
-
-    fi.metatavu.oioi.cm.persistence.model.Device device = deviceController.findDeviceById(deviceId);
-    if (device == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    if (!device.getCustomer().getId().equals(customer.getId())) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    fi.metatavu.oioi.cm.persistence.model.Application application = applicationController.findApplicationById(applicationId);
-    if (application == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    if (!application.getDevice().getId().equals(device.getId())) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    UUID parentId = payload.getParentId();
-    fi.metatavu.oioi.cm.persistence.model.Resource parent = resourceController.findResourceById(parentId);
-    if (parent == null) {
-      return createBadRequest(INVALID_PARENT_ID);
-    }
-    
-    // TODO: parent permission?
-    
-    String data = payload.getData();
-    String name = payload.getName();
-    String slug = payload.getSlug();
-    Integer orderNumber = payload.getOrderNumber();    
-    fi.metatavu.oioi.cm.model.ResourceType type = payload.getType();         
-    
-    return createOk(resourceTranslator.translate(resourceController.createResource(getAuthzClient(), customer, device, application, orderNumber, parent, data, name, slug, type, payload.getProperties(), payload.getStyles(), loggerUserId)));
-  }
-
-  @Override
-  public Response listResources(UUID customerId, UUID deviceId, UUID applicationId, UUID parentId) {
-    fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
-    if (customer == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
+        val loggedUserId = loggedUserId!!
+        val result = applicationController.createApplication(
+            authzClient,
+            customer,
+            device,
+            payload!!.name,
+            loggedUserId
+        )
 
-    if (!isAdminOrHasCustomerGroup(customer.getName())) {
-      return createForbidden(FORBIDDEN_MESSAGE);
+        return createOk(applicationTranslator.translate(result))
     }
 
-    fi.metatavu.oioi.cm.persistence.model.Device device = deviceController.findDeviceById(deviceId);
-    if (device == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    if (!device.getCustomer().getId().equals(customer.getId())) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    fi.metatavu.oioi.cm.persistence.model.Application application = applicationController.findApplicationById(applicationId);
-    if (application == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    if (!application.getDevice().getId().equals(device.getId())) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    fi.metatavu.oioi.cm.persistence.model.Resource parent = resourceController.findResourceById(parentId);
-    if (parent == null) {
-      return createBadRequest(INVALID_PARENT_ID);
-    }
-    
-    return createOk(resourceTranslator.translate(resourceController.listResourcesByParent(parent)));
-  }
-
-  @Override
-  public Response findResource(UUID customerId, UUID deviceId, UUID applicationId, UUID resourceId) {
-    fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
-    if (customer == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
+    override fun listApplications(customerId: UUID, deviceId: UUID): Response {
+        val customer = customerController.findCustomerById(customerId) ?: return createNotFound(NOT_FOUND_MESSAGE)
+        if (!isAdminOrHasCustomerGroup(customer.name)) {
+            return createForbidden(FORBIDDEN_MESSAGE)
+        }
 
-    if (!isAdminOrHasCustomerGroup(customer.getName())) {
-      return createForbidden(FORBIDDEN_MESSAGE);
-    }
+        val device = deviceController.findDeviceById(deviceId) ?: return createNotFound(NOT_FOUND_MESSAGE)
 
-    fi.metatavu.oioi.cm.persistence.model.Device device = deviceController.findDeviceById(deviceId);
-    if (device == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    if (!device.getCustomer().getId().equals(customer.getId())) {
-      return createNotFound(NOT_FOUND_MESSAGE);
+        return if (device.customer.id != customer.id) {
+            createBadRequest(CUSTOMER_DEVICE_MISMATCH_MESSAGE)
+        } else createOk(
+            applicationTranslator.translate(applicationController.listDeviceApplications(device))
+        )
     }
-    
-    fi.metatavu.oioi.cm.persistence.model.Application application = applicationController.findApplicationById(applicationId);
-    if (application == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    if (!application.getDevice().getId().equals(device.getId())) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    fi.metatavu.oioi.cm.persistence.model.Resource resource = resourceController.findResourceById(resourceId);
-    if (resource == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    if (!resourceController.isApplicationResource(application, resource)) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-
-    return createOk(resourceTranslator.translate(resourceController.findResourceById(resourceId)));
-  }
 
-  @Override
-  public Response updateResource(UUID customerId, UUID deviceId, UUID applicationId, UUID resourceId, @Valid Resource payload) {
-    UUID loggerUserId = getLoggerUserId();
+    override fun findApplication(customerId: UUID, deviceId: UUID, applicationId: UUID): Response {
+        val customer = customerController.findCustomerById(customerId) ?: return createNotFound(NOT_FOUND_MESSAGE)
+        if (!isAdminOrHasCustomerGroup(customer.name)) {
+            return createForbidden(FORBIDDEN_MESSAGE)
+        }
 
-    fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
-    if (customer == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-
-    if (!isAdminOrHasCustomerGroup(customer.getName())) {
-      return createForbidden(FORBIDDEN_MESSAGE);
-    }
+        val device = deviceController.findDeviceById(deviceId) ?: return createNotFound(NOT_FOUND_MESSAGE)
+        if (device.customer.id != customer.id) {
+            return createBadRequest(CUSTOMER_DEVICE_MISMATCH_MESSAGE)
+        }
 
-    fi.metatavu.oioi.cm.persistence.model.Device device = deviceController.findDeviceById(deviceId);
-    if (device == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    if (!device.getCustomer().getId().equals(customer.getId())) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    fi.metatavu.oioi.cm.persistence.model.Application application = applicationController.findApplicationById(applicationId);
-    if (application == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
+        val applicationEntity = applicationController.findApplicationById(applicationId) ?: return createNotFound(NOT_FOUND_MESSAGE)
+        return if (applicationEntity.device.id != device.id) {
+            createBadRequest(APPLICATION_DEVICE_MISMATCH_MESSAGE)
+        } else {
+            createOk(applicationTranslator.translate(applicationEntity))
+        }
     }
-    
-    if (!application.getDevice().getId().equals(device.getId())) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    fi.metatavu.oioi.cm.persistence.model.Resource resource = resourceController.findResourceById(resourceId);
-    if (resource == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
 
-    if (resource.getId().equals(payload.getParentId())) {
-      return createBadRequest(INVALID_PARENT_ID);
-    }
-    
-    if (!resourceController.isApplicationResource(application, resource)) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    UUID parentId = payload.getParentId();    
-    
-    if (resource.getType().equals(ResourceType.ROOT)) {
-      resourceController.setResourceProperties(resource, payload.getProperties(), loggerUserId);
-      resourceController.setResourceStyles(resource, payload.getStyles(), loggerUserId);
-      return createOk(resourceTranslator.translate(resource));
-    } else if (parentId == null) {
-      return createBadRequest(INVALID_PARENT_ID);
-    }
+    override fun updateApplication(
+        customerId: UUID,
+        deviceId: UUID,
+        applicationId: UUID,
+        application: @Valid Application?
+    ): Response {
+        val customer = customerController.findCustomerById(customerId) ?: return createNotFound(NOT_FOUND_MESSAGE)
 
-    fi.metatavu.oioi.cm.persistence.model.Resource parent = resourceController.findResourceById(parentId);
-    if (parent == null) {
-      return createBadRequest(INVALID_PARENT_ID);
-    }
+        if (!isAdminOrHasCustomerGroup(customer.name)) {
+            return createForbidden(FORBIDDEN_MESSAGE)
+        }
 
-    // TODO: parent permission?
-    
-    String data = payload.getData();
-    String name = payload.getName();
-    String slug = payload.getSlug();
-    fi.metatavu.oioi.cm.model.ResourceType type = payload.getType();
-    Integer orderNumber = payload.getOrderNumber();
-    
-    resourceController.setResourceProperties(resource, payload.getProperties(), loggerUserId);
-    resourceController.setResourceStyles(resource, payload.getStyles(), loggerUserId);
-    
-    return createOk(resourceTranslator.translate(resourceController.updateResource(resource, orderNumber, data, name, parent, slug, type, loggerUserId)));
-  }
-
-  @Override
-  public Response deleteResource(UUID customerId, UUID deviceId, UUID applicationId, UUID resourceId) {
-    fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
-    if (customer == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
+        val device = deviceController.findDeviceById(deviceId) ?: return createNotFound(NOT_FOUND_MESSAGE)
+        if (device.customer.id != customer.id) {
+            return createBadRequest(CUSTOMER_DEVICE_MISMATCH_MESSAGE)
+        }
 
-    if (!isAdminOrHasCustomerGroup(customer.getName())) {
-      return createForbidden(FORBIDDEN_MESSAGE);
-    }
+        val applicationEntity = applicationController.findApplicationById(applicationId) ?: return createNotFound(NOT_FOUND_MESSAGE)
+        if (applicationEntity.device.id != device.id) {
+            return createBadRequest(APPLICATION_DEVICE_MISMATCH_MESSAGE)
+        }
 
-    fi.metatavu.oioi.cm.persistence.model.Device device = deviceController.findDeviceById(deviceId);
-    if (device == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    if (!device.getCustomer().getId().equals(customer.getId())) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    fi.metatavu.oioi.cm.persistence.model.Application application = applicationController.findApplicationById(applicationId);
-    if (application == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    if (!application.getDevice().getId().equals(device.getId())) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    fi.metatavu.oioi.cm.persistence.model.Resource resource = resourceController.findResourceById(resourceId);
-    if (resource == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    if (!resourceController.isApplicationResource(application, resource)) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    resourceController.delete(getAuthzClient(), resource);
-    
-    return createNoContent();
-  }
-
-  /** MEDIAS */
-
-  @Override
-  public Response createMedia(UUID customerId, @Valid Media media) {
-    UUID loggerUserId = getLoggerUserId();
-    
-    fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
-    if (customer == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
+        val loggedUserId = loggedUserId!!
+        val updatedApplicationEntity = applicationController.updateApplication(applicationEntity, application!!.name, loggedUserId)
 
-    if (!isAdminOrHasCustomerGroup(customer.getName())) {
-      return createForbidden(FORBIDDEN_MESSAGE);
-    }
-    
-    return createOk(mediaTranslator.translate(mediaController.createMedia(customer, media.getContentType(), media.getType(), media.getUrl(), loggerUserId)));
-  }
-
-  @Override
-  public Response listMedias(UUID customerId, MediaType type) {
-    fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
-    if (customer == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
+        return createOk(applicationTranslator.translate(updatedApplicationEntity))
     }
 
-    if (!isAdminOrHasCustomerGroup(customer.getName())) {
-      return createForbidden(FORBIDDEN_MESSAGE);
-    }
+    override fun deleteApplication(customerId: UUID, deviceId: UUID, applicationId: UUID): Response {
+        if (!hasRealmRole(ADMIN_ROLE)) {
+            return createForbidden(FORBIDDEN_MESSAGE)
+        }
 
-    return createOk(mediaTranslator.translate(mediaController.listMedias(customer, type)));
-  }
-
-  @Override
-  public Response findMedia(UUID customerId, UUID mediaId) {
-    fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
-    if (customer == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
+        val customer = customerController.findCustomerById(customerId) ?: return createNotFound(NOT_FOUND_MESSAGE)
+        val device = deviceController.findDeviceById(deviceId) ?: return createNotFound(NOT_FOUND_MESSAGE)
+        if (device.customer.id != customer.id) {
+            return createBadRequest(CUSTOMER_DEVICE_MISMATCH_MESSAGE)
+        }
 
-    if (!isAdminOrHasCustomerGroup(customer.getName())) {
-      return createForbidden(FORBIDDEN_MESSAGE);
-    }
+        val applicationEntity = applicationController.findApplicationById(applicationId) ?: return createNotFound(NOT_FOUND_MESSAGE)
+        if (applicationEntity.device.id != device.id) {
+            return createBadRequest(APPLICATION_DEVICE_MISMATCH_MESSAGE)
+        }
 
-    fi.metatavu.oioi.cm.persistence.model.Media media = mediaController.findMediaById(mediaId);
-    if (media == null || !media.getCustomer().getId().equals(customer.getId())) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    return createOk(mediaTranslator.translate(media));
-  }
-
-  @Override
-  public Response updateMedia(UUID customerId, UUID mediaId, @Valid Media payload) {
-    UUID loggerUserId = getLoggerUserId();
-    
-    fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
-    if (customer == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
+        applicationController.deleteApplication(authzClient, applicationEntity)
 
-    if (!isAdminOrHasCustomerGroup(customer.getName())) {
-      return createForbidden(FORBIDDEN_MESSAGE);
+        return createNoContent()
     }
-    
-    fi.metatavu.oioi.cm.persistence.model.Media media = mediaController.findMediaById(mediaId);
-    if (media == null || !media.getCustomer().getId().equals(customer.getId())) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
-    
-    return createOk(mediaTranslator.translate(mediaController.updateMedia(media, payload.getContentType(), payload.getType(), payload.getUrl(), loggerUserId)));
-  }
-
-  @Override
-  public Response deleteMedia(UUID customerId, UUID mediaId) {
-    fi.metatavu.oioi.cm.persistence.model.Customer customer = customerController.findCustomerById(customerId);
-    if (customer == null) {
-      return createNotFound(NOT_FOUND_MESSAGE);
-    }
 
-    if (!isAdminOrHasCustomerGroup(customer.getName())) {
-      return createForbidden(FORBIDDEN_MESSAGE);
-    }
+    /** CUSTOMERS  */
 
-    fi.metatavu.oioi.cm.persistence.model.Media media = mediaController.findMediaById(mediaId);
-    if (media == null || !media.getCustomer().getId().equals(customer.getId())) {
-      return createNotFound(NOT_FOUND_MESSAGE);
+    override fun createCustomer(customer: @Valid Customer?): Response {
+        if (!hasRealmRole(ADMIN_ROLE)) {
+            return createForbidden(FORBIDDEN_MESSAGE)
+        }
+
+        val loggedUserId = loggedUserId!!
+        val result = customerController.createCustomer(customer!!.imageUrl, customer.name, loggedUserId)
+
+        return createOk(customerTranslator.translate(result))
+    }
+
+    override fun listCustomers(): Response {
+        return if (hasRealmRole(ADMIN_ROLE)) {
+            createOk(customerController.listAllCustomers().map (customerTranslator::translate))
+        } else {
+            createOk(customerController.listCustomersByNameIn(getLoggedUserGroups()).map (customerTranslator::translate))
+        }
+    }
+
+    override fun findCustomer(customerId: UUID): Response {
+        val customer = customerController.findCustomerById(customerId) ?: return createNotFound(NOT_FOUND_MESSAGE)
+        return if (!isAdminOrHasCustomerGroup(customer.name)) {
+            createForbidden(FORBIDDEN_MESSAGE)
+        } else {
+            createOk(customerTranslator.translate(customer))
+        }
+    }
+
+    override fun updateCustomer(customerId: UUID, payload: @Valid Customer?): Response {
+        if (!hasRealmRole(ADMIN_ROLE)) {
+            return createForbidden(FORBIDDEN_MESSAGE)
+        }
+
+        val loggedUserId = loggedUserId!!
+        val customer = customerController.findCustomerById(customerId) ?: return createNotFound(NOT_FOUND_MESSAGE)
+        customerController.updateCustomer(customer, payload!!.imageUrl, payload.name, loggedUserId)
+        return createOk(customerTranslator.translate(customer))
+    }
+
+    override fun deleteCustomer(customerId: UUID): Response {
+        if (!hasRealmRole(ADMIN_ROLE)) {
+            return createForbidden(FORBIDDEN_MESSAGE)
+        }
+
+        val customer = customerController.findCustomerById(customerId) ?: return createNotFound(NOT_FOUND_MESSAGE)
+        customerController.deleteCustomer(authzClient, customer)
+        return createNoContent()
+    }
+
+    /** DEVICES  */
+
+    override fun createDevice(customerId: UUID, payload: @Valid Device?): Response {
+        if (!hasRealmRole(ADMIN_ROLE)) {
+            return createForbidden(FORBIDDEN_MESSAGE)
+        }
+
+        val loggedUserId = loggedUserId!!
+        val customer = customerController.findCustomerById(customerId) ?: return createNotFound(NOT_FOUND_MESSAGE)
+        val apiKey = payload!!.apiKey
+        val name = payload.name
+        val imageUrl = payload.imageUrl
+        val device = deviceController.createDevice(customer, apiKey, name, imageUrl, loggedUserId)
+        deviceController.setDeviceMetas(device, payload.metas, loggedUserId)
+        return createOk(deviceTranslator.translate(device))
+    }
+
+    override fun listDevices(customerId: UUID): Response {
+        val customer = customerController.findCustomerById(customerId) ?: return createNotFound(NOT_FOUND_MESSAGE)
+        return if (!isAdminOrHasCustomerGroup(customer.name)) {
+            createForbidden(FORBIDDEN_MESSAGE)
+        } else createOk(
+            deviceController.listCustomerDevices(customer).stream()
+                .map { entity: fi.metatavu.oioi.cm.persistence.model.Device? -> deviceTranslator.translate(entity) }
+                .collect(Collectors.toList()))
+    }
+
+    override fun findDevice(customerId: UUID, deviceId: UUID): Response {
+        val customer = customerController.findCustomerById(customerId)
+            ?: return createNotFound(NOT_FOUND_MESSAGE)
+        if (!isAdminOrHasCustomerGroup(customer.name)) {
+            return createForbidden(FORBIDDEN_MESSAGE)
+        }
+        val device = deviceController.findDeviceById(deviceId)
+            ?: return createNotFound(NOT_FOUND_MESSAGE)
+        return if (device.customer.id != customer.id) {
+            createNotFound(NOT_FOUND_MESSAGE)
+        } else createOk(deviceTranslator.translate(device))
+    }
+
+    override fun updateDevice(customerId: UUID, deviceId: UUID, payload: @Valid Device?): Response {
+        if (!hasRealmRole(ADMIN_ROLE)) {
+            return createForbidden(FORBIDDEN_MESSAGE)
+        }
+        val loggedUserId = loggedUserId!!
+        val customer = customerController.findCustomerById(customerId)
+            ?: return createNotFound(NOT_FOUND_MESSAGE)
+        val device = deviceController.findDeviceById(deviceId)
+            ?: return createNotFound(NOT_FOUND_MESSAGE)
+        if (device.customer.id != customer.id) {
+            return createNotFound(NOT_FOUND_MESSAGE)
+        }
+        val apiKey = payload!!.apiKey
+        val name = payload.name
+        val imageUrl = payload.imageUrl
+        deviceController.updateDevice(device, customer, apiKey, name, imageUrl, loggedUserId)
+        deviceController.setDeviceMetas(device, payload.metas, loggedUserId)
+        return createOk(deviceTranslator.translate(device))
+    }
+
+    override fun deleteDevice(customerId: UUID, deviceId: UUID): Response {
+        if (!hasRealmRole(ADMIN_ROLE)) {
+            return createForbidden(FORBIDDEN_MESSAGE)
+        }
+        val customer = customerController.findCustomerById(customerId)
+            ?: return createNotFound(NOT_FOUND_MESSAGE)
+        val device = deviceController.findDeviceById(deviceId)
+            ?: return createNotFound(NOT_FOUND_MESSAGE)
+        if (device.customer.id != customer.id) {
+            return createNotFound(NOT_FOUND_MESSAGE)
+        }
+        deviceController.deleteDevice(authzClient, device)
+        return createNoContent()
+    }
+
+    /** RESOURCES  */
+    override fun createResource(
+        customerId: UUID,
+        deviceId: UUID,
+        applicationId: UUID,
+        payload: @Valid Resource?
+    ): Response {
+        val loggedUserId = loggedUserId!!
+        val customer = customerController.findCustomerById(customerId)
+            ?: return createNotFound(NOT_FOUND_MESSAGE)
+        if (!isAdminOrHasCustomerGroup(customer.name)) {
+            return createForbidden(FORBIDDEN_MESSAGE)
+        }
+        val device = deviceController.findDeviceById(deviceId)
+            ?: return createNotFound(NOT_FOUND_MESSAGE)
+        if (device.customer.id != customer.id) {
+            return createNotFound(NOT_FOUND_MESSAGE)
+        }
+        val application = applicationController.findApplicationById(applicationId)
+            ?: return createNotFound(NOT_FOUND_MESSAGE)
+        if (application.device.id != device.id) {
+            return createNotFound(NOT_FOUND_MESSAGE)
+        }
+        val parentId = payload!!.parentId
+        val parent = resourceController.findResourceById(parentId)
+            ?: return createBadRequest(INVALID_PARENT_ID)
+
+        // TODO: parent permission?
+        val data = payload.data
+        val name = payload.name
+        val slug = payload.slug
+        val orderNumber = payload.orderNumber
+        val type = payload.type
+        return createOk(
+            resourceTranslator.translate(
+                resourceController.createResource(
+                    authzClient,
+                    customer,
+                    device,
+                    application,
+                    orderNumber,
+                    parent,
+                    data,
+                    name,
+                    slug,
+                    type,
+                    payload.properties,
+                    payload.styles,
+                    loggedUserId
+                )
+            )
+        )
+    }
+
+    override fun listResources(customerId: UUID, deviceId: UUID, applicationId: UUID, parentId: UUID): Response {
+        val customer = customerController.findCustomerById(customerId)
+            ?: return createNotFound(NOT_FOUND_MESSAGE)
+        if (!isAdminOrHasCustomerGroup(customer.name)) {
+            return createForbidden(FORBIDDEN_MESSAGE)
+        }
+        val device = deviceController.findDeviceById(deviceId)
+            ?: return createNotFound(NOT_FOUND_MESSAGE)
+        if (device.customer.id != customer.id) {
+            return createNotFound(NOT_FOUND_MESSAGE)
+        }
+        val application = applicationController.findApplicationById(applicationId)
+            ?: return createNotFound(NOT_FOUND_MESSAGE)
+        if (application.device.id != device.id) {
+            return createNotFound(NOT_FOUND_MESSAGE)
+        }
+        val parent = resourceController.findResourceById(parentId)
+            ?: return createBadRequest(INVALID_PARENT_ID)
+        return createOk(resourceTranslator.translate(resourceController.listResourcesByParent(parent)))
+    }
+
+    override fun findResource(customerId: UUID, deviceId: UUID, applicationId: UUID, resourceId: UUID): Response {
+        val customer = customerController.findCustomerById(customerId)
+            ?: return createNotFound(NOT_FOUND_MESSAGE)
+        if (!isAdminOrHasCustomerGroup(customer.name)) {
+            return createForbidden(FORBIDDEN_MESSAGE)
+        }
+        val device = deviceController.findDeviceById(deviceId)
+            ?: return createNotFound(NOT_FOUND_MESSAGE)
+        if (device.customer.id != customer.id) {
+            return createNotFound(NOT_FOUND_MESSAGE)
+        }
+        val application = applicationController.findApplicationById(applicationId)
+            ?: return createNotFound(NOT_FOUND_MESSAGE)
+        if (application.device.id != device.id) {
+            return createNotFound(NOT_FOUND_MESSAGE)
+        }
+        val resource = resourceController.findResourceById(resourceId)
+            ?: return createNotFound(NOT_FOUND_MESSAGE)
+        return if (!resourceController.isApplicationResource(application, resource)) {
+            createNotFound(NOT_FOUND_MESSAGE)
+        } else createOk(
+            resourceTranslator.translate(
+                resourceController.findResourceById(resourceId)
+            )
+        )
+    }
+
+    override fun updateResource(
+        customerId: UUID,
+        deviceId: UUID,
+        applicationId: UUID,
+        resourceId: UUID,
+        payload: @Valid Resource?
+    ): Response {
+        val loggedUserId = loggedUserId!!
+        val customer = customerController.findCustomerById(customerId)
+            ?: return createNotFound(NOT_FOUND_MESSAGE)
+        if (!isAdminOrHasCustomerGroup(customer.name)) {
+            return createForbidden(FORBIDDEN_MESSAGE)
+        }
+        val device = deviceController.findDeviceById(deviceId)
+            ?: return createNotFound(NOT_FOUND_MESSAGE)
+        if (device.customer.id != customer.id) {
+            return createNotFound(NOT_FOUND_MESSAGE)
+        }
+        val application = applicationController.findApplicationById(applicationId)
+            ?: return createNotFound(NOT_FOUND_MESSAGE)
+        if (application.device.id != device.id) {
+            return createNotFound(NOT_FOUND_MESSAGE)
+        }
+        val resource = resourceController.findResourceById(resourceId)
+            ?: return createNotFound(NOT_FOUND_MESSAGE)
+        if (resource.id == payload!!.parentId) {
+            return createBadRequest(INVALID_PARENT_ID)
+        }
+        if (!resourceController.isApplicationResource(application, resource)) {
+            return createNotFound(NOT_FOUND_MESSAGE)
+        }
+        val parentId = payload.parentId
+        if (resource.type == ResourceType.ROOT) {
+            resourceController.setResourceProperties(resource, payload.properties, loggedUserId)
+            resourceController.setResourceStyles(resource, payload.styles, loggedUserId)
+            return createOk(resourceTranslator.translate(resource))
+        } else if (parentId == null) {
+            return createBadRequest(INVALID_PARENT_ID)
+        }
+        val parent = resourceController.findResourceById(parentId)
+            ?: return createBadRequest(INVALID_PARENT_ID)
+
+        // TODO: parent permission?
+        val data = payload.data
+        val name = payload.name
+        val slug = payload.slug
+        val type = payload.type
+        val orderNumber = payload.orderNumber
+        resourceController.setResourceProperties(resource, payload.properties, loggedUserId)
+        resourceController.setResourceStyles(resource, payload.styles, loggedUserId)
+        return createOk(
+            resourceTranslator.translate(
+                resourceController.updateResource(
+                    resource,
+                    orderNumber,
+                    data,
+                    name,
+                    parent,
+                    slug,
+                    type,
+                    loggedUserId
+                )
+            )
+        )
+    }
+
+    override fun deleteResource(customerId: UUID, deviceId: UUID, applicationId: UUID, resourceId: UUID): Response {
+        val customer = customerController.findCustomerById(customerId)
+            ?: return createNotFound(NOT_FOUND_MESSAGE)
+        if (!isAdminOrHasCustomerGroup(customer.name)) {
+            return createForbidden(FORBIDDEN_MESSAGE)
+        }
+        val device = deviceController.findDeviceById(deviceId)
+            ?: return createNotFound(NOT_FOUND_MESSAGE)
+        if (device.customer.id != customer.id) {
+            return createNotFound(NOT_FOUND_MESSAGE)
+        }
+        val application = applicationController.findApplicationById(applicationId)
+            ?: return createNotFound(NOT_FOUND_MESSAGE)
+        if (application.device.id != device.id) {
+            return createNotFound(NOT_FOUND_MESSAGE)
+        }
+        val resource = resourceController.findResourceById(resourceId)
+            ?: return createNotFound(NOT_FOUND_MESSAGE)
+        if (!resourceController.isApplicationResource(application, resource)) {
+            return createNotFound(NOT_FOUND_MESSAGE)
+        }
+        resourceController.delete(authzClient, resource)
+        return createNoContent()
+    }
+
+    /** MEDIAS  */
+    override fun createMedia(customerId: UUID, media: @Valid Media?): Response {
+        val loggedUserId = loggedUserId!!
+        val customer = customerController.findCustomerById(customerId)
+            ?: return createNotFound(NOT_FOUND_MESSAGE)
+        return if (!isAdminOrHasCustomerGroup(customer.name)) {
+            createForbidden(FORBIDDEN_MESSAGE)
+        } else createOk(
+            mediaTranslator.translate(
+                mediaController.createMedia(
+                    customer,
+                    media!!.contentType,
+                    media.type,
+                    media.url,
+                    loggedUserId
+                )
+            )
+        )
+    }
+
+    override fun listMedias(customerId: UUID, type: MediaType?): Response {
+        val customer = customerController.findCustomerById(customerId) ?: return createNotFound(NOT_FOUND_MESSAGE)
+        return if (!isAdminOrHasCustomerGroup(customer.name)) {
+            createForbidden(FORBIDDEN_MESSAGE)
+        } else createOk(mediaTranslator.translate(mediaController.listMedias(customer, type)))
+    }
+
+    override fun findMedia(customerId: UUID, mediaId: UUID): Response {
+        val customer = customerController.findCustomerById(customerId)
+            ?: return createNotFound(NOT_FOUND_MESSAGE)
+        if (!isAdminOrHasCustomerGroup(customer.name)) {
+            return createForbidden(FORBIDDEN_MESSAGE)
+        }
+        val media = mediaController.findMediaById(mediaId)
+        return if (media == null || media.customer.id != customer.id) {
+            createNotFound(NOT_FOUND_MESSAGE)
+        } else createOk(mediaTranslator.translate(media))
+    }
+
+    override fun updateMedia(customerId: UUID, mediaId: UUID, payload: @Valid Media?): Response {
+        val loggedUserId = loggedUserId!!
+        val customer = customerController.findCustomerById(customerId)
+            ?: return createNotFound(NOT_FOUND_MESSAGE)
+        if (!isAdminOrHasCustomerGroup(customer.name)) {
+            return createForbidden(FORBIDDEN_MESSAGE)
+        }
+        val media = mediaController.findMediaById(mediaId)
+        return if (media == null || media.customer.id != customer.id) {
+            createNotFound(NOT_FOUND_MESSAGE)
+        } else createOk(
+            mediaTranslator.translate(
+                mediaController.updateMedia(
+                    media,
+                    payload!!.contentType,
+                    payload.type,
+                    payload.url,
+                    loggedUserId
+                )
+            )
+        )
+    }
+
+    override fun deleteMedia(customerId: UUID, mediaId: UUID): Response {
+        val customer = customerController.findCustomerById(customerId)
+            ?: return createNotFound(NOT_FOUND_MESSAGE)
+        if (!isAdminOrHasCustomerGroup(customer.name)) {
+            return createForbidden(FORBIDDEN_MESSAGE)
+        }
+        val media = mediaController.findMediaById(mediaId)
+        if (media == null || media.customer.id != customer.id) {
+            return createNotFound(NOT_FOUND_MESSAGE)
+        }
+        mediaController.deleteMedia(media)
+        return createNoContent()
+    }
+
+    companion object {
+        private const val INVALID_PARENT_ID = "Invalid parent_id"
     }
-    
-    mediaController.deleteMedia(media);
-    
-    return createNoContent();
-  }
 }
