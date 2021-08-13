@@ -1,3 +1,0 @@
-embed-server --server-config=standalone-full-ha.xml
-/subsystem=datasources/jdbc-driver=mysql:add(driver-name=mysql, driver-module-name=com.mysql.jdbc, xa-datasource-class=com.mysql.jdbc.jdbc2.optional.MysqlXADataSource)
-data-source add --name=oioi-cm-api --jndi-name=java:jboss/datasources/oioi-cm-api --enabled=true --jta=true --use-ccm=true --connection-url=jdbc:mysql://${env.OIOI_CM_API_DB_HOST}:${env.OIOI_CM_API_DB_PORT:3306}/${env.OIOI_CM_API_DB_NAME}${env.OIOI_CM_API_DB_OPTS:} --driver-name=mysql --user-name=${env.OIOI_CM_API_DB_USERNAME} --password=${env.OIOI_CM_API_DB_PASSWORD} --check-valid-connection-sql="SELECT 1" --validate-on-match=false --share-prepared-statements=false --max-pool-size=1000
