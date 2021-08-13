@@ -1,214 +1,206 @@
-package fi.metatavu.oioi.cm.test.functional.builder.impl;
+package fi.metatavu.oioi.cm.test.functional.builder.impl
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.UUID;
-
-import org.json.JSONException;
-import org.openapitools.client.api.CustomersApi;
-import org.openapitools.client.model.Customer;
-
-import fi.metatavu.oioi.cm.client.ApiClient;
-import fi.metatavu.oioi.cm.client.ApiException;
-import fi.metatavu.oioi.cm.test.functional.builder.AbstractApiTestBuilderResource;
-import fi.metatavu.oioi.cm.test.functional.builder.TestBuilder;
+import fi.metatavu.jaxrs.test.functional.builder.auth.AccessTokenProvider
+import fi.metatavu.oioi.cm.client.apis.CustomersApi
+import fi.metatavu.oioi.cm.test.functional.builder.TestBuilder
+import fi.metatavu.oioi.cm.client.infrastructure.ApiClient
+import kotlin.jvm.JvmOverloads
+import kotlin.Throws
+import fi.metatavu.oioi.cm.client.infrastructure.ClientException
+import fi.metatavu.oioi.cm.client.models.Customer
+import java.util.UUID
+import java.io.IOException
+import org.json.JSONException
+import org.junit.Assert.*
 
 /**
  * Test builder resource for customers
- * 
+ *
  * @author Antti Leppä
  */
-public class CustomerTestBuilderResource extends AbstractApiTestBuilderResource<Customer, CustomersApi> {
-  
-  /**
-   * Constructor
-   * 
-   * @param testBuilder test builder
-   * @param apiClient initialized API client
-   */
-  public CustomerTestBuilderResource(TestBuilder testBuilder, ApiClient apiClient) {
-    super(testBuilder, apiClient);
-  }
-  
-  /**
-   * Creates new customer with default values
-   * 
-   * @return created customer
-   * @throws ApiException 
-   */
-  public Customer create() throws ApiException {
-    return create("default name", "http://default.example.com");
-  }
-  
-  /**
-   * Creates new customer
-   * 
-   * @param name name
-   * @param imageUrl image URL
-   * @return created customer
-   * @throws ApiException 
-   */
-  public Customer create(String name, String imageUrl) throws ApiException {
-    Customer customer = new Customer();
-    customer.setName(name);
-    customer.setImageUrl(imageUrl);
-    Customer result = getApi().createCustomer(customer);
-    return addClosable(result);
-  }
-  
-  /**
-   * Finds a customer
-   * 
-   * @param customerId customer id
-   * @return found customer
-   * @throws ApiException 
-   */
-  public Customer findCustomer(UUID customerId) throws ApiException {
-    return getApi().findCustomer(customerId);
-  }
-  
-  /**
-   * Lists customers
-   * 
-   * @return found customers
-   * @throws ApiException 
-   */
-  public List<Customer> listCustomers() throws ApiException {
-    return getApi().listCustomers();
-  }
+class CustomerTestBuilderResource (
+    testBuilder: TestBuilder,
+    private val accessTokenProvider: AccessTokenProvider?,
+    apiClient: ApiClient
+) : ApiTestBuilderResource<Customer, ApiClient?>(testBuilder, apiClient) {
 
-  /**
-   * Updates a customer into the API
-   * 
-   * @param body body payload
-   * @throws ApiException 
-   */
-  public Customer updateCustomer(Customer body) throws ApiException {
-    return getApi().updateCustomer(body.getId(), body);
-  }
-  
-  /**
-   * Deletes a customer from the API
-   * 
-   * @param customer customer to be deleted
-   * @throws ApiException 
-   */
-  public void delete(Customer customer) throws ApiException {
-    getApi().deleteCustomer(customer.getId());  
-    
-    removeCloseable(closable -> {
-      if (!(closable instanceof Customer)) {
-        return false;
-      }
-
-      Customer closeableCustomer = (Customer) closable;
-      return closeableCustomer.getId().equals(customer.getId());
-    });
-  }
-  
-  /**
-   * Asserts customer count within the system
-   * 
-   * @param expected expected count
-   * @throws ApiException 
-   */
-  public void assertCount(int expected) throws ApiException {
-    assertEquals(expected, getApi().listCustomers().size());
-  }
-  
-  /**
-   * Asserts find status fails with given status code
-   * 
-   * @param expectedStatus expected status code
-   * @param customerId customer id
-   */
-  public void assertFindFailStatus(int expectedStatus, UUID customerId) {
-    try {
-      getApi().findCustomer(customerId);
-      fail(String.format("Expected find to fail with status %d", expectedStatus));
-    } catch (ApiException e) {
-      assertEquals(expectedStatus, e.getCode());
+    override fun getApi(): CustomersApi {
+        ApiClient.accessToken = accessTokenProvider?.accessToken
+        return CustomersApi(testBuilder.settings.apiBasePath)
     }
-  }
 
-  /**
-   * Asserts create status fails with given status code
-   * 
-   * @param expectedStatus expected status code
-   * @param name name
-   * @param imageUrl image URL
-   */
-  public void assertCreateFailStatus(int expectedStatus, String name, String imageUrl) {
-    try {
-      create(name, imageUrl);
-      fail(String.format("Expected create to fail with status %d", expectedStatus));
-    } catch (ApiException e) {
-      assertEquals(expectedStatus, e.getCode());
-    }
-  }
+    /**
+     * Creates new customer with default values
+     *
+     * @return created customer
+     * @throws ClientException
+     */
+    @JvmOverloads
+    @Throws(ClientException::class)
+    fun create(name: String = "default name", imageUrl: String? = "http://default.example.com"): Customer {
+        val customer = Customer(
+            name = name,
+            imageUrl = imageUrl
+        )
 
-  /**
-   * Asserts update status fails with given status code
-   * 
-   * @param expectedStatus expected status code
-   * @param customer customer
-   */
-  public void assertUpdateFailStatus(int expectedStatus, Customer customer) {
-    try {
-      updateCustomer(customer);
-      fail(String.format("Expected update to fail with status %d", expectedStatus));
-    } catch (ApiException e) {
-      assertEquals(expectedStatus, e.getCode());
+        val result = api.createCustomer(customer)
+        return addClosable(result)
     }
-  }
-  
-  /**
-   * Asserts delete status fails with given status code
-   * 
-   * @param expectedStatus expected status code
-   * @param customer customer
-   */
-  public void assertDeleteFailStatus(int expectedStatus, Customer customer) {
-    try {
-      getApi().deleteCustomer(customer.getId());
-      fail(String.format("Expected delete to fail with status %d", expectedStatus));
-    } catch (ApiException e) {
-      assertEquals(expectedStatus, e.getCode());
-    }
-  }
-  
-  /**
-   * Asserts list status fails with given status code
-   * 
-   * @param expectedStatus expected status code
-   */
-  public void assertListFailStatus(int expectedStatus) {
-    try {
-      getApi().listCustomers();
-      fail(String.format("Expected list to fail with status %d", expectedStatus));
-    } catch (ApiException e) {
-      assertEquals(expectedStatus, e.getCode());
-    }
-  }
 
-  /**
-   * Asserts that actual customer equals expected customer when both are serialized into JSON
-   * 
-   * @param expected expected customer
-   * @param actual actual customer
-   * @throws JSONException thrown when JSON serialization error occurs
-   * @throws IOException thrown when IO Exception occurs
-   */
-  public void assertCustomersEqual(Customer expected, Customer actual) throws IOException, JSONException {
-    assertJsonsEqual(expected, actual);
-  }
+    /**
+     * Finds a customer
+     *
+     * @param customerId customer id
+     * @return found customer
+     * @throws ClientException
+     */
+    @Throws(ClientException::class)
+    fun findCustomer(customerId: UUID?): Customer {
+        return api.findCustomer(customerId!!)
+    }
 
-  @Override
-  public void clean(Customer customer) throws ApiException {
-    getApi().deleteCustomer(customer.getId());  
-  }
+    /**
+     * Lists customers
+     *
+     * @return found customers
+     * @throws ClientException
+     */
+    @Throws(ClientException::class)
+    fun listCustomers(): Array<Customer> {
+        return api.listCustomers()
+    }
+
+    /**
+     * Updates a customer into the API
+     *
+     * @param body body payload
+     * @throws ClientException
+     */
+    @Throws(ClientException::class)
+    fun updateCustomer(body: Customer): Customer {
+        return api.updateCustomer(body.id!!, body)
+    }
+
+    /**
+     * Deletes a customer from the API
+     *
+     * @param customer customer to be deleted
+     * @throws ClientException
+     */
+    @Throws(ClientException::class)
+    fun delete(customer: Customer) {
+        api.deleteCustomer(customer.id!!)
+        removeCloseable { closable: Any? ->
+            if (closable !is Customer) {
+                return@removeCloseable false
+            }
+            val (_, id) = closable
+            id == customer.id
+        }
+    }
+
+    /**
+     * Asserts customer count within the system
+     *
+     * @param expected expected count
+     * @throws ClientException
+     */
+    @Throws(ClientException::class)
+    fun assertCount(expected: Int) {
+        assertEquals(expected, api.listCustomers().size)
+    }
+
+    /**
+     * Asserts find status fails with given status code
+     *
+     * @param expectedStatus expected status code
+     * @param customerId customer id
+     */
+    fun assertFindFailStatus(expectedStatus: Int, customerId: UUID?) {
+        try {
+            api.findCustomer(customerId!!)
+            fail(String.format("Expected find to fail with status %d", expectedStatus))
+        } catch (e: ClientException) {
+            assertEquals(expectedStatus.toLong(), e.statusCode.toLong())
+        }
+    }
+
+    /**
+     * Asserts create status fails with given status code
+     *
+     * @param expectedStatus expected status code
+     * @param name name
+     * @param imageUrl image URL
+     */
+    fun assertCreateFailStatus(expectedStatus: Int, name: String, imageUrl: String?) {
+        try {
+            create(name, imageUrl)
+            fail(String.format("Expected create to fail with status %d", expectedStatus))
+        } catch (e: ClientException) {
+            assertEquals(expectedStatus.toLong(), e.statusCode.toLong())
+        }
+    }
+
+    /**
+     * Asserts update status fails with given status code
+     *
+     * @param expectedStatus expected status code
+     * @param customer customer
+     */
+    fun assertUpdateFailStatus(expectedStatus: Int, customer: Customer) {
+        try {
+            updateCustomer(customer)
+            fail(String.format("Expected update to fail with status %d", expectedStatus))
+        } catch (e: ClientException) {
+            assertEquals(expectedStatus.toLong(), e.statusCode.toLong())
+        }
+    }
+
+    /**
+     * Asserts delete status fails with given status code
+     *
+     * @param expectedStatus expected status code
+     * @param customer customer
+     */
+    fun assertDeleteFailStatus(expectedStatus: Int, customer: Customer) {
+        try {
+            api.deleteCustomer(customer.id!!)
+            fail(String.format("Expected delete to fail with status %d", expectedStatus))
+        } catch (e: ClientException) {
+            assertEquals(expectedStatus.toLong(), e.statusCode.toLong())
+        }
+    }
+
+    /**
+     * Asserts list status fails with given status code
+     *
+     * @param expectedStatus expected status code
+     */
+    fun assertListFailStatus(expectedStatus: Int) {
+        try {
+            api.listCustomers()
+            fail(String.format("Expected list to fail with status %d", expectedStatus))
+        } catch (e: ClientException) {
+            assertEquals(expectedStatus.toLong(), e.statusCode.toLong())
+        }
+    }
+
+    /**
+     * Asserts that actual customer equals expected customer when both are serialized into JSON
+     *
+     * @param expected expected customer
+     * @param actual actual customer
+     * @throws JSONException thrown when JSON serialization error occurs
+     * @throws IOException thrown when IO Exception occurs
+     */
+    @Throws(IOException::class, JSONException::class)
+    fun assertCustomersEqual(expected: Customer?, actual: Customer?) {
+        assertJsonsEqual(expected, actual)
+    }
+
+    @Throws(ClientException::class)
+    override fun clean(t: Customer) {
+        api.deleteCustomer(t.id!!)
+    }
 
 }

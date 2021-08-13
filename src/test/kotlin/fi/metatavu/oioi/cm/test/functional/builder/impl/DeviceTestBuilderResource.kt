@@ -1,253 +1,252 @@
-package fi.metatavu.oioi.cm.test.functional.builder.impl;
+package fi.metatavu.oioi.cm.test.functional.builder.impl
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import org.json.JSONException;
-import org.openapitools.client.api.DevicesApi;
-import org.openapitools.client.model.Customer;
-import org.openapitools.client.model.Device;
-import org.openapitools.client.model.KeyValueProperty;
-
-import fi.metatavu.oioi.cm.client.ApiClient;
-import fi.metatavu.oioi.cm.client.ApiException;
-import fi.metatavu.oioi.cm.test.functional.builder.AbstractApiTestBuilderResource;
-import fi.metatavu.oioi.cm.test.functional.builder.TestBuilder;
+import fi.metatavu.jaxrs.test.functional.builder.auth.AccessTokenProvider
+import fi.metatavu.oioi.cm.test.functional.builder.TestBuilder
+import fi.metatavu.oioi.cm.client.infrastructure.ApiClient
+import fi.metatavu.oioi.cm.client.apis.DevicesApi
+import java.util.UUID
+import java.util.HashMap
+import kotlin.jvm.JvmOverloads
+import kotlin.Throws
+import fi.metatavu.oioi.cm.client.infrastructure.ClientException
+import fi.metatavu.oioi.cm.client.models.Customer
+import fi.metatavu.oioi.cm.client.models.Device
+import fi.metatavu.oioi.cm.client.models.KeyValueProperty
+import java.io.IOException
+import org.json.JSONException
+import org.junit.Assert.assertEquals
+import org.junit.Assert.fail
 
 /**
  * Test builder resource for devices
- * 
+ *
  * @author Antti Leppä
  */
-public class DeviceTestBuilderResource extends AbstractApiTestBuilderResource<Device, DevicesApi> {
-  
-  private Map<UUID, UUID> customerDeviceIds = new HashMap<>();
-  
-  /**
-   * Constructor
-   * 
-   * @param testBuilder test builder
-   * @param apiClient initialized API client
-   */
-  public DeviceTestBuilderResource(TestBuilder testBuilder, ApiClient apiClient) {
-    super(testBuilder, apiClient);
-  }
-  
-  /**
-   * Creates new device with default values
-   * 
-   * @param customer customer
-   * 
-   * @return created device
-   * @throws ApiException 
-   */
-  public Device create(Customer customer) throws ApiException {
-    return create(customer, "default name", "api-key", null, Collections.emptyList());
-  }
-  
-  /**
-   * Creates new device
-   * 
-   * @param customer customer
-   * @param name name
-   * @param apiKey API key
-   * @param imageUrl image URL
-   * @param metas metas
-   * @return created device
-   * @throws ApiException 
-   */
-  public Device create(Customer customer, String name, String apiKey, String imageUrl, List<KeyValueProperty> metas) throws ApiException {
-    Device device = new Device();
-    device.setName(name);
-    device.setApiKey(apiKey);
-    device.setImageUrl(imageUrl);
-    device.setMetas(metas);
-    Device result = getApi().createDevice(customer.getId(), device);
-    customerDeviceIds.put(result.getId(), customer.getId());
-    return addClosable(result);
-  }
-  
-  /**
-   * Finds a device
-   * 
-   * @param customer customer
-   * @param deviceId device id
-   * @return found device
-   * @throws ApiException 
-   */
-  public Device findDevice(Customer customer, UUID deviceId) throws ApiException {
-    return getApi().findDevice(customer.getId(), deviceId);
-  }
-  
-  /**
-   * Lists devices
-   * 
-   * @param customer customer
-   * @return found devices
-   * @throws ApiException 
-   */
-  public List<Device> listDevices(Customer customer) throws ApiException {
-    return getApi().listDevices(customer.getId());
-  }
+class DeviceTestBuilderResource (
+    testBuilder: TestBuilder,
+    private val accessTokenProvider: AccessTokenProvider?,
+    apiClient: ApiClient
+) : ApiTestBuilderResource<Device, ApiClient?>(testBuilder, apiClient) {
 
-  /**
-   * Updates a device into the API
-   * 
-   * @param customer customer
-   * @param body body payload
-   * @throws ApiException 
-   */
-  public Device updateDevice(Customer customer, Device body) throws ApiException {
-    return getApi().updateDevice(customer.getId(), body.getId(), body);
-  }
-  
-  /**
-   * Deletes a device from the API
-   * 
-   * @param customer customer
-   * @param device device to be deleted
-   * @throws ApiException 
-   */
-  public void delete(Customer customer, Device device) throws ApiException {
-    getApi().deleteDevice(customer.getId(), device.getId());  
-    
-    removeCloseable(closable -> {
-      if (!(closable instanceof Device)) {
-        return false;
-      }
+    private val customerDeviceIds: MutableMap<UUID?, UUID?> = HashMap()
 
-      Device closeableDevice = (Device) closable;
-      return closeableDevice.getId().equals(device.getId());
-    });
-  }
-  
-  /**
-   * Asserts device count within the system
-   * 
-   * @param expected expected count
-   * @param customer customer
-   * @throws ApiException 
-   */
-  public void assertCount(int expected, Customer customer) throws ApiException {
-    assertEquals(expected, getApi().listDevices(customer.getId()).size());
-  }
-  
-  /**
-   * Asserts find status fails with given status code
-   * 
-   * @param expectedStatus expected status code
-   * @param customer customer
-   * @param deviceId device id
-   */
-  public void assertFindFailStatus(int expectedStatus, Customer customer, UUID deviceId) {
-    assertFindFailStatus(expectedStatus, customer.getId(), deviceId);
-  }
-  
-  /**
-   * Asserts find status fails with given status code
-   * 
-   * @param expectedStatus expected status code
-   * @param customerId customer id
-   * @param deviceId device id
-   */
-  public void assertFindFailStatus(int expectedStatus, UUID customerId, UUID deviceId) {
-    try {
-      getApi().findDevice(customerId, deviceId);
-      fail(String.format("Expected find to fail with status %d", expectedStatus));
-    } catch (ApiException e) {
-      assertEquals(expectedStatus, e.getCode());
+    override fun getApi(): DevicesApi {
+        ApiClient.accessToken = accessTokenProvider?.accessToken
+        return DevicesApi(testBuilder.settings.apiBasePath)
     }
-  }
-  
-  /**
-   * Asserts create status fails with given status code
-   * 
-   * @param expectedStatus expected status code
-   * @param customer customer
-   * @param name name
-   * @param apiKey API key
-   * @param imageUrl image URL
-   * @param metas metas
-   */
-  public void assertCreateFailStatus(int expectedStatus, Customer customer, String name, String apiKey, String imageUrl, List<KeyValueProperty> metas) {
-    try {
-      create(customer, name, apiKey, imageUrl, metas);
-      fail(String.format("Expected create to fail with status %d", expectedStatus));
-    } catch (ApiException e) {
-      assertEquals(expectedStatus, e.getCode());
-    }
-  }
 
-  /**
-   * Asserts update status fails with given status code
-   * 
-   * @param expectedStatus expected status code
-   * @param customer customer
-   * @param device device
-   */
-  public void assertUpdateFailStatus(int expectedStatus, Customer customer, Device device) {
-    try {
-      updateDevice(customer, device);
-      fail(String.format("Expected update to fail with status %d", expectedStatus));
-    } catch (ApiException e) {
-      assertEquals(expectedStatus, e.getCode());
-    }
-  }
-  
-  /**
-   * Asserts delete status fails with given status code
-   * 
-   * @param expectedStatus expected status code
-   * @param customer customer
-   * @param device device
-   */
-  public void assertDeleteFailStatus(int expectedStatus, Customer customer, Device device) {
-    try {
-      getApi().deleteDevice(customer.getId(), device.getId());
-      fail(String.format("Expected delete to fail with status %d", expectedStatus));
-    } catch (ApiException e) {
-      assertEquals(expectedStatus, e.getCode());
-    }
-  }
-  
-  /**
-   * Asserts list status fails with given status code
-   * 
-   * @param expectedStatus expected status code
-   * @param customer customer
-   */
-  public void assertListFailStatus(int expectedStatus, Customer customer) {
-    try {
-      listDevices(customer);
-      fail(String.format("Expected list to fail with status %d", expectedStatus));
-    } catch (ApiException e) {
-      assertEquals(expectedStatus, e.getCode());
-    }
-  }
+    /**
+     * Creates new device with default values
+     *
+     * @param customer customer
+     *
+     * @return created device
+     * @throws  ClientException
+     */
+    @JvmOverloads
+    @Throws(ClientException::class)
+    fun create(
+        customer: Customer,
+        name: String = "default name",
+        apiKey: String = "api-key",
+        imageUrl: String? = null,
+        metas: Array<KeyValueProperty> = emptyArray<KeyValueProperty>()
+    ): Device? {
+        val device = Device(
+            name = name,
+            apiKey = apiKey,
+            imageUrl = imageUrl,
+            metas = metas
+        )
 
-  /**
-   * Asserts that actual device equals expected device when both are serialized into JSON
-   * 
-   * @param expected expected device
-   * @param actual actual device
-   * @throws JSONException thrown when JSON serialization error occurs
-   * @throws IOException thrown when IO Exception occurs
-   */
-  public void assertDevicesEqual(Device expected, Device actual) throws IOException, JSONException {
-    assertJsonsEqual(expected, actual);
-  }
+        val result = api.createDevice(customer.id!!, device)
+        customerDeviceIds[result.id] = customer.id
+        return addClosable(result)
+    }
 
-  @Override
-  public void clean(Device device) throws ApiException {
-    UUID customerId = customerDeviceIds.remove(device.getId());
-    getApi().deleteDevice(customerId, device.getId());  
-  }
+    /**
+     * Finds a device
+     *
+     * @param customer customer
+     * @param deviceId device id
+     * @return found device
+     * @throws  ClientException
+     */
+    @Throws(ClientException::class)
+    fun findDevice(customer: Customer, deviceId: UUID?): Device {
+        return api.findDevice(customer.id!!, deviceId!!)
+    }
 
+    /**
+     * Lists devices
+     *
+     * @param customer customer
+     * @return found devices
+     * @throws  ClientException
+     */
+    @Throws(ClientException::class)
+    fun listDevices(customer: Customer): Array<Device> {
+        return api.listDevices(customer.id!!)
+    }
+
+    /**
+     * Updates a device into the API
+     *
+     * @param customer customer
+     * @param body body payload
+     * @throws  ClientException
+     */
+    @Throws(ClientException::class)
+    fun updateDevice(customer: Customer, body: Device): Device {
+        return api.updateDevice(customer.id!!, body.id!!, body)
+    }
+
+    /**
+     * Deletes a device from the API
+     *
+     * @param customer customer
+     * @param device device to be deleted
+     * @throws  ClientException
+     */
+    @Throws(ClientException::class)
+    fun delete(customer: Customer, device: Device) {
+        api.deleteDevice(customer.id!!, device.id!!)
+        removeCloseable { closable: Any? ->
+            if (closable !is Device) {
+                return@removeCloseable false
+            }
+            val (_, _, id) = closable
+            id == device.id
+        }
+    }
+
+    /**
+     * Asserts device count within the system
+     *
+     * @param expected expected count
+     * @param customer customer
+     * @throws  ClientException
+     */
+    @Throws(ClientException::class)
+    fun assertCount(expected: Int, customer: Customer) {
+        assertEquals(expected, api.listDevices(customer.id!!).size)
+    }
+
+    /**
+     * Asserts find status fails with given status code
+     *
+     * @param expectedStatus expected status code
+     * @param customer customer
+     * @param deviceId device id
+     */
+    fun assertFindFailStatus(expectedStatus: Int, customer: Customer, deviceId: UUID?) {
+        assertFindFailStatus(expectedStatus, customer.id, deviceId)
+    }
+
+    /**
+     * Asserts find status fails with given status code
+     *
+     * @param expectedStatus expected status code
+     * @param customerId customer id
+     * @param deviceId device id
+     */
+    fun assertFindFailStatus(expectedStatus: Int, customerId: UUID?, deviceId: UUID?) {
+        try {
+            api.findDevice(customerId!!, deviceId!!)
+            fail(String.format("Expected find to fail with status %d", expectedStatus))
+        } catch (e: ClientException) {
+            assertEquals(expectedStatus, e.statusCode)
+        }
+    }
+
+    /**
+     * Asserts create status fails with given status code
+     *
+     * @param expectedStatus expected status code
+     * @param customer customer
+     * @param name name
+     * @param apiKey API key
+     * @param imageUrl image URL
+     * @param metas metas
+     */
+    fun assertCreateFailStatus(
+        expectedStatus: Int,
+        customer: Customer,
+        name: String,
+        apiKey: String,
+        imageUrl: String?,
+        metas: Array<KeyValueProperty>
+    ) {
+        try {
+            create(customer, name, apiKey, imageUrl, metas)
+            fail(String.format("Expected create to fail with status %d", expectedStatus))
+        } catch (e: ClientException) {
+            assertEquals(expectedStatus, e.statusCode)
+        }
+    }
+
+    /**
+     * Asserts update status fails with given status code
+     *
+     * @param expectedStatus expected status code
+     * @param customer customer
+     * @param device device
+     */
+    fun assertUpdateFailStatus(expectedStatus: Int, customer: Customer, device: Device) {
+        try {
+            updateDevice(customer, device)
+            fail(String.format("Expected update to fail with status %d", expectedStatus))
+        } catch (e: ClientException) {
+            assertEquals(expectedStatus, e.statusCode)
+        }
+    }
+
+    /**
+     * Asserts delete status fails with given status code
+     *
+     * @param expectedStatus expected status code
+     * @param customer customer
+     * @param device device
+     */
+    fun assertDeleteFailStatus(expectedStatus: Int, customer: Customer, device: Device) {
+        try {
+            api.deleteDevice(customer.id!!, device.id!!)
+            fail(String.format("Expected delete to fail with status %d", expectedStatus))
+        } catch (e: ClientException) {
+            assertEquals(expectedStatus, e.statusCode)
+        }
+    }
+
+    /**
+     * Asserts list status fails with given status code
+     *
+     * @param expectedStatus expected status code
+     * @param customer customer
+     */
+    fun assertListFailStatus(expectedStatus: Int, customer: Customer) {
+        try {
+            listDevices(customer)
+            fail(String.format("Expected list to fail with status %d", expectedStatus))
+        } catch (e: ClientException) {
+            assertEquals(expectedStatus, e.statusCode)
+        }
+    }
+
+    /**
+     * Asserts that actual device equals expected device when both are serialized into JSON
+     *
+     * @param expected expected device
+     * @param actual actual device
+     * @throws JSONException thrown when JSON serialization error occurs
+     * @throws IOException thrown when IO Exception occurs
+     */
+    @Throws(IOException::class, JSONException::class)
+    fun assertDevicesEqual(expected: Device?, actual: Device?) {
+        assertJsonsEqual(expected, actual)
+    }
+
+    override fun clean(t: Device) {
+        val customerId = customerDeviceIds.remove(t.id)
+        api.deleteDevice(customerId!!, t.id!!)
+    }
 }

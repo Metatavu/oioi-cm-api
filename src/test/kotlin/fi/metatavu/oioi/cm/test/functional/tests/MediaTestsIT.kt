@@ -1,98 +1,97 @@
-package fi.metatavu.oioi.cm.test.functional.tests;
+package fi.metatavu.oioi.cm.test.functional.tests
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.util.List;
-import java.util.UUID;
-
-import org.junit.Test;
-import org.openapitools.client.model.Customer;
-import org.openapitools.client.model.Media;
-import org.openapitools.client.model.MediaType;
-
-import fi.metatavu.oioi.cm.test.functional.builder.TestBuilder;
+import fi.metatavu.ikioma.integrations.test.functional.resources.MysqlResource
+import fi.metatavu.oioi.cm.client.models.Media
+import fi.metatavu.oioi.cm.client.models.MediaType
+import fi.metatavu.oioi.cm.test.functional.builder.TestBuilder
+import fi.metatavu.oioi.cm.test.functional.resources.KeycloakTestResource
+import io.quarkus.test.common.QuarkusTestResource
+import io.quarkus.test.junit.QuarkusTest
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
+import java.util.UUID
 
 /**
  * Customer functional tests
- * 
- * @author Antti Leppä
  *
+ * @author Antti Leppä
  */
-public class MediaTestsIT extends AbstractFunctionalTest {
+@QuarkusTest
+@QuarkusTestResource.List(
+    QuarkusTestResource(KeycloakTestResource::class),
+    QuarkusTestResource(MysqlResource::class)
+)
+class MediaTestsIT : AbstractFunctionalTest() {
 
-  @Test
-  public void testMedia() throws Exception {
-    try (TestBuilder builder = new TestBuilder()) {
-      Customer customer = builder.admin().customers().create();
-      assertNotNull(builder.admin().medias().create(customer, MediaType.IMAGE, "image/jpeg", "http://example.com/test.jpg"));
+    @Test
+    fun testMedia() {
+        TestBuilder().use { builder ->
+            val customer = builder.admin().customers.create()
+            assertNotNull(
+                builder.admin().medias.create(customer, MediaType.iMAGE, "image/jpeg", "http://example.com/test.jpg")
+            )
+        }
     }
-  }
-  
-  @Test
-  public void testFindMedia() throws Exception {
-    try (TestBuilder builder = new TestBuilder()) {
-      Customer customer = builder.admin().customers().create();
-      Media createdMedia = builder.admin().medias().create(customer);
-      
-      builder.admin().medias().assertFindFailStatus(404, customer, UUID.randomUUID());
-      builder.admin().medias().assertFindFailStatus(404, UUID.randomUUID(), UUID.randomUUID());
-      
-      Media foundMedia = builder.admin().medias().findMedia(customer, createdMedia.getId());
-      builder.admin().medias().assertFindFailStatus(404, UUID.randomUUID(), foundMedia.getId());
-      
-      builder.admin().medias().assertMediasEqual(createdMedia, foundMedia);
-    }
-  }
-  
-  @Test
-  public void testListMedias() throws Exception {
-    try (TestBuilder builder = new TestBuilder()) {
-      Customer customer = builder.admin().customers().create();
-      Media createdMedia = builder.admin().medias().create(customer);
-      List<Media> foundMedias = builder.admin().medias().listMedias(customer, null);
-      assertEquals(1, foundMedias.size());
-      builder.admin().medias().assertMediasEqual(createdMedia, foundMedias.get(0));
-      
-      assertEquals(1, builder.admin().medias().listMedias(customer, MediaType.VIDEO).size());
-      assertEquals(0, builder.admin().medias().listMedias(customer, MediaType.PDF).size());
 
+    @Test
+    fun testFindMedia() {
+        TestBuilder().use { builder ->
+            val customer = builder.admin().customers.create()
+            val createdMedia = builder.admin().medias.create(customer)
+            builder.admin().medias.assertFindFailStatus(404, customer, UUID.randomUUID())
+            builder.admin().medias.assertFindFailStatus(404, UUID.randomUUID(), UUID.randomUUID())
+            val foundMedia = builder.admin().medias.findMedia(customer, createdMedia?.id!!)
+            builder.admin().medias.assertFindFailStatus(404, UUID.randomUUID(), foundMedia.id)
+            builder.admin().medias.assertMediasEqual(createdMedia, foundMedia)
+        }
     }
-  }
-  
-  @Test
-  public void testUpdateMedia() throws Exception {
-    try (TestBuilder builder = new TestBuilder()) {
-      Customer customer = builder.admin().customers().create();
-      Media createdMedia = builder.admin().medias().create(customer);
 
-      Media updateMedia = builder.admin().medias().findMedia(customer, createdMedia.getId());
-      updateMedia.setContentType("image/changed");
-      updateMedia.setType(MediaType.VIDEO);
-      updateMedia.setUrl("http://www.example.com/changed");
-      
-      Media updatedMedia = builder.admin().medias().updateMedia(customer, updateMedia);
-      assertEquals(createdMedia.getId(), updatedMedia.getId());
-      assertEquals(updatedMedia.getContentType(), updatedMedia.getContentType());
-      assertEquals(updatedMedia.getUrl(), updatedMedia.getUrl());
-      
-      Media foundMedia = builder.admin().medias().findMedia(customer, createdMedia.getId());
-      assertEquals(createdMedia.getId(), foundMedia.getId());
-      assertEquals(updatedMedia.getContentType(), foundMedia.getContentType());
-      assertEquals(updatedMedia.getUrl(), foundMedia.getUrl());
+    @Test
+    fun testListMedias() {
+        TestBuilder().use { builder ->
+            val customer = builder.admin().customers.create()
+            val createdMedia = builder.admin().medias.create(customer)
+            val foundMedias: Array<Media> = builder.admin().medias.listMedias(customer, null)
+            assertEquals(1, foundMedias.size.toLong())
+            builder.admin().medias.assertMediasEqual(createdMedia, foundMedias[0])
+            assertEquals(1, builder.admin().medias.listMedias(customer, MediaType.vIDEO).size)
+            assertEquals(0, builder.admin().medias.listMedias(customer, MediaType.pDF).size)
+        }
     }
-  }
 
-  @Test
-  public void testDeleteMedia() throws Exception {
-    try (TestBuilder builder = new TestBuilder()) {
-      Customer customer = builder.admin().customers().create();
-      Media createdMedia = builder.admin().medias().create(customer);
-      Media foundMedia = builder.admin().medias().findMedia(customer, createdMedia.getId());
-      assertEquals(createdMedia.getId(), foundMedia.getId());
-      builder.admin().medias().delete(customer, createdMedia);
-      builder.admin().medias().assertDeleteFailStatus(404, customer, createdMedia);
+    @Test
+    fun testUpdateMedia() {
+        TestBuilder().use { builder ->
+            val customer = builder.admin().customers.create()
+            val createdMedia = builder.admin().medias.create(customer)
+            val updateMedia = builder.admin().medias.findMedia(customer, createdMedia!!.id!!).copy(
+                contentType = "image/changed",
+                type = MediaType.vIDEO,
+                url = "http://www.example.com/changed"
+            )
+
+            val updatedMedia = builder.admin().medias.updateMedia(customer, updateMedia)
+            assertEquals(updateMedia.id, updatedMedia.id)
+            assertEquals(updateMedia.contentType, updatedMedia.contentType)
+            assertEquals(updateMedia.url, updatedMedia.url)
+
+            val foundMedia = builder.admin().medias.findMedia(customer, updatedMedia.id!!)
+            assertEquals(updateMedia.id, foundMedia.id)
+            assertEquals(updateMedia.contentType, foundMedia.contentType)
+            assertEquals(updateMedia.url, foundMedia.url)
+        }
     }
-  }
-  
+
+    @Test
+    fun testDeleteMedia() {
+        TestBuilder().use { builder ->
+            val customer = builder.admin().customers.create()
+            val createdMedia = builder.admin().medias.create(customer)!!
+            val foundMedia = builder.admin().medias.findMedia(customer, createdMedia.id)
+            assertEquals(createdMedia.id, foundMedia.id)
+            builder.admin().medias.delete(customer, createdMedia)
+            builder.admin().medias.assertDeleteFailStatus(404, customer, createdMedia)
+        }
+    }
+
 }

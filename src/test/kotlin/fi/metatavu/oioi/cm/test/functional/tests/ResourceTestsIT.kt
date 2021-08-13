@@ -1,119 +1,180 @@
-package fi.metatavu.oioi.cm.test.functional.tests;
+package fi.metatavu.oioi.cm.test.functional.tests
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
-
-import org.junit.Test;
-import org.openapitools.client.model.Application;
-import org.openapitools.client.model.Customer;
-import org.openapitools.client.model.Device;
-import org.openapitools.client.model.Resource;
-import org.openapitools.client.model.ResourceType;
-
-import fi.metatavu.oioi.cm.test.functional.builder.TestBuilder;
+import fi.metatavu.ikioma.integrations.test.functional.resources.MysqlResource
+import fi.metatavu.oioi.cm.client.models.ResourceType
+import fi.metatavu.oioi.cm.test.functional.builder.TestBuilder
+import fi.metatavu.oioi.cm.test.functional.resources.KeycloakTestResource
+import io.quarkus.test.common.QuarkusTestResource
+import io.quarkus.test.junit.QuarkusTest
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
+import java.util.*
 
 /**
  * Resource functional tests
- * 
- * @author Antti Leppä
  *
+ * @author Antti Leppä
  */
-public class ResourceTestsIT extends AbstractFunctionalTest {
+@QuarkusTest
+@QuarkusTestResource.List(
+    QuarkusTestResource(KeycloakTestResource::class),
+    QuarkusTestResource(MysqlResource::class)
+)
+class ResourceTestsIT : AbstractFunctionalTest() {
 
-  @Test
-  public void testCreate() throws Exception {
-    try (TestBuilder builder = new TestBuilder()) {
-      Customer customer = builder.admin().customers().create();
-      Device device = builder.admin().devices().create(customer);
-      Application application = builder.admin().applications().create(customer, device);
-      assertNotNull(builder.admin().resources().create(customer, device, application, 0, application.getRootResourceId(), "data", "name", "slug", ResourceType.MENU));
+    @Test
+    fun testCreate() {
+        TestBuilder().use { builder ->
+            val customer = builder.admin().customers.create()
+            val device = builder.admin().devices.create(customer)!!
+            val application = builder.admin().applications.create(customer, device)!!
+
+            assertNotNull(
+                builder.admin().resources.create(
+                    customer,
+                    device,
+                    application,
+                    0,
+                    application.rootResourceId,
+                    "data",
+                    "name",
+                    "slug",
+                    ResourceType.mENU
+                )
+            )
+        }
     }
-  }
-  
-  @Test
-  public void testFindResource() throws Exception {
-    try (TestBuilder builder = new TestBuilder()) {
-      Customer customer = builder.admin().customers().create();
-      Device device = builder.admin().devices().create(customer);
-      Application application = builder.admin().applications().create(customer, device);      
-      
-      Resource createdResource = builder.admin().resources().create(customer, device, application, 1, application.getRootResourceId(), "data", "name", "slug", ResourceType.MENU);
-      
-      builder.admin().resources().assertFindFailStatus(404, customer, device, application, UUID.randomUUID());
-      builder.admin().resources().assertFindFailStatus(404, UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID());
-      
-      Resource foundResource = builder.admin().resources().findResource(customer, device, application, createdResource.getId());
-      builder.admin().resources().assertFindFailStatus(404, UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), foundResource.getId());
 
-      builder.admin().resources().assertResourcesEqual(createdResource, foundResource);
+    @Test
+    fun testFindResource() {
+        TestBuilder().use { builder ->
+            val customer = builder.admin().customers.create()
+            val device = builder.admin().devices.create(customer)!!
+            val application = builder.admin().applications.create(customer, device)!!
+            val createdResource = builder.admin().resources.create(
+                customer,
+                device,
+                application,
+                1,
+                application.rootResourceId,
+                "data",
+                "name",
+                "slug",
+                ResourceType.mENU
+            )!!
+            builder.admin().resources.assertFindFailStatus(404, customer, device, application, UUID.randomUUID())
+            builder.admin().resources.assertFindFailStatus(404, UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID())
+            val foundResource = builder.admin().resources.findResource(customer, device, application, createdResource.id!!)
+            builder.admin().resources.assertFindFailStatus(404, UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), foundResource.id!!)
+            builder.admin().resources.assertResourcesEqual(createdResource, foundResource)
+        }
     }
-  }
-  
-  @Test
-  public void testListResources() throws Exception {
-    try (TestBuilder builder = new TestBuilder()) {
-      Customer customer = builder.admin().customers().create();
-      Device device = builder.admin().devices().create(customer);
-      Application application = builder.admin().applications().create(customer, device);
 
-      Resource createdResource1 = builder.admin().resources().create(customer, device, application, 3, application.getRootResourceId(), "data", "name", "slug", ResourceType.MENU);
-      Resource createdResource2 = builder.admin().resources().create(customer, device, application, 1, application.getRootResourceId(), "data", "name", "slug", ResourceType.MENU);
-      Resource createdResource3 = builder.admin().resources().create(customer, device, application, 2, application.getRootResourceId(), "data", "name", "slug", ResourceType.MENU);
-      
-      Resource rootResource = builder.admin().resources().findResource(customer, device, application, application.getRootResourceId());
-      List<Resource> foundResources = builder.admin().resources().listResources(customer, device, application, rootResource);
-      assertEquals(3, foundResources.size());
-      
-      builder.admin().resources().assertResourcesEqual(createdResource2, foundResources.get(0));
-      builder.admin().resources().assertResourcesEqual(createdResource3, foundResources.get(1));
-      builder.admin().resources().assertResourcesEqual(createdResource1, foundResources.get(2));
+    @Test
+    fun testListResources() {
+        TestBuilder().use { builder ->
+            val customer = builder.admin().customers.create()
+            val device = builder.admin().devices.create(customer)!!
+            val application = builder.admin().applications.create(customer, device)!!
+            val createdResource1 = builder.admin().resources.create(
+                customer,
+                device,
+                application,
+                3,
+                application.rootResourceId,
+                "data",
+                "name",
+                "slug",
+                ResourceType.mENU
+            )!!
+            val createdResource2 = builder.admin().resources.create(
+                customer,
+                device,
+                application,
+                1,
+                application.rootResourceId,
+                "data",
+                "name",
+                "slug",
+                ResourceType.mENU
+            )
+            val createdResource3 = builder.admin().resources.create(
+                customer,
+                device,
+                application,
+                2,
+                application.rootResourceId,
+                "data",
+                "name",
+                "slug",
+                ResourceType.mENU
+            )
+            val rootResource =
+                builder.admin().resources.findResource(customer, device, application, application.rootResourceId!!)
+            val foundResources = builder.admin().resources.listResources(customer, device, application, rootResource)
+            assertEquals(3, foundResources.size.toLong())
+            builder.admin().resources.assertResourcesEqual(createdResource2, foundResources[0])
+            builder.admin().resources.assertResourcesEqual(createdResource3, foundResources[1])
+            builder.admin().resources.assertResourcesEqual(createdResource1, foundResources[2])
+        }
     }
-  }
-  
-  @Test
-  public void testUpdateResource() throws Exception {
-    try (TestBuilder builder = new TestBuilder()) {
-      Customer customer = builder.admin().customers().create();
-      Device device = builder.admin().devices().create(customer);
-      Application application = builder.admin().applications().create(customer, device);
 
-      Resource createdResource = builder.admin().resources().create(customer, 
-          device, application, 0, application.getRootResourceId(), "data", "name", "slug", ResourceType.MENU,
-          Arrays.asList(getKeyValue("prop-1", "value"), getKeyValue("prop-2", "value-2")),
-          Arrays.asList(getKeyValue("style-1", "value"), getKeyValue("style-2", "value-2")));
-  
-      Resource updateResource = builder.admin().resources().findResource(customer, device, application, createdResource.getId());
-      updateResource.setData("updated data");
-      updateResource.setName("updated name");
-      updateResource.setProperties(Arrays.asList(getKeyValue("prop-1", "value-1"), getKeyValue("prop-3", "value-3")));
-      updateResource.setStyles(Arrays.asList(getKeyValue("style-1", "value-1"), getKeyValue("style-3", "value-3")));
-      
-      Resource updatedResource = builder.admin().resources().updateResource(customer, device, application, updateResource);
+    @Test
+    fun testUpdateResource() {
+        TestBuilder().use { builder ->
+            val customer = builder.admin().customers.create()
+            val device = builder.admin().devices.create(customer)!!
+            val application = builder.admin().applications.create(customer, device)!!
+            val resource = builder.admin().resources.create(
+                customer,
+                device, application, 0, application.rootResourceId, "data", "name", "slug", ResourceType.mENU,
+                arrayOf(getKeyValue("prop-1", "value"), getKeyValue("prop-2", "value-2")),
+                arrayOf(getKeyValue("style-1", "value"), getKeyValue("style-2", "value-2"))
+            )!!
 
-      builder.admin().resources().assertJsonsEqual(updateResource.getProperties(), updatedResource.getProperties());
-      builder.admin().resources().assertJsonsEqual(updateResource.getStyles(), updatedResource.getStyles());
+            val updateResource = builder.admin().resources.findResource(customer, device, application, resource.id!!)
 
-      assertEquals(updateResource.getData(), updatedResource.getData());
-      assertEquals(updateResource.getName(), updatedResource.getName());
+            val updateProperties = arrayOf(getKeyValue("prop-1", "value-1"), getKeyValue("prop-3", "value-3"))
+            val updateStyles = arrayOf(getKeyValue("style-1", "value-1"), getKeyValue("style-3", "value-3"))
+
+            val updatedResource = builder.admin().resources
+                .updateResource(customer, device, application, updateResource.copy(
+                    data = "updated data",
+                    name = "updated name",
+                    styles = updateStyles,
+                    properties = updateProperties
+                ))
+
+            builder.admin().resources.assertJsonsEqual(updateProperties, updatedResource.properties)
+            builder.admin().resources.assertJsonsEqual(updateStyles, updatedResource.styles)
+            assertEquals("updated data", updatedResource.data)
+            assertEquals("updated name", updatedResource.name)
+        }
     }
-  }
 
-  @Test
-  public void testDeleteResource() throws Exception {
-    try (TestBuilder builder = new TestBuilder()) {
-      Customer customer = builder.admin().customers().create();
-      Device device = builder.admin().devices().create(customer);
-      Application application = builder.admin().applications().create(customer, device);
-      Resource createdResource = builder.admin().resources().create(customer, device, application, 0, application.getRootResourceId(), "data", "name", "slug", ResourceType.MENU);
-      Resource foundResource = builder.admin().resources().findResource(customer, device, application, createdResource.getId());
-      assertEquals(createdResource.getId(), foundResource.getId());
-      builder.admin().resources().delete(customer, device, application, createdResource);
-      builder.admin().resources().assertDeleteFailStatus(404, customer, device, application, createdResource);
+    @Test
+    fun testDeleteResource() {
+        TestBuilder().use { builder ->
+            val customer = builder.admin().customers.create()
+            val device = builder.admin().devices.create(customer)!!
+            val application = builder.admin().applications.create(customer, device)!!
+            val createdResource = builder.admin().resources.create(
+                customer,
+                device,
+                application,
+                0,
+                application.rootResourceId,
+                "data",
+                "name",
+                "slug",
+                ResourceType.mENU
+            )!!
+
+            val foundResource = builder.admin().resources.findResource(customer, device, application, createdResource.id!!)
+
+            assertEquals(createdResource.id, foundResource.id)
+            builder.admin().resources.delete(customer, device, application, createdResource)
+            builder.admin().resources.assertDeleteFailStatus(404, customer, device, application, createdResource)
+        }
     }
-  }
-  
 }

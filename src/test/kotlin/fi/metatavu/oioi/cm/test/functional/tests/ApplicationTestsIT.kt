@@ -1,134 +1,160 @@
-package fi.metatavu.oioi.cm.test.functional.tests;
+package fi.metatavu.oioi.cm.test.functional.tests
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.util.List;
-import java.util.UUID;
-
-import org.junit.Test;
-import org.openapitools.client.model.Customer;
-import org.openapitools.client.model.Device;
-import org.openapitools.client.model.Application;
-
-import fi.metatavu.oioi.cm.test.functional.builder.TestBuilder;
+import fi.metatavu.oioi.cm.test.functional.resources.KeycloakTestResource
+import fi.metatavu.ikioma.integrations.test.functional.resources.MysqlResource
+import kotlin.Throws
+import fi.metatavu.oioi.cm.test.functional.builder.TestBuilder
+import io.quarkus.test.common.QuarkusTestResource
+import io.quarkus.test.junit.QuarkusTest
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
+import java.lang.Exception
+import java.util.*
 
 /**
  * Application functional tests
- * 
- * @author Heikki Kurhinen
  *
+ * @author Heikki Kurhinen
  */
-public class ApplicationTestsIT extends AbstractFunctionalTest {
+@QuarkusTest
+@QuarkusTestResource.List(
+    QuarkusTestResource(KeycloakTestResource::class),
+    QuarkusTestResource(MysqlResource::class)
+)
+class ApplicationTestsIT : AbstractFunctionalTest() {
 
-  @Test
-  public void testApplication() throws Exception {
-    try (TestBuilder builder = new TestBuilder()) {
-      Customer customer = builder.admin().customers().create();
-      Device device = builder.admin().devices().create(customer);
-      assertNotNull(builder.admin().applications().create(customer, device, "test application"));
-      Customer anotherCustomer = builder.admin().customers().create();
-      builder.admin().applications().assertCreateFailStatus(400, anotherCustomer, device, "fail application");
+    @Test
+    @Throws(Exception::class)
+    fun testApplication() {
+        TestBuilder().use { builder ->
+            val customer = builder.admin().customers.create()
+            val device = builder.admin().devices.create(customer)
+            assertNotNull(builder.admin().applications.create(customer, device!!, "test application"))
+            val anotherCustomer = builder.admin().customers.create()
+            builder.admin().applications.assertCreateFailStatus(400, anotherCustomer, device, "fail application")
+        }
     }
-  }
-  
-  @Test
-  public void testFindApplication() throws Exception {
-    try (TestBuilder builder = new TestBuilder()) {
-      Customer customer = builder.admin().customers().create();
-      Device device = builder.admin().devices().create(customer);
-      Application createdApplication = builder.admin().applications().create(customer, device);
-      
-      builder.admin().applications().assertFindFailStatus(404, customer, device, UUID.randomUUID());
-      builder.admin().applications().assertFindFailStatus(404, UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID());
-      
-      Application foundApplication = builder.admin().applications().findApplication(customer, device, createdApplication.getId());
-      builder.admin().applications().assertFindFailStatus(404, UUID.randomUUID(), device.getId(), foundApplication.getId());
-      builder.admin().applications().assertFindFailStatus(404, customer.getId(), UUID.randomUUID(), foundApplication.getId());
-      
-      builder.admin().applications().assertApplicationsEqual(createdApplication, foundApplication);
 
-      Customer anotherCustomer = builder.admin().customers().create();
-      builder.admin().applications().assertFindFailStatus(400, anotherCustomer.getId(), device.getId(), foundApplication.getId());
-      Device anotherDevice = builder.admin().devices().create(anotherCustomer);
-      builder.admin().applications().assertFindFailStatus(400, anotherCustomer.getId(), anotherDevice.getId(), foundApplication.getId());
+    @Test
+    fun testFindApplication() {
+        TestBuilder().use { builder ->
+            val customer = builder.admin().customers.create()
+            val device = builder.admin().devices.create(customer)
+            val createdApplication = builder.admin().applications.create(customer, device!!)
+            builder.admin().applications.assertFindFailStatus(404, customer, device, UUID.randomUUID())
+            builder.admin().applications.assertFindFailStatus(
+                404,
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                UUID.randomUUID()
+            )
+            val foundApplication =
+                builder.admin().applications.findApplication(customer, device, createdApplication!!.id!!)
+            builder.admin().applications.assertFindFailStatus(
+                404,
+                UUID.randomUUID(),
+                device.id!!,
+                foundApplication.id!!
+            )
+            builder.admin().applications.assertFindFailStatus(
+                404,
+                customer.id!!,
+                UUID.randomUUID(),
+                foundApplication.id
+            )
+            builder.admin().applications.assertApplicationsEqual(createdApplication, foundApplication)
+            val anotherCustomer = builder.admin().customers.create()
+            builder.admin().applications.assertFindFailStatus(
+                400,
+                anotherCustomer.id!!,
+                device.id,
+                foundApplication.id
+            )
+            val anotherDevice = builder.admin().devices.create(anotherCustomer)
+            builder.admin().applications.assertFindFailStatus(
+                400,
+                anotherCustomer.id,
+                anotherDevice!!.id!!,
+                foundApplication.id
+            )
+        }
     }
-  }
-  
-  @Test
-  public void testListApplications() throws Exception {
-    try (TestBuilder builder = new TestBuilder()) {
-      Customer customer = builder.admin().customers().create();
-      Device device = builder.admin().devices().create(customer);
-      Application createdApplication = builder.admin().applications().create(customer, device);
-      List<Application> foundApplications = builder.admin().applications().listApplications(customer, device);
-      assertEquals(1, foundApplications.size());
-      builder.admin().applications().assertApplicationsEqual(createdApplication, foundApplications.get(0));
 
-      Customer anotherCustomer = builder.admin().customers().create();
-      builder.admin().applications().assertListFailStatus(400, anotherCustomer, device);
+    @Test
+    fun testListApplications() {
+        TestBuilder().use { builder ->
+            val customer = builder.admin().customers.create()
+            val device = builder.admin().devices.create(customer)
+            val createdApplication = builder.admin().applications.create(customer, device!!)
+            val foundApplications = builder.admin().applications.listApplications(customer, device)
+            assertEquals(1, foundApplications.size.toLong())
+            builder.admin().applications.assertApplicationsEqual(createdApplication, foundApplications[0])
+            val anotherCustomer = builder.admin().customers.create()
+            builder.admin().applications.assertListFailStatus(400, anotherCustomer, device)
+        }
     }
-  }
-  
-  @Test
-  public void testUpdateApplication() throws Exception {
-    try (TestBuilder builder = new TestBuilder()) {
-      Customer customer = builder.admin().customers().create();
-      Device device = builder.admin().devices().create(customer);
-      Application createdApplication = builder.admin().applications().create(customer, device, "test application");
 
-      Application updateApplication = builder.admin().applications().findApplication(customer, device, createdApplication.getId());
-      updateApplication.setName("updated application");
-      
-      Application updatedApplication = builder.admin().applications().updateApplication(customer, device, updateApplication);
-      assertEquals(createdApplication.getId(), updatedApplication.getId());
-      assertNotEquals(createdApplication.getName(), updatedApplication.getName());
+    @Test
+    fun testUpdateApplication() {
+        TestBuilder().use { builder ->
+            val customer = builder.admin().customers.create()
+            val device = builder.admin().devices.create(customer)
+            val createdApplication = builder.admin().applications.create(customer, device!!, "test application")
+            val updateApplication = builder.admin().applications.findApplication(
+                customer,
+                device,
+                createdApplication!!.id!!
+            ).copy(name = "updated application")
 
-      Application foundApplication = builder.admin().applications().findApplication(customer, device, createdApplication.getId());
-      assertEquals(createdApplication.getId(), foundApplication.getId());
-      assertEquals(updateApplication.getName(), foundApplication.getName());
-
-      UUID randomCustomerId = UUID.randomUUID();
-      UUID randomDeviceId = UUID.randomUUID();
-
-      builder.admin().applications().assertUpdateFailStatus(404, randomCustomerId, randomDeviceId, foundApplication);
-      builder.admin().applications().assertUpdateFailStatus(404, randomCustomerId, device.getId(), foundApplication);
-      builder.admin().applications().assertUpdateFailStatus(404, customer.getId(), randomDeviceId, foundApplication);
-      
-      Customer anotherCustomer = builder.admin().customers().create();
-      Device anotherDevice = builder.admin().devices().create(anotherCustomer);
-      builder.admin().applications().assertUpdateFailStatus(400, anotherCustomer, device, foundApplication);
-      builder.admin().applications().assertUpdateFailStatus(400, anotherCustomer, anotherDevice, foundApplication);
+            val (name, id) = builder.admin().applications.updateApplication(customer, device, updateApplication)
+            assertEquals(createdApplication.id, id)
+            assertNotEquals(createdApplication.name, name)
+            val foundApplication =
+                builder.admin().applications.findApplication(customer, device, createdApplication.id!!)
+            assertEquals(createdApplication.id, foundApplication.id)
+            assertEquals(updateApplication.name, foundApplication.name)
+            val randomCustomerId = UUID.randomUUID()
+            val randomDeviceId = UUID.randomUUID()
+            builder.admin().applications.assertUpdateFailStatus(404, randomCustomerId, randomDeviceId, foundApplication)
+            builder.admin().applications.assertUpdateFailStatus(404, randomCustomerId, device.id!!, foundApplication)
+            builder.admin().applications.assertUpdateFailStatus(404, customer.id!!, randomDeviceId, foundApplication)
+            val anotherCustomer = builder.admin().customers.create()
+            val anotherDevice = builder.admin().devices.create(anotherCustomer)
+            builder.admin().applications.assertUpdateFailStatus(400, anotherCustomer, device, foundApplication)
+            builder.admin().applications.assertUpdateFailStatus(400, anotherCustomer, anotherDevice!!, foundApplication)
+        }
     }
-  }
 
-  @Test
-  public void testDeleteApplication() throws Exception {
-    try (TestBuilder builder = new TestBuilder()) {
-      Customer customer = builder.admin().customers().create();
-      Device device = builder.admin().devices().create(customer);
-      Application createdApplication = builder.admin().applications().create(customer, device);
-      Application foundApplication = builder.admin().applications().findApplication(customer, device, createdApplication.getId());
-      assertEquals(createdApplication.getId(), foundApplication.getId());
-
-      UUID randomCustomerId = UUID.randomUUID();
-      UUID randomDeviceId = UUID.randomUUID();
-      UUID randomApplicationId = UUID.randomUUID();
-
-      builder.admin().applications().assertDeleteFailStatus(404, randomCustomerId, randomDeviceId, randomApplicationId);
-      builder.admin().applications().assertDeleteFailStatus(404, randomCustomerId, device.getId(), foundApplication.getId());
-      builder.admin().applications().assertDeleteFailStatus(404, customer.getId(), randomDeviceId, foundApplication.getId());
-
-      Customer anotherCustomer = builder.admin().customers().create();
-      Device anotherDevice = builder.admin().devices().create(anotherCustomer);
-
-      builder.admin().applications().assertDeleteFailStatus(400, anotherCustomer, device, foundApplication);
-      builder.admin().applications().assertDeleteFailStatus(400, anotherCustomer, anotherDevice, foundApplication);
-
-      builder.admin().applications().delete(customer, device, createdApplication);
-      builder.admin().applications().assertDeleteFailStatus(404, customer, device, createdApplication);
+    @Test
+    fun testDeleteApplication() {
+        TestBuilder().use { builder ->
+            val customer = builder.admin().customers.create()
+            val device = builder.admin().devices.create(customer)
+            val createdApplication = builder.admin().applications.create(customer, device!!)
+            val foundApplication = builder.admin().applications.findApplication(customer, device, createdApplication!!.id!!)
+            assertEquals(createdApplication.id, foundApplication.id)
+            val randomCustomerId = UUID.randomUUID()
+            val randomDeviceId = UUID.randomUUID()
+            val randomApplicationId = UUID.randomUUID()
+            builder.admin().applications.assertDeleteFailStatus(
+                404,
+                randomCustomerId,
+                randomDeviceId,
+                randomApplicationId
+            )
+            builder.admin().applications.assertDeleteFailStatus(
+                404,
+                randomCustomerId,
+                device.id!!,
+                foundApplication.id!!
+            )
+            builder.admin().applications.assertDeleteFailStatus(404, customer.id!!, randomDeviceId, foundApplication.id)
+            val anotherCustomer = builder.admin().customers.create()
+            val anotherDevice = builder.admin().devices.create(anotherCustomer)
+            builder.admin().applications.assertDeleteFailStatus(400, anotherCustomer, device, foundApplication)
+            builder.admin().applications.assertDeleteFailStatus(400, anotherCustomer, anotherDevice!!, foundApplication)
+            builder.admin().applications.delete(customer, device, createdApplication)
+            builder.admin().applications.assertDeleteFailStatus(404, customer, device, createdApplication)
+        }
     }
-  }
-  
 }

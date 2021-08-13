@@ -1,27 +1,29 @@
-package fi.metatavu.oioi.cm.test.functional.builder;
+package fi.metatavu.oioi.cm.test.functional.builder
+
+import java.lang.Exception
+import kotlin.Throws
 
 /**
  * Interface describing a test builder resource.
- * 
+ *
  * @author Antti Leppä
  *
  * @param <T> resource type
- */
-public interface TestBuilderResource <T> {
-  
-  /**
-   * Adds closable into clean queue
-   * 
-   * @param t closeable
-   * @return given instance
-   */
-  public T addClosable(T t);
-  
-  /**
-   * Cleans given resource
-   * 
-   * @param t resource
-   */
-  public void clean(T t) throws Exception;
+</T> */
+interface TestBuilderResource<T> {
+    /**
+     * Adds closable into clean queue
+     *
+     * @param t closeable
+     * @return given instance
+     */
+    fun addClosable(t: T): T
 
+    /**
+     * Cleans given resource
+     *
+     * @param t resource
+     */
+    @Throws(Exception::class)
+    fun clean(t: T)
 }

@@ -1,286 +1,308 @@
-package fi.metatavu.oioi.cm.test.functional.builder.impl;
+package fi.metatavu.oioi.cm.test.functional.builder.impl
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import org.json.JSONException;
-import org.openapitools.client.api.ResourcesApi;
-import org.openapitools.client.model.Application;
-import org.openapitools.client.model.Customer;
-import org.openapitools.client.model.Device;
-import org.openapitools.client.model.Resource;
-import org.openapitools.client.model.ResourceType;
-import org.openapitools.client.model.KeyValueProperty;
-
-import fi.metatavu.oioi.cm.client.ApiClient;
-import fi.metatavu.oioi.cm.client.ApiException;
-import fi.metatavu.oioi.cm.test.functional.builder.AbstractApiTestBuilderResource;
-import fi.metatavu.oioi.cm.test.functional.builder.TestBuilder;
+import fi.metatavu.jaxrs.test.functional.builder.auth.AccessTokenProvider
+import fi.metatavu.oioi.cm.client.apis.ResourcesApi
+import fi.metatavu.oioi.cm.client.infrastructure.ApiClient
+import fi.metatavu.oioi.cm.client.infrastructure.ClientException
+import fi.metatavu.oioi.cm.client.models.*
+import fi.metatavu.oioi.cm.test.functional.builder.TestBuilder
+import org.junit.Assert.*
+import java.util.*
+import kotlin.collections.HashMap
 
 /**
  * Test builder resource for resources
- * 
+ *
  * @author Antti Leppä
  */
-public class ResourceTestBuilderResource extends AbstractApiTestBuilderResource<Resource, ResourcesApi> {
+class ResourceTestBuilderResource (
+    testBuilder: TestBuilder,
+    private val accessTokenProvider: AccessTokenProvider?,
+    apiClient: ApiClient
+) : ApiTestBuilderResource<Resource, ApiClient?>(testBuilder, apiClient) {
 
-  private Map<UUID, UUID> customerResourceIds = new HashMap<>();
-  private Map<UUID, UUID> deviceResourceIds = new HashMap<>();
-  private Map<UUID, UUID> applicationResourceIds = new HashMap<>();
-  
-  /**
-   * Constructor
-   * 
-   * @param testBuilder test builder
-   * @param apiClient initialized API client
-   */
-  public ResourceTestBuilderResource(TestBuilder testBuilder, ApiClient apiClient) {
-    super(testBuilder, apiClient);
-  }
-  /**
-   * Creates new resource
-   * 
-   * @param customer customer
-   * @param device device
-   * @param application application
-   * @param orderNumber order
-   * @param parentId parentId
-   * @param data data
-   * @param name name
-   * @param slug slug
-   * @param type slug
-   * @return created resource
-   * @throws ApiException 
-   */
-  public Resource create(Customer customer, Device device, Application application, Integer orderNumber, UUID parentId, String data, String name, String slug, ResourceType type) throws ApiException {
-    return create(customer, device, application, orderNumber, parentId, data, name, slug, type, Collections.emptyList(), Collections.emptyList());
-  }
-  
-  /**
-   * Creates new resource
-   * 
-   * @param customer customer
-   * @param device device
-   * @param application application
-   * @param orderNumber order
-   * @param parentId parentId
-   * @param data data
-   * @param name name
-   * @param slug slug
-   * @param type slug
-   * @param properties properties 
-   * @param styles styles
-   * @return created resource
-   * @throws ApiException 
-   */
-  public Resource create(Customer customer, Device device, Application application, Integer orderNumber, UUID parentId, String data, String name, String slug, ResourceType type, List<KeyValueProperty> properties, List<KeyValueProperty> styles) throws ApiException {
-    Resource resource = new Resource();
-    resource.setData(data);
-    resource.setName(name);
-    resource.setProperties(properties);
-    resource.setSlug(slug);
-    resource.setStyles(styles);
-    resource.setType(type);
-    resource.setParentId(parentId);
-    resource.setOrderNumber(orderNumber);
-    
-    Resource result = getApi().createResource(customer.getId(), device.getId(), application.getId(), resource);
-    
-    customerResourceIds.put(result.getId(), customer.getId());
-    deviceResourceIds.put(result.getId(), device.getId());
-    applicationResourceIds.put(result.getId(), application.getId());
-    
-    return addClosable(result);
-  }
-  
-  /**
-   * Finds a resource
-   * 
-   * @param customer customer
-   * @param resourceId resource id
-   * @return found resource
-   * @throws ApiException 
-   */
-  public Resource findResource(Customer customer, Device device, Application application, UUID resourceId) throws ApiException {
-    return getApi().findResource(customer.getId(), device.getId(), application.getId(), resourceId);
-  }
-  
-  /**
-   * Lists resources
-   * 
-   * @param customer customer
-   * @return found resources
-   * @throws ApiException 
-   */
-  public List<Resource> listResources(Customer customer, Device device, Application application, Resource parent) throws ApiException {
-    return getApi().listResources(customer.getId(), device.getId(), application.getId(), parent != null ? parent.getId() : null);
-  }
+    private val customerResourceIds: MutableMap<UUID?, UUID?> = HashMap()
+    private val deviceResourceIds: MutableMap<UUID?, UUID?> = HashMap()
+    private val applicationResourceIds: MutableMap<UUID?, UUID?> = HashMap()
 
-  /**
-   * Updates a resource into the API
-   * 
-   * @param customer customer
-   * @param body body payload
-   * @throws ApiException 
-   */
-  public Resource updateResource(Customer customer, Device device, Application application, Resource body) throws ApiException {
-    return getApi().updateResource(customer.getId(), device.getId(), application.getId(), body.getId(), body);
-  }
-  
-  /**
-   * Deletes a resource from the API
-   * 
-   * @param customer customer
-   * @param resource resource to be deleted
-   * @throws ApiException 
-   */
-  public void delete(Customer customer, Device device, Application application, Resource resource) throws ApiException {
-    getApi().deleteResource(customer.getId(), device.getId(), application.getId(), resource.getId());  
-    
-    removeCloseable(closable -> {
-      if (!(closable instanceof Resource)) {
-        return false;
-      }
-
-      Resource closeableResource = (Resource) closable;
-      return closeableResource.getId().equals(resource.getId());
-    });
-  }
-  
-  /**
-   * Asserts resource count within the system
-   * 
-   * @param expected expected count
-   * @param customer customer
-   * @throws ApiException 
-   */
-  public void assertCount(int expected, Customer customer, Device device, Application application, Resource parent) throws ApiException {
-    assertEquals(expected, listResources(customer, device, application, parent).size());
-  }
-  
-  /**
-   * Asserts find status fails with given status code
-   * 
-   * @param expectedStatus expected status code
-   * @param customer customer
-   * @param resourceId resource id
-   */
-  public void assertFindFailStatus(int expectedStatus, Customer customer, Device device, Application application, UUID resourceId) {
-    assertFindFailStatus(expectedStatus, customer.getId(), device.getId(), application.getId(), resourceId);
-  }
-  
-  /**
-   * Asserts find status fails with given status code
-   * 
-   * @param expectedStatus expected status code
-   * @param customerId customer id
-   * @param resourceId resource id
-   */
-  public void assertFindFailStatus(int expectedStatus, UUID customerId, UUID deviceId, UUID applicationId, UUID resourceId) {
-    try {
-      getApi().findResource(customerId, deviceId, applicationId, resourceId);
-      fail(String.format("Expected find to fail with status %d", expectedStatus));
-    } catch (ApiException e) {
-      assertEquals(expectedStatus, e.getCode());
+    override fun getApi(): ResourcesApi {
+        ApiClient.accessToken = accessTokenProvider?.accessToken
+        return ResourcesApi(testBuilder.settings.apiBasePath)
     }
-  }
-  
-  /**
-   * Asserts create status fails with given status code
-   * 
-   * @param expectedStatus expected status code
-   * @param customer customer
-   * @param device device
-   * @param application application
-   * @param orderNumber order
-   * @param parentId parentId
-   * @param data data
-   * @param name name
-   * @param slug slug
-   * @param type type
-   * @param properties properties
-   * @param styles styles
-   */
-  public void assertCreateFailStatus(int expectedStatus, Customer customer, Device device, Application application, Integer orderNumber, UUID parentId, String data, String name, String slug, ResourceType type, List<KeyValueProperty> properties, List<KeyValueProperty> styles) {
-    try {
-      create(customer, device, application, orderNumber, parentId, data, name, slug, type, properties, styles);
-      fail(String.format("Expected create to fail with status %d", expectedStatus));
-    } catch (ApiException e) {
-      assertEquals(expectedStatus, e.getCode());
-    }
-  }
 
-  /**
-   * Asserts update status fails with given status code
-   * 
-   * @param expectedStatus expected status code
-   * @param customer customer
-   * @param resource resource
-   */
-  public void assertUpdateFailStatus(int expectedStatus, Customer customer, Device device, Application application, Resource resource) {
-    try {
-      updateResource(customer, device, application, resource);
-      fail(String.format("Expected update to fail with status %d", expectedStatus));
-    } catch (ApiException e) {
-      assertEquals(expectedStatus, e.getCode());
-    }
-  }
-  
-  /**
-   * Asserts delete status fails with given status code
-   * 
-   * @param expectedStatus expected status code
-   * @param customer customer
-   * @param resource resource
-   */
-  public void assertDeleteFailStatus(int expectedStatus, Customer customer, Device device, Application application, Resource resource) {
-    try {
-      getApi().deleteResource(customer.getId(), device.getId(), application.getId(), resource.getId());
-      fail(String.format("Expected delete to fail with status %d", expectedStatus));
-    } catch (ApiException e) {
-      assertEquals(expectedStatus, e.getCode());
-    }
-  }
-  
-  /**
-   * Asserts list status fails with given status code
-   * 
-   * @param expectedStatus expected status code
-   * @param customer customer
-   */
-  public void assertListFailStatus(int expectedStatus, Customer customer, Device device, Application application, Resource parent) {
-    try {
-      listResources(customer, device, application, parent);
-      fail(String.format("Expected list to fail with status %d", expectedStatus));
-    } catch (ApiException e) {
-      assertEquals(expectedStatus, e.getCode());
-    }
-  }
+    /**
+     * Creates new resource
+     *
+     * @param customer customer
+     * @param device device
+     * @param application application
+     * @param orderNumber order
+     * @param parentId parentId
+     * @param data data
+     * @param name name
+     * @param slug slug
+     * @param type slug
+     * @return created resource
+     * @throws ClientException
+     */
+    @JvmOverloads
+    @Throws(ClientException::class)
+    fun create(
+        customer: Customer,
+        device: Device,
+        application: Application,
+        orderNumber: Int?,
+        parentId: UUID?,
+        data: String?,
+        name: String,
+        slug: String,
+        type: ResourceType,
+        properties: Array<KeyValueProperty> = emptyArray<KeyValueProperty>(),
+        styles: Array<KeyValueProperty> = emptyArray<KeyValueProperty>()
+    ): Resource? {
+        val resource = Resource(
+            type = type,
+            name = name,
+            slug = slug,
+            parentId = parentId,
+            orderNumber = orderNumber,
+            properties = properties,
+            styles = styles,
+            data = data
+        )
 
-  /**
-   * Asserts that actual resource equals expected resource when both are serialized into JSON
-   * 
-   * @param expected expected resource
-   * @param actual actual resource
-   * @throws JSONException thrown when JSON serialization error occurs
-   * @throws IOException thrown when IO Exception occurs
-   */
-  public void assertResourcesEqual(Resource expected, Resource actual) throws IOException, JSONException {
-    assertJsonsEqual(expected, actual);
-  }
+        val result: Resource = api.createResource(customer.id!!, device.id!!, application.id!!, resource)
+        customerResourceIds[result.id] = customer.id
+        deviceResourceIds[result.id] = device.id
+        applicationResourceIds[result.id] = application.id
+        return addClosable(result)
+    }
 
-  @Override
-  public void clean(Resource resource) throws ApiException {
-    UUID customerId = customerResourceIds.remove(resource.getId());
-    UUID deviceId = deviceResourceIds.remove(resource.getId());
-    UUID applicationId = applicationResourceIds.remove(resource.getId());
-    getApi().deleteResource(customerId, deviceId, applicationId, resource.getId());  
-  }
+    /**
+     * Finds a resource
+     *
+     * @param customer customer
+     * @param resourceId resource id
+     * @return found resource
+     * @throws ClientException
+     */
+    @Throws(ClientException::class)
+    fun findResource(customer: Customer, device: Device, application: Application, resourceId: UUID): Resource {
+        return api.findResource(customer.id!!, device.id!!, application.id!!, resourceId)
+    }
+
+    /**
+     * Lists resources
+     *
+     * @param customer customer
+     * @return found resources
+     * @throws ClientException
+     */
+    @Throws(ClientException::class)
+    fun listResources(customer: Customer, device: Device, application: Application, parent: Resource?): Array<Resource> {
+        return api.listResources(customer.id!!, device.id!!, application.id!!, parent?.id)
+    }
+
+    /**
+     * Updates a resource into the API
+     *
+     * @param customer customer
+     * @param body body payload
+     * @throws ClientException
+     */
+    @Throws(ClientException::class)
+    fun updateResource(customer: Customer, device: Device, application: Application, body: Resource): Resource {
+        return api.updateResource(customer.id!!, device.id!!, application.id!!, body.id!!, body)
+    }
+
+    /**
+     * Deletes a resource from the API
+     *
+     * @param customer customer
+     * @param resource resource to be deleted
+     * @throws ClientException
+     */
+    @Throws(ClientException::class)
+    fun delete(customer: Customer, device: Device, application: Application, resource: Resource) {
+        api.deleteResource(customer.id!!, device.id!!, application.id!!, resource.id!!)
+        removeCloseable { closable: Any? ->
+            if (closable !is Resource) {
+                return@removeCloseable false
+            }
+            val (_, _, _, id) = closable
+            id == resource.id
+        }
+    }
+
+    /**
+     * Asserts resource count within the system
+     *
+     * @param expected expected count
+     * @param customer customer
+     * @throws ClientException
+     */
+    @Throws(ClientException::class)
+    fun assertCount(expected: Int, customer: Customer, device: Device, application: Application, parent: Resource?) {
+        assertEquals(expected.toLong(), listResources(customer, device, application, parent).size.toLong())
+    }
+
+    /**
+     * Asserts find status fails with given status code
+     *
+     * @param expectedStatus expected status code
+     * @param customer customer
+     * @param resourceId resource id
+     */
+    fun assertFindFailStatus(
+        expectedStatus: Int,
+        customer: Customer,
+        device: Device,
+        application: Application,
+        resourceId: UUID
+    ) {
+        assertFindFailStatus(expectedStatus, customer.id!!, device.id!!, application.id!!, resourceId)
+    }
+
+    /**
+     * Asserts find status fails with given status code
+     *
+     * @param expectedStatus expected status code
+     * @param customerId customer id
+     * @param resourceId resource id
+     */
+    fun assertFindFailStatus(
+        expectedStatus: Int,
+        customerId: UUID,
+        deviceId: UUID,
+        applicationId: UUID,
+        resourceId: UUID
+    ) {
+        try {
+            api.findResource(customerId, deviceId, applicationId, resourceId)
+            fail(String.format("Expected find to fail with status %d", expectedStatus))
+        } catch (e: ClientException) {
+            assertEquals(expectedStatus, e.statusCode)
+        }
+    }
+
+    /**
+     * Asserts create status fails with given status code
+     *
+     * @param expectedStatus expected status code
+     * @param customer customer
+     * @param device device
+     * @param application application
+     * @param orderNumber order
+     * @param parentId parentId
+     * @param data data
+     * @param name name
+     * @param slug slug
+     * @param type type
+     * @param properties properties
+     * @param styles styles
+     */
+    fun assertCreateFailStatus(
+        expectedStatus: Int,
+        customer: Customer,
+        device: Device,
+        application: Application,
+        orderNumber: Int?,
+        parentId: UUID?,
+        data: String?,
+        name: String,
+        slug: String,
+        type: ResourceType,
+        properties: Array<KeyValueProperty>,
+        styles: Array<KeyValueProperty>
+    ) {
+        try {
+            create(customer, device, application, orderNumber, parentId, data, name, slug, type, properties, styles)
+            fail(String.format("Expected create to fail with status %d", expectedStatus))
+        } catch (e: ClientException) {
+            assertEquals(expectedStatus, e.statusCode)
+        }
+    }
+
+    /**
+     * Asserts update status fails with given status code
+     *
+     * @param expectedStatus expected status code
+     * @param customer customer
+     * @param resource resource
+     */
+    fun assertUpdateFailStatus(
+        expectedStatus: Int,
+        customer: Customer,
+        device: Device,
+        application: Application,
+        resource: Resource
+    ) {
+        try {
+            updateResource(customer, device, application, resource)
+            fail(String.format("Expected update to fail with status %d", expectedStatus))
+        } catch (e: ClientException) {
+            assertEquals(expectedStatus, e.statusCode)
+        }
+    }
+
+    /**
+     * Asserts delete status fails with given status code
+     *
+     * @param expectedStatus expected status code
+     * @param customer customer
+     * @param resource resource
+     */
+    fun assertDeleteFailStatus(
+        expectedStatus: Int,
+        customer: Customer,
+        device: Device,
+        application: Application,
+        resource: Resource
+    ) {
+        try {
+            api.deleteResource(customer.id!!, device.id!!, application.id!!, resource.id!!)
+            fail(String.format("Expected delete to fail with status %d", expectedStatus))
+        } catch (e: ClientException) {
+            assertEquals(expectedStatus, e.statusCode)
+        }
+    }
+
+    /**
+     * Asserts list status fails with given status code
+     *
+     * @param expectedStatus expected status code
+     * @param customer customer
+     */
+    fun assertListFailStatus(
+        expectedStatus: Int,
+        customer: Customer,
+        device: Device,
+        application: Application,
+        parent: Resource?
+    ) {
+        try {
+            listResources(customer, device, application, parent)
+            fail(String.format("Expected list to fail with status %d", expectedStatus))
+        } catch (e: ClientException) {
+            assertEquals(expectedStatus, e.statusCode)
+        }
+    }
+
+    /**
+     * Asserts that actual resource equals expected resource when both are serialized into JSON
+     *
+     * @param expected expected resource
+     * @param actual actual resource
+     */
+    fun assertResourcesEqual(expected: Resource?, actual: Resource?) {
+        assertJsonsEqual(expected, actual)
+    }
+
+    @Throws(ClientException::class)
+    override fun clean(t: Resource) {
+        val customerId: UUID = customerResourceIds.remove(t.id)!!
+        val deviceId: UUID = deviceResourceIds.remove(t.id)!!
+        val applicationId: UUID = applicationResourceIds.remove(t.id)!!
+        api.deleteResource(customerId, deviceId, applicationId, t.id!!)
+    }
 }

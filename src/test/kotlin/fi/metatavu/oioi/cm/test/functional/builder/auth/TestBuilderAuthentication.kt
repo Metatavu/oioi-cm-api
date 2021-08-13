@@ -1,54 +1,39 @@
-package fi.metatavu.oioi.cm.test.functional.builder.auth;
+package fi.metatavu.oioi.cm.test.functional.builder.auth
 
-import java.io.IOException;
-
-import fi.metatavu.oioi.cm.client.ApiClient;
-import fi.metatavu.oioi.cm.test.functional.builder.TestBuilder;
-import fi.metatavu.oioi.cm.test.functional.settings.TestSettings;
+import fi.metatavu.jaxrs.test.functional.builder.auth.AccessTokenProvider
+import fi.metatavu.jaxrs.test.functional.builder.auth.AuthorizedTestBuilderAuthentication
+import fi.metatavu.oioi.cm.test.functional.builder.TestBuilder
+import fi.metatavu.oioi.cm.client.infrastructure.ApiClient
+import fi.metatavu.oioi.cm.test.functional.builder.impl.*
 
 /**
  * Default implementation of test builder authentication provider
- * 
+ *
  * @author Antti Leppä
  */
-public class TestBuilderAuthentication extends AbstractTestBuilderAuthentication {
-  
-  
-  private AccessTokenProvider accessTokenProvider;
+class TestBuilderAuthentication(
+    private val testBuilder: TestBuilder,
+    accessTokenProvider: AccessTokenProvider
+):AuthorizedTestBuilderAuthentication<ApiClient>(testBuilder, accessTokenProvider) {
 
-  /**
-   * Constructor
-   * 
-   * @param testBuilder testBuilder
-   * @param accessTokenProvider access token builder
-   */
-  public TestBuilderAuthentication(TestBuilder testBuilder, AccessTokenProvider accessTokenProvider) {
-    super(testBuilder);
-    this.accessTokenProvider = accessTokenProvider;
-  }
-  
-  /** 
-   * Creates ApiClient authenticated by the given access token
-   * 
-   * @return ApiClient authenticated by the given access token
-   * @throws IOException 
-   */
-  @Override
-  protected ApiClient createClient() throws IOException {
-    String accessToken = accessTokenProvider != null ? accessTokenProvider.getAccessToken() : null;
-    ApiClient result = new ApiClient();
-    
-    result.setBasePath("/v1");
-    result.setHost(TestSettings.getHost());
-    result.setPort(TestSettings.getPort());
-    
-    if (accessToken != null) {
-      result.setRequestInterceptor(builder -> {
-        builder.header("Authorization", String.format("Bearer %s", accessToken));
-      });
+    private var accessTokenProvider: AccessTokenProvider? = accessTokenProvider
+
+    val customers: CustomerTestBuilderResource = CustomerTestBuilderResource(testBuilder, this.accessTokenProvider, createClient())
+    val applications: ApplicationTestBuilderResource = ApplicationTestBuilderResource(testBuilder, this.accessTokenProvider, createClient())
+    val devices: DeviceTestBuilderResource = DeviceTestBuilderResource(testBuilder, this.accessTokenProvider, createClient())
+    val resources: ResourceTestBuilderResource = ResourceTestBuilderResource(testBuilder, this.accessTokenProvider, createClient())
+    val medias: MediaTestBuilderResource = MediaTestBuilderResource(testBuilder, this.accessTokenProvider, createClient())
+
+    /**
+     * Creates a API client
+     *
+     * @param accessToken access token
+     * @return API client
+     */
+    override fun createClient(accessToken: String): ApiClient {
+        val result = ApiClient(testBuilder.settings.apiBasePath)
+        ApiClient.accessToken = accessToken
+        return result
     }
-    
-    return result;
-  }
-  
+
 }
