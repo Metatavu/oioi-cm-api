@@ -83,9 +83,18 @@ abstract class AbstractApi {
             return true
         }
 
-        val groups = jsonWebToken.groups
-        return groups.contains(customerName)
+        return loggedUserGroups.contains(customerName)
     }
+
+    /**
+     * Returns logged user's user groups
+     *
+     * @returns logged user's user groups
+     */
+    protected val loggedUserGroups: Set<String>
+        get() {
+            return jsonWebToken.groups ?: emptySet()
+        }
 
     /**
      * Return keycloak authorization client

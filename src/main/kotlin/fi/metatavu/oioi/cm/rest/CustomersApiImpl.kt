@@ -188,7 +188,7 @@ class CustomersApiImpl : AbstractApi(), CustomersApi {
         return if (hasRealmRole(ADMIN_ROLE)) {
             createOk(customerController.listAllCustomers().map (customerTranslator::translate))
         } else {
-            createOk(customerController.listCustomersByNameIn(getLoggedUserGroups()).map (customerTranslator::translate))
+            createOk(customerController.listCustomersByNameIn(loggedUserGroups).map (customerTranslator::translate))
         }
     }
 
