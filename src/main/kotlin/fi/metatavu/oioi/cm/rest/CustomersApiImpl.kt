@@ -243,10 +243,9 @@ class CustomersApiImpl : AbstractApi(), CustomersApi {
         val customer = customerController.findCustomerById(customerId) ?: return createNotFound(NOT_FOUND_MESSAGE)
         return if (!isAdminOrHasCustomerGroup(customer.name)) {
             createForbidden(FORBIDDEN_MESSAGE)
-        } else createOk(
-            deviceController.listCustomerDevices(customer).stream()
-                .map { entity: fi.metatavu.oioi.cm.persistence.model.Device? -> deviceTranslator.translate(entity) }
-                .collect(Collectors.toList()))
+        } else {
+            createOk(deviceController.listCustomerDevices(customer).map ( deviceTranslator::translate ))
+        }
     }
 
     override fun findDevice(customerId: UUID, deviceId: UUID): Response {
