@@ -38,8 +38,8 @@ dependencies {
     implementation ("org.apache.commons:commons-lang3")
 
     testImplementation("fi.metatavu.jaxrs.testbuilder:jaxrs-functional-test-builder:$jaxrsFunctionalTestBuilderVersion")
-    testImplementation("org.testcontainers:testcontainers:$testContainersVersion")
-    testImplementation("org.testcontainers:mysql:$testContainersVersion")
+    testImplementation("org.testcontainers:testcontainers")
+    testImplementation("org.testcontainers:mysql")
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("com.github.dasniko:testcontainers-keycloak:$testContainersKeycloakVersion")
 
