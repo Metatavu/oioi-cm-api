@@ -16,7 +16,7 @@ import fi.metatavu.oioi.cm.rest.translate.MediaTranslator
 import java.util.UUID
 import javax.validation.Valid
 import java.util.stream.Collectors
-import fi.metatavu.oioi.cm.spec.CustomersApi
+import fi.metatavu.oioi.cm.spec.V1Api
 import javax.inject.Inject
 import javax.transaction.Transactional
 import javax.ws.rs.Produces
@@ -31,7 +31,7 @@ import javax.ws.rs.core.Response
 @Transactional
 @Consumes("application/json;charset=utf-8")
 @Produces("application/json;charset=utf-8")
-class CustomersApiImpl : AbstractApi(), CustomersApi {
+class V1ApiImpl : AbstractApi(), V1Api {
 
     @Inject
     lateinit var customerController: CustomerController
