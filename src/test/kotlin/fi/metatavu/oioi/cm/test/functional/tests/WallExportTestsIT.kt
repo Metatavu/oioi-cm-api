@@ -171,6 +171,7 @@ class WallExportTestsIT : AbstractFunctionalTest() {
                 "video",
                 ResourceType.vIDEO
             )
+
             val menuPage2 = builder.admin().resources.create(
                 customer,
                 device,
@@ -182,6 +183,7 @@ class WallExportTestsIT : AbstractFunctionalTest() {
                 "page-2",
                 ResourceType.pAGE
             )
+
             builder.admin().resources.create(
                 customer,
                 device,
@@ -193,6 +195,7 @@ class WallExportTestsIT : AbstractFunctionalTest() {
                 "video",
                 ResourceType.vIDEO
             )
+
             val menuPage2Video = builder.admin().resources.create(
                 customer,
                 device,
@@ -204,23 +207,25 @@ class WallExportTestsIT : AbstractFunctionalTest() {
                 "text",
                 ResourceType.tEXT
             )
+
             val exportWallApplication = downloadApplicationJson(application.id)
-            assertNotNull(exportWallApplication)
-            assertNotNull(exportWallApplication.root)
+            assertNotNull(exportWallApplication, "Assert JSON not null",)
+            assertNotNull(exportWallApplication.root, "Assert JSON root not null",)
             Asserts.assertEqualsOffsetDateTime(menuPage2Video?.modifiedAt, exportWallApplication.modifiedAt?.toString())
+
             val exportRootChildren = exportWallApplication.root.children
-            assertEquals(1, exportRootChildren.size.toLong())
-            assertEquals(langFi.slug, exportRootChildren[0].slug)
+            assertEquals(1, exportRootChildren.size.toLong(), "Assert 1 root child")
+            assertEquals(langFi.slug, exportRootChildren[0].slug, "Assert exported root child slug")
             val exportIntro = exportRootChildren[0].children[0]
-            assertEquals(intro.slug, exportIntro.slug)
+            assertEquals(intro.slug, exportIntro.slug, "Assert intro slug")
             val exportIntroSlide = exportIntro.children[0]
-            assertEquals(introSlide.slug, exportIntroSlide.slug)
+            assertEquals(introSlide.slug, exportIntroSlide.slug, "Assert intro slide slug")
             val exportIntroPage2 = exportIntroSlide.children[1]
-            assertEquals(introPage2.slug, exportIntroPage2.slug)
+            assertEquals(introPage2.slug, exportIntroPage2.slug, "Assert intro page 2 slug")
             val exportIntroPage2Image = exportIntroPage2.children[0]
-            assertEquals(exportIntroPage2Image.slug, introPage2Image!!.slug)
+            assertEquals(exportIntroPage2Image.slug, introPage2Image!!.slug,"Assert intro page 2 image slug")
             val exportIntroPage2Text = exportIntroPage2.children[1]
-            assertEquals(exportIntroPage2Text.slug, introPage2Text!!.slug)
+            assertEquals(exportIntroPage2Text.slug, introPage2Text!!.slug,"Assert intro page 2 text slug")
         }
     }
 

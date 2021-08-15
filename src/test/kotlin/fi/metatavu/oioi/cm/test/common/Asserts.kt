@@ -19,7 +19,8 @@ class Asserts {
         fun assertEqualsOffsetDateTime(expected: String?, actual: String?) {
             Assertions.assertEquals(
                 OffsetDateTime.parse(expected).toEpochSecond(),
-                OffsetDateTime.parse(actual).toEpochSecond()
+                OffsetDateTime.parse(actual).toEpochSecond(),
+                "Assert offset datetimes dates are equal"
             )
         }
     }
