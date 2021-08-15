@@ -41,8 +41,7 @@ class CustomerTestsIT : AbstractFunctionalTest() {
     @Throws(Exception::class)
     fun testFindCustomer() {
         TestBuilder().use { builder ->
-            val createdCustomer =
-                builder.admin().customers.create("test customer", "http://example.com/great-image.jpg")
+            val createdCustomer = builder.admin().customers.create("test customer", "http://example.com/great-image.jpg")
             builder.admin().customers.assertFindFailStatus(404, UUID.randomUUID())
             val foundCustomer = builder.admin().customers.findCustomer(createdCustomer.id)
             builder.admin().customers.assertCustomersEqual(createdCustomer, foundCustomer)
