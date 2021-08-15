@@ -87,10 +87,12 @@ val generateApiSpec = tasks.register("generateApiSpec",GenerateTask::class){
     setProperty("apiPackage", "fi.metatavu.oioi.cm.spec")
     setProperty("invokerPackage", "fi.metatavu.oioi.cm.invoker")
     setProperty("modelPackage", "fi.metatavu.oioi.cm.model")
+
     this.configOptions.put("dateLibrary", "java8")
     this.configOptions.put("interfaceOnly", "true")
     this.configOptions.put("returnResponse", "true")
     this.configOptions.put("useSwaggerAnnotations", "false")
+    this.configOptions.put("additionalModelTypeAnnotations", "@io.quarkus.runtime.annotations.RegisterForReflection")
 }
 
 val generateApiClient = tasks.register("generateApiClient",GenerateTask::class){
