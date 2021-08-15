@@ -249,16 +249,18 @@ class V1ApiImpl : AbstractApi(), V1Api {
     }
 
     override fun findDevice(customerId: UUID, deviceId: UUID): Response {
-        val customer = customerController.findCustomerById(customerId)
-            ?: return createNotFound(NOT_FOUND_MESSAGE)
+        val customer = customerController.findCustomerById(customerId) ?: return createNotFound(NOT_FOUND_MESSAGE)
         if (!isAdminOrHasCustomerGroup(customer.name)) {
             return createForbidden(FORBIDDEN_MESSAGE)
         }
-        val device = deviceController.findDeviceById(deviceId)
-            ?: return createNotFound(NOT_FOUND_MESSAGE)
+
+        val device = deviceController.findDeviceById(deviceId) ?: return createNotFound(NOT_FOUND_MESSAGE)
+
         return if (device.customer.id != customer.id) {
             createNotFound(NOT_FOUND_MESSAGE)
-        } else createOk(deviceTranslator.translate(device))
+        } else {
+            createOk(deviceTranslator.translate(device))
+        }
     }
 
     override fun updateDevice(customerId: UUID, deviceId: UUID, payload: @Valid Device?): Response {
