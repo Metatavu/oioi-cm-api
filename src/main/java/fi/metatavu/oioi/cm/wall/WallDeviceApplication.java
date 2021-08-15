@@ -1,5 +1,7 @@
 package fi.metatavu.oioi.cm.wall;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
+
 import java.time.OffsetDateTime;
 import java.util.Map;
 import java.util.UUID;
@@ -9,6 +11,7 @@ import java.util.UUID;
  * 
  * @author Heikki Kurhinen <heikki.kurhinen@metatavu.fi>
  */
+@RegisterForReflection
 public class WallDeviceApplication {
 
   private UUID id;
