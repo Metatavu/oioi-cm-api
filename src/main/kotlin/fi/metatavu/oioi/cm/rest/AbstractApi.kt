@@ -10,10 +10,7 @@ import org.slf4j.Logger
 import java.util.*
 import javax.enterprise.context.RequestScoped
 import javax.inject.Inject
-import javax.ws.rs.core.Context
 import javax.ws.rs.core.Response
-import javax.ws.rs.core.SecurityContext
-
 
 /**
  * Abstract base class for all API services
@@ -70,16 +67,7 @@ abstract class AbstractApi {
      * @return whether user has given realm role
      */
     protected fun hasRealmRole(role: String): Boolean {
-        logger.info("Checking realm role $role")
-        val result = securityIdentity.hasRole(role)
-
-        if (result) {
-            logger.info("User has realm role $role")
-        } else {
-            logger.info("User does not have realm role $role")
-        }
-
-        return result
+        return securityIdentity.hasRole(role)
     }
 
     /**
