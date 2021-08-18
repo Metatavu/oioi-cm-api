@@ -1,7 +1,7 @@
 package  fi.metatavu.oioi.cm.rest
 
 import fi.metatavu.oioi.cm.model.ErrorResponse
-import io.quarkus.security.runtime.QuarkusSecurityIdentity
+import io.quarkus.security.identity.SecurityIdentity
 import org.eclipse.microprofile.config.inject.ConfigProperty
 import org.eclipse.microprofile.jwt.JsonWebToken
 import org.keycloak.authorization.client.AuthzClient
@@ -30,7 +30,7 @@ abstract class AbstractApi {
     lateinit var jsonWebToken: JsonWebToken
 
     @Inject
-    lateinit var securityIdentity: QuarkusSecurityIdentity
+    lateinit var securityIdentity: SecurityIdentity
 
     @ConfigProperty(name = "oioi.keycloak.url")
     lateinit var keycloakUrl: String
@@ -111,7 +111,7 @@ abstract class AbstractApi {
      */
     protected val authzClient: AuthzClient?
         get() {
-            val configuration = Configuration()
+           val configuration = Configuration()
             configuration.realm = keycloakRealm
             configuration.isBearerOnly = true
             configuration.authServerUrl = keycloakUrl
