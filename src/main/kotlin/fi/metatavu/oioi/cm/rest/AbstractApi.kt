@@ -69,7 +69,16 @@ abstract class AbstractApi {
      * @return whether user has given realm role
      */
     protected fun hasRealmRole(role: String): Boolean {
-        return securityContext.isUserInRole(role)
+        logger.info("Checking realm role $role")
+        val result = securityContext.isUserInRole(role)
+
+        if (result) {
+            logger.info("User has realm role $role")
+        } else {
+            logger.info("User does not have realm role $role")
+        }
+
+        return result
     }
 
     /**
