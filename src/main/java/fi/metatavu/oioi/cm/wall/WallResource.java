@@ -5,12 +5,14 @@ import java.util.List;
 import java.util.Map;
 
 import fi.metatavu.oioi.cm.model.ResourceType;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 
 /**
  * REST model for wall resource export
  * 
  * @author Antti Leppä
  */
+@RegisterForReflection
 public class WallResource {
   
   private String slug;

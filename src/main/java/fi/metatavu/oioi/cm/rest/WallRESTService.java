@@ -2,9 +2,9 @@ package fi.metatavu.oioi.cm.rest;
 
 import java.util.UUID;
 
-import javax.ejb.Stateful;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -23,7 +23,7 @@ import fi.metatavu.oioi.cm.rest.translate.WallApplicationTranslator;
  * @author Antti Leppä
  */
 @Path ("/application")
-@Stateful
+@Transactional
 @RequestScoped
 @Produces (MediaType.APPLICATION_JSON)
 @Consumes (MediaType.APPLICATION_JSON)

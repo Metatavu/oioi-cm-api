@@ -1,5 +1,7 @@
 package fi.metatavu.oioi.cm.wall;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
+
 import java.time.OffsetDateTime;
 
 /**
@@ -7,6 +9,7 @@ import java.time.OffsetDateTime;
  * 
  * @author Antti Leppä
  */
+@RegisterForReflection
 public class WallApplication {
 
   private WallResource root;
