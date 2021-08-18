@@ -1,6 +1,7 @@
 package  fi.metatavu.oioi.cm.rest
 
 import fi.metatavu.oioi.cm.model.ErrorResponse
+import io.quarkus.security.runtime.QuarkusSecurityIdentity
 import org.eclipse.microprofile.config.inject.ConfigProperty
 import org.eclipse.microprofile.jwt.JsonWebToken
 import org.keycloak.authorization.client.AuthzClient
@@ -23,25 +24,25 @@ import javax.ws.rs.core.SecurityContext
 abstract class AbstractApi {
 
     @Inject
-    private lateinit var logger: Logger
+    lateinit var logger: Logger
 
     @Inject
-    private lateinit var jsonWebToken: JsonWebToken
+    lateinit var jsonWebToken: JsonWebToken
 
-    @Context
-    private lateinit var securityContext: SecurityContext
+    @Inject
+    lateinit var securityIdentity: QuarkusSecurityIdentity
 
     @ConfigProperty(name = "oioi.keycloak.url")
-    private lateinit var keycloakUrl: String
+    lateinit var keycloakUrl: String
 
     @ConfigProperty(name = "oioi.keycloak.realm")
-    private lateinit var keycloakRealm: String
+    lateinit var keycloakRealm: String
 
     @ConfigProperty(name = "quarkus.oidc.client-id")
-    private lateinit var keycloakClientId: String
+    lateinit var keycloakClientId: String
 
     @ConfigProperty(name = "quarkus.oidc.credentials.secret")
-    private lateinit var keycloakSecret: String
+    lateinit var keycloakSecret: String
 
     /**
      * Returns logged user id
@@ -70,7 +71,7 @@ abstract class AbstractApi {
      */
     protected fun hasRealmRole(role: String): Boolean {
         logger.info("Checking realm role $role")
-        val result = securityContext.isUserInRole(role)
+        val result = securityIdentity.hasRole(role)
 
         if (result) {
             logger.info("User has realm role $role")

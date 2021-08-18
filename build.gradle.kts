@@ -28,7 +28,6 @@ dependencies {
     implementation("io.quarkus:quarkus-hibernate-validator")
     implementation("io.quarkus:quarkus-kotlin")
     implementation("io.quarkus:quarkus-oidc")
-    implementation("io.quarkus:quarkus-keycloak-authorization")
     implementation("io.quarkus:quarkus-keycloak-admin-client")
     implementation("io.quarkus:quarkus-resteasy-jackson")
     implementation("io.quarkus:quarkus-liquibase")
