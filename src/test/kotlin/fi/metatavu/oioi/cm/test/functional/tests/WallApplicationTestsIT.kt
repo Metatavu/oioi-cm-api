@@ -1,25 +1,15 @@
 package fi.metatavu.oioi.cm.test.functional.tests
 
 import fi.metatavu.ikioma.integrations.test.functional.resources.MysqlResource
-import fi.metatavu.oioi.cm.client.infrastructure.Serializer
 import fi.metatavu.oioi.cm.client.models.ResourceType
-import fi.metatavu.oioi.cm.client.models.WallApplication
 import fi.metatavu.oioi.cm.test.common.Asserts
-import fi.metatavu.oioi.cm.test.functional.builder.ApiTestSettings
 import fi.metatavu.oioi.cm.test.functional.builder.TestBuilder
 import fi.metatavu.oioi.cm.test.functional.resources.KeycloakTestResource
 import io.quarkus.test.common.QuarkusTestResource
 import io.quarkus.test.junit.QuarkusTest
-import okio.buffer
-import okio.source
-import org.apache.http.HttpResponse
-import org.apache.http.client.methods.HttpGet
-import org.apache.http.impl.client.HttpClientBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
-import java.io.IOException
-import java.util.*
 
 /**
  * Wall export functional tests
@@ -32,10 +22,10 @@ import java.util.*
     QuarkusTestResource(KeycloakTestResource::class),
     QuarkusTestResource(MysqlResource::class)
 )
-class WallExportTestsIT : AbstractFunctionalTest() {
+class WallApplicationTestsIT : AbstractFunctionalTest() {
 
     @Test
-    fun testUploadFile() {
+    fun testWallApplicationExport() {
         TestBuilder().use { builder ->
             val customer = builder.admin().customers.create()
             val device = builder.admin().devices.create(customer)
@@ -210,7 +200,7 @@ class WallExportTestsIT : AbstractFunctionalTest() {
                 ResourceType.tEXT
             )
 
-            val exportWallApplication = downloadApplicationJson(application.id)
+            val exportWallApplication = builder.admin().wallApplication.getApplicationJson(application.id!!)
             assertNotNull(exportWallApplication, "Assert JSON not null",)
             assertNotNull(exportWallApplication.root, "Assert JSON root not null",)
             Asserts.assertEqualsOffsetDateTime(menuPage2Video?.modifiedAt, exportWallApplication.modifiedAt)
@@ -228,31 +218,6 @@ class WallExportTestsIT : AbstractFunctionalTest() {
             assertEquals(exportIntroPage2Image.slug, introPage2Image!!.slug,"Assert intro page 2 image slug")
             val exportIntroPage2Text = exportIntroPage2.children[1]
             assertEquals(exportIntroPage2Text.slug, introPage2Text!!.slug,"Assert intro page 2 text slug")
-        }
-    }
-
-    /**
-     * Uploads resource into file store
-     *
-     * @param applicationId application id
-     * @return upload response
-     * @throws IOException thrown on upload failure
-     */
-    private fun downloadApplicationJson(applicationId: UUID?): WallApplication {
-        val clientBuilder = HttpClientBuilder.create()
-        clientBuilder.build().use { client ->
-            val get = HttpGet(String.format("%s/application/%s", ApiTestSettings().apiBasePath, applicationId))
-            val response: HttpResponse = client.execute(get)
-            assertEquals(200, response.statusLine.statusCode.toLong())
-            val httpEntity = response.entity
-
-            httpEntity.content.source().use {
-                it.buffer().use { bufferedSource ->
-                    val result = Serializer.moshi.adapter(WallApplication::class.java).fromJson(bufferedSource)
-                    assertNotNull(result)
-                    return result!!
-                }
-            }
         }
     }
 }

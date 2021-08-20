@@ -1,24 +1,19 @@
 package fi.metatavu.oioi.cm.rest
 
-import javax.enterprise.context.RequestScoped
-import javax.ws.rs.Consumes
-import fi.metatavu.oioi.cm.customers.CustomerController
-import fi.metatavu.oioi.cm.rest.translate.CustomerTranslator
-import fi.metatavu.oioi.cm.devices.DeviceController
-import fi.metatavu.oioi.cm.rest.translate.DeviceTranslator
 import fi.metatavu.oioi.cm.applications.ApplicationController
-import fi.metatavu.oioi.cm.rest.translate.ApplicationTranslator
-import fi.metatavu.oioi.cm.resources.ResourceController
-import fi.metatavu.oioi.cm.rest.translate.ResourceTranslator
+import fi.metatavu.oioi.cm.customers.CustomerController
+import fi.metatavu.oioi.cm.devices.DeviceController
 import fi.metatavu.oioi.cm.medias.MediaController
 import fi.metatavu.oioi.cm.model.*
-import fi.metatavu.oioi.cm.rest.translate.MediaTranslator
-import java.util.UUID
-import javax.validation.Valid
-import java.util.stream.Collectors
+import fi.metatavu.oioi.cm.resources.ResourceController
+import fi.metatavu.oioi.cm.rest.translate.*
 import fi.metatavu.oioi.cm.spec.V1Api
+import java.util.*
+import javax.enterprise.context.RequestScoped
 import javax.inject.Inject
 import javax.transaction.Transactional
+import javax.validation.Valid
+import javax.ws.rs.Consumes
 import javax.ws.rs.Produces
 import javax.ws.rs.core.Response
 
@@ -62,6 +57,12 @@ class V1ApiImpl : AbstractApi(), V1Api {
 
     @Inject
     lateinit var mediaTranslator: MediaTranslator
+
+    @Inject
+    lateinit var wallDeviceTranslator: WallDeviceTranslator
+
+    @Inject
+    lateinit var wallApplicationTranslator: WallApplicationTranslator
 
     /** APPLICATIONS  */
 
@@ -565,6 +566,18 @@ class V1ApiImpl : AbstractApi(), V1Api {
         }
         mediaController.deleteMedia(media)
         return createNoContent()
+    }
+
+    /* Wall */
+
+    override fun getApplicationJson(applicationId: UUID?): Response {
+        val application = applicationController.findApplicationById(applicationId) ?: return Response.status(Response.Status.NOT_FOUND).build()
+        return Response.ok(wallApplicationTranslator.translate(application)).build()
+    }
+
+    override fun getDeviceJson(deviceId: UUID?): Response {
+        val device = deviceController.findDeviceById(deviceId) ?: return Response.status(Response.Status.NOT_FOUND).build()
+        return Response.ok(wallDeviceTranslator.translate(device)).build()
     }
 
     companion object {
