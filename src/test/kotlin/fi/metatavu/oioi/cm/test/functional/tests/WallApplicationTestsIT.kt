@@ -29,11 +29,11 @@ class WallApplicationTestsIT : AbstractFunctionalTest() {
         TestBuilder().use { builder ->
             val customer = builder.admin().customers.create()
             val device = builder.admin().devices.create(customer)
-            val application = builder.admin().applications.create(customer, device!!)
+            val application = builder.admin().applications.create(customer, device)
             val langFi = builder.admin().resources.create(
                 customer,
                 device,
-                application!!,
+                application,
                 0,
                 application.rootResourceId,
                 null,
@@ -200,12 +200,12 @@ class WallApplicationTestsIT : AbstractFunctionalTest() {
                 ResourceType.tEXT
             )
 
-            val exportWallApplication = builder.admin().wallApplication.getApplicationJson(application.id!!)
-            assertNotNull(exportWallApplication, "Assert JSON not null",)
-            assertNotNull(exportWallApplication.root, "Assert JSON root not null",)
-            Asserts.assertEqualsOffsetDateTime(menuPage2Video?.modifiedAt, exportWallApplication.modifiedAt)
+            val wallApplication = builder.admin().wallApplication.getApplicationJson(application.id!!)
+            assertNotNull(wallApplication, "Assert JSON not null",)
+            assertNotNull(wallApplication.root, "Assert JSON root not null",)
+            Asserts.assertEqualsOffsetDateTime(menuPage2Video?.modifiedAt, wallApplication.modifiedAt)
 
-            val exportRootChildren = exportWallApplication.root.children
+            val exportRootChildren = wallApplication.root.children
             assertEquals(1, exportRootChildren.size.toLong(), "Assert 1 root child")
             assertEquals(langFi.slug, exportRootChildren[0].slug, "Assert exported root child slug")
             val exportIntro = exportRootChildren[0].children[0]
@@ -218,6 +218,19 @@ class WallApplicationTestsIT : AbstractFunctionalTest() {
             assertEquals(exportIntroPage2Image.slug, introPage2Image!!.slug,"Assert intro page 2 image slug")
             val exportIntroPage2Text = exportIntroPage2.children[1]
             assertEquals(exportIntroPage2Text.slug, introPage2Text!!.slug,"Assert intro page 2 text slug")
+        }
+    }
+
+    @Test
+    fun testWallApplicationExportApiKey() {
+        TestBuilder().use { builder ->
+            val customer = builder.admin().customers.create()
+            val device = builder.admin().devices.create(customer, apiKey = "example-api-key")
+            val application = builder.admin().applications.create(customer, device)
+
+            builder.admin().wallApplication.assertGetApplicationJsonStatus(expectedStatus = 401, applicationId = application.id!!)
+            builder.admin().wallApplication.assertGetApplicationJsonStatus(expectedStatus = 403, applicationId = application.id, apiKey = "incorrect-api-key")
+            assertNotNull(builder.admin().wallApplication.getApplicationJson(applicationId = application.id, apiKey = "example-api-key"))
         }
     }
 }

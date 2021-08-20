@@ -48,10 +48,10 @@ class DeviceTestBuilderResource (
     fun create(
         customer: Customer,
         name: String = "default name",
-        apiKey: String = "api-key",
+        apiKey: String? = null,
         imageUrl: String? = null,
         metas: Array<KeyValueProperty> = emptyArray<KeyValueProperty>()
-    ): Device? {
+    ): Device {
         val device = Device(
             name = name,
             apiKey = apiKey,
@@ -115,8 +115,8 @@ class DeviceTestBuilderResource (
             if (closable !is Device) {
                 return@removeCloseable false
             }
-            val (_, _, id) = closable
-            id == device.id
+
+            device.id == closable.id
         }
     }
 

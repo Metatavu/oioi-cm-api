@@ -30,12 +30,21 @@ class WallApplicationTestBuilderResource (
      * Returns a wall application JSON
      *
      * @param applicationId application id
+     * @param apiKey api key (optional)
      * @return wall application JSON
      * @throws ClientException
      */
     @Throws(ClientException::class)
-    fun getApplicationJson(applicationId: UUID): WallApplication {
-        return api.getApplicationJson(applicationId = applicationId)
+    fun getApplicationJson(applicationId: UUID, apiKey: String? = null): WallApplication {
+        try {
+            if (apiKey != null) {
+                ApiClient.apiKey["X-API-KEY"] = apiKey
+            }
+
+            return api.getApplicationJson(applicationId = applicationId)
+        } finally {
+            ApiClient.apiKey.remove("X-API-KEY")
+        }
     }
 
     /**
@@ -43,10 +52,11 @@ class WallApplicationTestBuilderResource (
      *
      * @param expectedStatus expected status code
      * @param applicationId application id
+     * @param apiKey api key (optional)
      */
-    fun assertGetApplicationJsonStatus(expectedStatus: Int, applicationId: UUID) {
+    fun assertGetApplicationJsonStatus(expectedStatus: Int, applicationId: UUID, apiKey: String? = null) {
         try {
-            getApplicationJson(applicationId = applicationId)
+            getApplicationJson(applicationId = applicationId, apiKey = apiKey)
             fail(String.format("Expected get JSON to fail with status %d", expectedStatus))
         } catch (e: ClientException) {
             assertEquals(expectedStatus, e.statusCode)

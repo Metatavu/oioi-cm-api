@@ -30,12 +30,21 @@ class WallDeviceTestBuilderResource (
      * Returns a wall device JSON
      *
      * @param deviceId device id
+     * @param apiKey api key (optional)
      * @return wall device JSON
      * @throws ClientException
      */
     @Throws(ClientException::class)
-    fun getDeviceJson(deviceId: UUID): WallDevice {
-        return api.getDeviceJson(deviceId = deviceId)
+    fun getDeviceJson(deviceId: UUID, apiKey: String? = null): WallDevice {
+        try {
+            if (apiKey != null) {
+                ApiClient.apiKey["X-API-KEY"] = apiKey
+            }
+
+            return api.getDeviceJson(deviceId = deviceId)
+        } finally {
+            ApiClient.apiKey.remove("X-API-KEY")
+        }
     }
 
     /**
@@ -43,10 +52,11 @@ class WallDeviceTestBuilderResource (
      *
      * @param expectedStatus expected status code
      * @param deviceId device id
+     * @param apiKey api key (optional)
      */
-    fun assertGetDeviceJsonStatus(expectedStatus: Int, deviceId: UUID) {
+    fun assertGetDeviceJsonStatus(expectedStatus: Int, deviceId: UUID, apiKey: String? = null) {
         try {
-            getDeviceJson(deviceId = deviceId)
+            getDeviceJson(deviceId = deviceId, apiKey = apiKey)
             fail(String.format("Expected get JSON to fail with status %d", expectedStatus))
         } catch (e: ClientException) {
             assertEquals(expectedStatus, e.statusCode)

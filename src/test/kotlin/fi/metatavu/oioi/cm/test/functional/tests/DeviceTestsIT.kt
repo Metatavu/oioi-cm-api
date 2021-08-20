@@ -48,7 +48,7 @@ class DeviceTestsIT : AbstractFunctionalTest() {
             val createdDevice = builder.admin().devices.create(customer)
             builder.admin().devices.assertFindFailStatus(404, customer, UUID.randomUUID())
             builder.admin().devices.assertFindFailStatus(404, UUID.randomUUID(), UUID.randomUUID())
-            val foundDevice = builder.admin().devices.findDevice(customer, createdDevice!!.id)
+            val foundDevice = builder.admin().devices.findDevice(customer, createdDevice.id)
             builder.admin().devices.assertFindFailStatus(404, UUID.randomUUID(), foundDevice.id)
             builder.admin().devices.assertDevicesEqual(createdDevice, foundDevice)
         }
@@ -79,28 +79,31 @@ class DeviceTestsIT : AbstractFunctionalTest() {
                 arrayOf(getKeyValue("key-1", "value-1"), getKeyValue("key-2", "value-2"))
             )
 
-            val updateDevice = builder.admin().devices.findDevice(customer, createdDevice!!.id).copy(
+            val updateDevice = builder.admin().devices.findDevice(customer, createdDevice.id).copy(
                 name = "updated customer",
                 apiKey = "api key",
                 imageUrl = "http://www.example.com/updated.png",
                 metas = arrayOf(getKeyValue("key-1", "value-1"), getKeyValue("key-3", "value-3"))
             )
 
-            val (name, apiKey, id, imageUrl, metas) = builder.admin().devices.updateDevice(customer, updateDevice)
-            assertEquals(createdDevice.id, id)
-            assertEquals(updateDevice.name, name)
-            assertEquals(updateDevice.apiKey, apiKey)
-            assertEquals(updateDevice.imageUrl, imageUrl)
-            builder.admin().devices.assertJsonsEqual(updateDevice.metas, metas)
-            val (name1, apiKey1, id1, imageUrl1, metas1) = builder.admin().devices.findDevice(
+            val updatedDevice = builder.admin().devices.updateDevice(customer, updateDevice)
+            assertEquals(createdDevice.id, updatedDevice.id)
+            assertEquals(updateDevice.name, updatedDevice.name)
+            assertEquals(updateDevice.apiKey, updatedDevice.apiKey)
+            assertEquals(updateDevice.imageUrl, updatedDevice.imageUrl)
+            builder.admin().devices.assertJsonsEqual(updateDevice.metas, updatedDevice.metas)
+
+            val foundDevice = builder.admin().devices.findDevice(
                 customer,
                 createdDevice.id
             )
-            assertEquals(createdDevice.id, id1)
-            assertEquals(updateDevice.name, name1)
-            assertEquals(updateDevice.apiKey, apiKey1)
-            assertEquals(updateDevice.imageUrl, imageUrl1)
-            builder.admin().devices.assertJsonsEqual(updateDevice.metas, metas1)
+
+            assertEquals(createdDevice.id, foundDevice.id)
+            assertEquals(updateDevice.name, foundDevice.name)
+            assertEquals(updateDevice.apiKey, foundDevice.apiKey)
+            assertEquals(updateDevice.imageUrl, foundDevice.imageUrl)
+
+            builder.admin().devices.assertJsonsEqual(updateDevice.metas, foundDevice.metas)
         }
     }
 
@@ -110,8 +113,8 @@ class DeviceTestsIT : AbstractFunctionalTest() {
         TestBuilder().use { builder ->
             val customer = builder.admin().customers.create()
             val createdDevice = builder.admin().devices.create(customer)
-            val (_, _, id) = builder.admin().devices.findDevice(customer, createdDevice!!.id)
-            assertEquals(createdDevice.id, id)
+            val device = builder.admin().devices.findDevice(customer, createdDevice.id)
+            assertEquals(createdDevice.id, device.id)
             builder.admin().devices.delete(customer, createdDevice)
             builder.admin().devices.assertDeleteFailStatus(404, customer, createdDevice)
         }

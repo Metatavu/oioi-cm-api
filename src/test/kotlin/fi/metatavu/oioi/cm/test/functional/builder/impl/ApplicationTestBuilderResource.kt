@@ -42,7 +42,7 @@ class ApplicationTestBuilderResource (
      */
     @JvmOverloads
     @Throws(ClientException::class)
-    fun create(customer: Customer, device: Device, name: String = "default name"): Application? {
+    fun create(customer: Customer, device: Device, name: String = "default name"): Application {
         val application = Application(
             name = name
         )
