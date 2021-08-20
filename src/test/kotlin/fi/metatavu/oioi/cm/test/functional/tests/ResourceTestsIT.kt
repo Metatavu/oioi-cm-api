@@ -26,8 +26,8 @@ class ResourceTestsIT : AbstractFunctionalTest() {
     fun testCreate() {
         TestBuilder().use { builder ->
             val customer = builder.admin().customers.create()
-            val device = builder.admin().devices.create(customer)!!
-            val application = builder.admin().applications.create(customer, device)!!
+            val device = builder.admin().devices.create(customer)
+            val application = builder.admin().applications.create(customer, device)
 
             assertNotNull(
                 builder.admin().resources.create(
@@ -49,8 +49,8 @@ class ResourceTestsIT : AbstractFunctionalTest() {
     fun testFindResource() {
         TestBuilder().use { builder ->
             val customer = builder.admin().customers.create()
-            val device = builder.admin().devices.create(customer)!!
-            val application = builder.admin().applications.create(customer, device)!!
+            val device = builder.admin().devices.create(customer)
+            val application = builder.admin().applications.create(customer, device)
             val createdResource = builder.admin().resources.create(
                 customer,
                 device,
@@ -74,8 +74,8 @@ class ResourceTestsIT : AbstractFunctionalTest() {
     fun testListResources() {
         TestBuilder().use { builder ->
             val customer = builder.admin().customers.create()
-            val device = builder.admin().devices.create(customer)!!
-            val application = builder.admin().applications.create(customer, device)!!
+            val device = builder.admin().devices.create(customer)
+            val application = builder.admin().applications.create(customer, device)
             val createdResource1 = builder.admin().resources.create(
                 customer,
                 device,
@@ -123,8 +123,8 @@ class ResourceTestsIT : AbstractFunctionalTest() {
     fun testUpdateResource() {
         TestBuilder().use { builder ->
             val customer = builder.admin().customers.create()
-            val device = builder.admin().devices.create(customer)!!
-            val application = builder.admin().applications.create(customer, device)!!
+            val device = builder.admin().devices.create(customer)
+            val application = builder.admin().applications.create(customer, device)
             val resource = builder.admin().resources.create(
                 customer,
                 device, application, 0, application.rootResourceId, "data", "name", "slug", ResourceType.mENU,
@@ -156,8 +156,8 @@ class ResourceTestsIT : AbstractFunctionalTest() {
     fun testDeleteResource() {
         TestBuilder().use { builder ->
             val customer = builder.admin().customers.create()
-            val device = builder.admin().devices.create(customer)!!
-            val application = builder.admin().applications.create(customer, device)!!
+            val device = builder.admin().devices.create(customer)
+            val application = builder.admin().applications.create(customer, device)
             val createdResource = builder.admin().resources.create(
                 customer,
                 device,

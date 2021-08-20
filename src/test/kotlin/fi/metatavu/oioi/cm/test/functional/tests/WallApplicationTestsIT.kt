@@ -1,23 +1,15 @@
 package fi.metatavu.oioi.cm.test.functional.tests
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import fi.metatavu.oioi.cm.test.functional.builder.TestBuilder
-import fi.metatavu.oioi.cm.wall.WallApplication
-import java.io.IOException
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import fi.metatavu.ikioma.integrations.test.functional.resources.MysqlResource
 import fi.metatavu.oioi.cm.client.models.ResourceType
 import fi.metatavu.oioi.cm.test.common.Asserts
-import fi.metatavu.oioi.cm.test.functional.builder.ApiTestSettings
+import fi.metatavu.oioi.cm.test.functional.builder.TestBuilder
 import fi.metatavu.oioi.cm.test.functional.resources.KeycloakTestResource
 import io.quarkus.test.common.QuarkusTestResource
 import io.quarkus.test.junit.QuarkusTest
-import org.apache.http.HttpResponse
-import org.apache.http.client.methods.HttpGet
-import org.apache.http.impl.client.HttpClientBuilder
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
-import java.util.*
 
 /**
  * Wall export functional tests
@@ -30,18 +22,18 @@ import java.util.*
     QuarkusTestResource(KeycloakTestResource::class),
     QuarkusTestResource(MysqlResource::class)
 )
-class WallExportTestsIT : AbstractFunctionalTest() {
+class WallApplicationTestsIT : AbstractFunctionalTest() {
 
     @Test
-    fun testUploadFile() {
+    fun testWallApplicationExport() {
         TestBuilder().use { builder ->
             val customer = builder.admin().customers.create()
             val device = builder.admin().devices.create(customer)
-            val application = builder.admin().applications.create(customer, device!!)
+            val application = builder.admin().applications.create(customer, device)
             val langFi = builder.admin().resources.create(
                 customer,
                 device,
-                application!!,
+                application,
                 0,
                 application.rootResourceId,
                 null,
@@ -208,12 +200,12 @@ class WallExportTestsIT : AbstractFunctionalTest() {
                 ResourceType.tEXT
             )
 
-            val exportWallApplication = downloadApplicationJson(application.id)
-            assertNotNull(exportWallApplication, "Assert JSON not null",)
-            assertNotNull(exportWallApplication.root, "Assert JSON root not null",)
-            Asserts.assertEqualsOffsetDateTime(menuPage2Video?.modifiedAt, exportWallApplication.modifiedAt?.toString())
+            val wallApplication = builder.admin().wallApplication.getApplicationJson(application.id!!)
+            assertNotNull(wallApplication, "Assert JSON not null",)
+            assertNotNull(wallApplication.root, "Assert JSON root not null",)
+            Asserts.assertEqualsOffsetDateTime(menuPage2Video?.modifiedAt, wallApplication.modifiedAt)
 
-            val exportRootChildren = exportWallApplication.root.children
+            val exportRootChildren = wallApplication.root.children
             assertEquals(1, exportRootChildren.size.toLong(), "Assert 1 root child")
             assertEquals(langFi.slug, exportRootChildren[0].slug, "Assert exported root child slug")
             val exportIntro = exportRootChildren[0].children[0]
@@ -229,25 +221,16 @@ class WallExportTestsIT : AbstractFunctionalTest() {
         }
     }
 
-    /**
-     * Uploads resource into file store
-     *
-     * @param applicationId application id
-     * @return upload response
-     * @throws IOException thrown on upload failure
-     */
-    private fun downloadApplicationJson(applicationId: UUID?): WallApplication {
-        val clientBuilder = HttpClientBuilder.create()
-        clientBuilder.build().use { client ->
-            val get = HttpGet(String.format("%s/application/%s", ApiTestSettings().apiBasePath, applicationId))
-            val response: HttpResponse = client.execute(get)
-            assertEquals(200, response.statusLine.statusCode.toLong())
-            val httpEntity = response.entity
-            val objectMapper = ObjectMapper()
-            objectMapper.registerModules(JavaTimeModule())
-            val result = objectMapper.readValue(httpEntity.content, WallApplication::class.java)
-            assertNotNull(result)
-            return result
+    @Test
+    fun testWallApplicationExportApiKey() {
+        TestBuilder().use { builder ->
+            val customer = builder.admin().customers.create()
+            val device = builder.admin().devices.create(customer, apiKey = "example-api-key")
+            val application = builder.admin().applications.create(customer, device)
+
+            builder.admin().wallApplication.assertGetApplicationJsonStatus(expectedStatus = 401, applicationId = application.id!!)
+            builder.admin().wallApplication.assertGetApplicationJsonStatus(expectedStatus = 403, applicationId = application.id, apiKey = "incorrect-api-key")
+            assertNotNull(builder.admin().wallApplication.getApplicationJson(applicationId = application.id, apiKey = "example-api-key"))
         }
     }
 }

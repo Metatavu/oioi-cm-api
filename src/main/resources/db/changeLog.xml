@@ -273,4 +273,8 @@
     </addColumn>    
   </changeSet>
 
+  <changeSet author="antti.leppa" id="nullable-device-api-key">
+    <dropNotNullConstraint tableName="device" columnName="apikey" columnDataType="varchar(191)"/>
+  </changeSet>
+
 </databaseChangeLog>

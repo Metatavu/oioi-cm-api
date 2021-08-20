@@ -23,6 +23,8 @@ class TestBuilderAuthentication(
     val devices: DeviceTestBuilderResource = DeviceTestBuilderResource(testBuilder, this.accessTokenProvider, createClient())
     val resources: ResourceTestBuilderResource = ResourceTestBuilderResource(testBuilder, this.accessTokenProvider, createClient())
     val medias: MediaTestBuilderResource = MediaTestBuilderResource(testBuilder, this.accessTokenProvider, createClient())
+    val wallApplication: WallApplicationTestBuilderResource = WallApplicationTestBuilderResource(testBuilder, this.accessTokenProvider, createClient())
+    val wallDevice: WallDeviceTestBuilderResource = WallDeviceTestBuilderResource(testBuilder, this.accessTokenProvider, createClient())
 
     /**
      * Creates a API client

@@ -29,7 +29,7 @@ class ApplicationTestsIT : AbstractFunctionalTest() {
         TestBuilder().use { builder ->
             val customer = builder.admin().customers.create()
             val device = builder.admin().devices.create(customer)
-            assertNotNull(builder.admin().applications.create(customer, device!!, "test application"))
+            assertNotNull(builder.admin().applications.create(customer, device, "test application"))
             val anotherCustomer = builder.admin().customers.create()
             builder.admin().applications.assertCreateFailStatus(400, anotherCustomer, device, "fail application")
         }
@@ -40,7 +40,7 @@ class ApplicationTestsIT : AbstractFunctionalTest() {
         TestBuilder().use { builder ->
             val customer = builder.admin().customers.create()
             val device = builder.admin().devices.create(customer)
-            val createdApplication = builder.admin().applications.create(customer, device!!)
+            val createdApplication = builder.admin().applications.create(customer, device)
             builder.admin().applications.assertFindFailStatus(404, customer, device, UUID.randomUUID())
             builder.admin().applications.assertFindFailStatus(
                 404,
@@ -49,7 +49,7 @@ class ApplicationTestsIT : AbstractFunctionalTest() {
                 UUID.randomUUID()
             )
             val foundApplication =
-                builder.admin().applications.findApplication(customer, device, createdApplication!!.id!!)
+                builder.admin().applications.findApplication(customer, device, createdApplication.id!!)
             builder.admin().applications.assertFindFailStatus(
                 404,
                 UUID.randomUUID(),
@@ -74,7 +74,7 @@ class ApplicationTestsIT : AbstractFunctionalTest() {
             builder.admin().applications.assertFindFailStatus(
                 400,
                 anotherCustomer.id,
-                anotherDevice!!.id!!,
+                anotherDevice.id!!,
                 foundApplication.id
             )
         }
@@ -85,7 +85,7 @@ class ApplicationTestsIT : AbstractFunctionalTest() {
         TestBuilder().use { builder ->
             val customer = builder.admin().customers.create()
             val device = builder.admin().devices.create(customer)
-            val createdApplication = builder.admin().applications.create(customer, device!!)
+            val createdApplication = builder.admin().applications.create(customer, device)
             val foundApplications = builder.admin().applications.listApplications(customer, device)
             assertEquals(1, foundApplications.size.toLong())
             builder.admin().applications.assertApplicationsEqual(createdApplication, foundApplications[0])
@@ -99,18 +99,18 @@ class ApplicationTestsIT : AbstractFunctionalTest() {
         TestBuilder().use { builder ->
             val customer = builder.admin().customers.create()
             val device = builder.admin().devices.create(customer)
-            val createdApplication = builder.admin().applications.create(customer, device!!, "test application")
+            val createdApplication = builder.admin().applications.create(customer, device, "test application")
             val updateApplication = builder.admin().applications.findApplication(
                 customer,
                 device,
-                createdApplication!!.id!!
+                createdApplication.id!!
             ).copy(name = "updated application")
 
             val (name, id) = builder.admin().applications.updateApplication(customer, device, updateApplication)
             assertEquals(createdApplication.id, id)
             assertNotEquals(createdApplication.name, name)
             val foundApplication =
-                builder.admin().applications.findApplication(customer, device, createdApplication.id!!)
+                builder.admin().applications.findApplication(customer, device, createdApplication.id)
             assertEquals(createdApplication.id, foundApplication.id)
             assertEquals(updateApplication.name, foundApplication.name)
             val randomCustomerId = UUID.randomUUID()
@@ -121,7 +121,7 @@ class ApplicationTestsIT : AbstractFunctionalTest() {
             val anotherCustomer = builder.admin().customers.create()
             val anotherDevice = builder.admin().devices.create(anotherCustomer)
             builder.admin().applications.assertUpdateFailStatus(400, anotherCustomer, device, foundApplication)
-            builder.admin().applications.assertUpdateFailStatus(400, anotherCustomer, anotherDevice!!, foundApplication)
+            builder.admin().applications.assertUpdateFailStatus(400, anotherCustomer, anotherDevice, foundApplication)
         }
     }
 
@@ -130,8 +130,8 @@ class ApplicationTestsIT : AbstractFunctionalTest() {
         TestBuilder().use { builder ->
             val customer = builder.admin().customers.create()
             val device = builder.admin().devices.create(customer)
-            val createdApplication = builder.admin().applications.create(customer, device!!)
-            val foundApplication = builder.admin().applications.findApplication(customer, device, createdApplication!!.id!!)
+            val createdApplication = builder.admin().applications.create(customer, device)
+            val foundApplication = builder.admin().applications.findApplication(customer, device, createdApplication.id!!)
             assertEquals(createdApplication.id, foundApplication.id)
             val randomCustomerId = UUID.randomUUID()
             val randomDeviceId = UUID.randomUUID()
@@ -152,7 +152,7 @@ class ApplicationTestsIT : AbstractFunctionalTest() {
             val anotherCustomer = builder.admin().customers.create()
             val anotherDevice = builder.admin().devices.create(anotherCustomer)
             builder.admin().applications.assertDeleteFailStatus(400, anotherCustomer, device, foundApplication)
-            builder.admin().applications.assertDeleteFailStatus(400, anotherCustomer, anotherDevice!!, foundApplication)
+            builder.admin().applications.assertDeleteFailStatus(400, anotherCustomer, anotherDevice, foundApplication)
             builder.admin().applications.delete(customer, device, createdApplication)
             builder.admin().applications.assertDeleteFailStatus(404, customer, device, createdApplication)
         }

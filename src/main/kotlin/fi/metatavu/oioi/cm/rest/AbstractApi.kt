@@ -10,6 +10,8 @@ import org.slf4j.Logger
 import java.util.*
 import javax.enterprise.context.RequestScoped
 import javax.inject.Inject
+import javax.ws.rs.core.Context
+import javax.ws.rs.core.HttpHeaders
 import javax.ws.rs.core.Response
 
 /**
@@ -40,6 +42,17 @@ abstract class AbstractApi {
 
     @ConfigProperty(name = "quarkus.oidc.credentials.secret")
     lateinit var keycloakSecret: String
+
+    @Context
+    lateinit var headers: HttpHeaders
+
+    /**
+     * Returns used api key or null if not available
+     */
+    protected val apiKey: String?
+        get() {
+            return headers.getHeaderString("X-API-KEY")
+        }
 
     /**
      * Returns logged user id
