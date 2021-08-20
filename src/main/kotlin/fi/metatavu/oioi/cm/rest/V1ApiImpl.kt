@@ -572,11 +572,36 @@ class V1ApiImpl : AbstractApi(), V1Api {
 
     override fun getApplicationJson(applicationId: UUID?): Response {
         val application = applicationController.findApplicationById(applicationId) ?: return Response.status(Response.Status.NOT_FOUND).build()
+        val device = application.device
+        val deviceApiKey = device.apiKey
+
+        if (deviceApiKey != null) {
+            if (apiKey == null) {
+                return createUnauthorized("Missing X-API-KEY header")
+            }
+
+            if (apiKey != deviceApiKey) {
+                return createForbidden("Invalid API Key provided")
+            }
+        }
+
         return Response.ok(wallApplicationTranslator.translate(application)).build()
     }
 
     override fun getDeviceJson(deviceId: UUID?): Response {
         val device = deviceController.findDeviceById(deviceId) ?: return Response.status(Response.Status.NOT_FOUND).build()
+        val deviceApiKey = device.apiKey
+
+        if (deviceApiKey != null) {
+            if (apiKey == null) {
+                return createUnauthorized("Missing X-API-KEY header")
+            }
+
+            if (apiKey != deviceApiKey) {
+                return createForbidden("Invalid API Key provided")
+            }
+        }
+
         return Response.ok(wallDeviceTranslator.translate(device)).build()
     }
 
