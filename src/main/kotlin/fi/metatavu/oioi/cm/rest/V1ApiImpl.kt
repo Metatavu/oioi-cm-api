@@ -575,7 +575,7 @@ class V1ApiImpl : AbstractApi(), V1Api {
         val device = application.device
         val deviceApiKey = device.apiKey
 
-        if (deviceApiKey != null) {
+        if (!deviceApiKey.isNullOrEmpty()) {
             if (apiKey == null) {
                 return createUnauthorized("Missing X-API-KEY header")
             }
@@ -592,7 +592,7 @@ class V1ApiImpl : AbstractApi(), V1Api {
         val device = deviceController.findDeviceById(deviceId) ?: return Response.status(Response.Status.NOT_FOUND).build()
         val deviceApiKey = device.apiKey
 
-        if (deviceApiKey != null) {
+        if (!deviceApiKey.isNullOrEmpty()) {
             if (apiKey == null) {
                 return createUnauthorized("Missing X-API-KEY header")
             }

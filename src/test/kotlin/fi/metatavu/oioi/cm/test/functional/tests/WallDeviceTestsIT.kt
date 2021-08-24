@@ -29,7 +29,7 @@ class WallDeviceTestsIT : AbstractFunctionalTest() {
 
             builder.admin().applications.create(
                 customer = customer,
-                device = device!!,
+                device = device,
                 name = "application's name"
             )
 
@@ -52,6 +52,14 @@ class WallDeviceTestsIT : AbstractFunctionalTest() {
             builder.admin().wallDevice.assertGetDeviceJsonStatus(expectedStatus = 401, deviceId = device.id!!)
             builder.admin().wallDevice.assertGetDeviceJsonStatus(expectedStatus = 403, deviceId = device.id, apiKey = "incorrect-api-key")
             assertNotNull(builder.admin().wallDevice.getDeviceJson(deviceId = device.id, apiKey = "example-api-key"))
+
+            builder.admin().devices.updateDevice(customer = customer, body = device.copy(apiKey = ""))
+            assertNotNull(builder.admin().wallDevice.getDeviceJson(deviceId = device.id, apiKey = ""))
+            assertNotNull(builder.admin().wallDevice.getDeviceJson(deviceId = device.id, apiKey = null))
+
+            builder.admin().devices.updateDevice(customer = customer, body = device.copy(apiKey = null))
+            assertNotNull(builder.admin().wallDevice.getDeviceJson(deviceId = device.id, apiKey = ""))
+            assertNotNull(builder.admin().wallDevice.getDeviceJson(deviceId = device.id, apiKey = null))
         }
     }
 }

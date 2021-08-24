@@ -231,6 +231,14 @@ class WallApplicationTestsIT : AbstractFunctionalTest() {
             builder.admin().wallApplication.assertGetApplicationJsonStatus(expectedStatus = 401, applicationId = application.id!!)
             builder.admin().wallApplication.assertGetApplicationJsonStatus(expectedStatus = 403, applicationId = application.id, apiKey = "incorrect-api-key")
             assertNotNull(builder.admin().wallApplication.getApplicationJson(applicationId = application.id, apiKey = "example-api-key"))
+
+            builder.admin().devices.updateDevice(customer = customer, body = device.copy(apiKey = ""))
+            assertNotNull(builder.admin().wallApplication.getApplicationJson(applicationId = application.id, apiKey = ""))
+            assertNotNull(builder.admin().wallApplication.getApplicationJson(applicationId = application.id, apiKey = null))
+
+            builder.admin().devices.updateDevice(customer = customer, body = device.copy(apiKey = null))
+            assertNotNull(builder.admin().wallApplication.getApplicationJson(applicationId = application.id, apiKey = ""))
+            assertNotNull(builder.admin().wallApplication.getApplicationJson(applicationId = application.id, apiKey = null))
         }
     }
 }
