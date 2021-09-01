@@ -1,3 +1,0 @@
-embed-server --server-config=standalone-full-ha.xml
-/subsystem=undertow/server=default-server/host=oioi-cm-api:add(alias=["${env.OIOI_CM_API_HOST}"],default-web-module="oioi-cm-api.war")
-/subsystem=undertow/server=default-server/http-listener=default/:write-attribute(name=max-post-size,value=4294967296)

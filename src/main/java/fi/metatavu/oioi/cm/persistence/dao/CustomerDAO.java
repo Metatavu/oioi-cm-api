@@ -1,5 +1,6 @@
 package fi.metatavu.oioi.cm.persistence.dao;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -74,6 +75,10 @@ public class CustomerDAO extends AbstractDAO<Customer> {
    * @return list of customers
    */
   public List<Customer> listCustomersByNameIn(Set<String> names) {
+    if (names == null || names.isEmpty()) {
+      return Collections.emptyList();
+    }
+
     EntityManager entityManager = getEntityManager();
     CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
     CriteriaQuery<Customer> criteria = criteriaBuilder.createQuery(Customer.class);

@@ -23,7 +23,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
  * @author Heikki Kurhinen
  */
 @Entity
-@Cacheable(true)
+@Cacheable
 @Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
 public class Device {
 
@@ -36,9 +36,7 @@ public class Device {
   @NotNull
   @NotEmpty
   private String name;
-  
-  @NotNull
-  @NotEmpty
+
   private String apiKey;
   
   private String imageUrl;
@@ -76,7 +74,7 @@ public class Device {
   /**
    * Returns device customer
    * 
-   * @returns customer
+   * @return customer
    */
   public Customer getCustomer() {
     return customer;
