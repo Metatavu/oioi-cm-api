@@ -16,7 +16,6 @@ import java.nio.ByteOrder
 import java.util.*
 import java.util.stream.Collectors
 
-
 /**
  * Abstract base class for custom Liquibase migrations
  */
@@ -71,6 +70,12 @@ abstract class AbstractCustomTaskChange: CustomTaskChange {
         return result
     }
 
+    /**
+     * Converts UUID bytes into UUID
+     *
+     * @param bytes bytes
+     * @return UUID
+     */
     protected fun getUUIDFromBytes(bytes: ByteArray): UUID {
         val byteBuffer = ByteBuffer.wrap(bytes)
         val high = byteBuffer.long
@@ -90,7 +95,7 @@ abstract class AbstractCustomTaskChange: CustomTaskChange {
      *
      * @return created resource
      */
-    protected open fun createProtectedResource(
+    protected fun createProtectedResource(
         authzClient: AuthzClient,
         customerId: UUID,
         deviceId: UUID,
@@ -122,7 +127,7 @@ abstract class AbstractCustomTaskChange: CustomTaskChange {
             return result
         }
         val resources = authzClient.protection().resource().findByUri(resourceUri)
-        return if (!resources.isEmpty()) {
+        return if (resources.isNotEmpty()) {
             resources[0]
         } else null
     }

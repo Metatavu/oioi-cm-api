@@ -3,15 +3,12 @@ package fi.metatavu.oioi.cm.liquibase.changes
 import liquibase.database.Database
 import liquibase.database.jvm.JdbcConnection
 import liquibase.exception.CustomChangeException
-import org.slf4j.LoggerFactory
 import java.util.*
 
 /**
  * Custom Liquibase migrations for adding all application new default content version
  */
 class ContentVersionsChange: AbstractCustomTaskChange() {
-
-    private val logger = LoggerFactory.getLogger(ContentVersionsChange::class.java)
 
     override fun getConfirmationMessage(): String {
         return "Added default content versions"
@@ -100,8 +97,6 @@ class ContentVersionsChange: AbstractCustomTaskChange() {
      * @throws CustomChangeException when migration fails
      */
     private fun createContentVersion(connection: JdbcConnection, contentVersionId: UUID, rootResourceId: UUID, customerId: UUID, deviceId: UUID, applicationId: UUID, lastModifierId: UUID) {
-        logger.info("Creating content version $contentVersionId for root resource $rootResourceId")
-
         val keycloakResource = createProtectedResource(
             authzClient = authzClient,
             customerId = customerId,
@@ -136,8 +131,6 @@ class ContentVersionsChange: AbstractCustomTaskChange() {
      * @throws CustomChangeException when migration fails
      */
     private fun moveResourceToContentVersion(connection: JdbcConnection, contentVersionId: UUID, rootResourceId: UUID) {
-        logger.info("Moving root resource $rootResourceId children to content version $contentVersionId")
-
         try {
             connection.prepareStatement("UPDATE resource SET parent_id = ? WHERE parent_id = ? AND id != ?").use { statement ->
                 statement.setBytes(1, getUUIDBytes(contentVersionId))
