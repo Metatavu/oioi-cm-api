@@ -277,9 +277,22 @@
     <dropNotNullConstraint tableName="device" columnName="apikey" columnDataType="varchar(191)"/>
   </changeSet>
 
+  <changeSet id="resource-types" author="antti.leppa">
+    <sql>UPDATE resource SET type = 'ROOT' WHERE type = '0'</sql>
+    <sql>UPDATE resource SET type = 'INTRO' WHERE type = '1'</sql>
+    <sql>UPDATE resource SET type = 'LANGUAGE_MENU' WHERE type = '2'</sql>
+    <sql>UPDATE resource SET type = 'LANGUAGE' WHERE type = '3'</sql>
+    <sql>UPDATE resource SET type = 'SLIDESHOW' WHERE type = '4'</sql>
+    <sql>UPDATE resource SET type = 'MENU' WHERE type = '5'</sql>
+    <sql>UPDATE resource SET type = 'PAGE' WHERE type = '6'</sql>
+    <sql>UPDATE resource SET type = 'PDF' WHERE type = '7'</sql>
+    <sql>UPDATE resource SET type = 'IMAGE' WHERE type = '8'</sql>
+    <sql>UPDATE resource SET type = 'VIDEO' WHERE type = '9'</sql>
+    <sql>UPDATE resource SET type = 'TEXT' WHERE type = '10'</sql>
+  </changeSet>
+
   <changeSet id="content-versions" author="antti.leppa">
     <customChange class="fi.metatavu.oioi.cm.liquibase.changes.ContentVersionsChange"/>
   </changeSet>
-
 
 </databaseChangeLog>
