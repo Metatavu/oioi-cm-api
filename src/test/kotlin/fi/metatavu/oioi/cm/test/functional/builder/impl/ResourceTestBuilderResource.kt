@@ -71,7 +71,15 @@ class ResourceTestBuilderResource (
             data = data
         )
 
-        val result: Resource = api.createResource(customer.id!!, device.id!!, application.id!!, resource)
+        val result: Resource = api.createResource(
+            customerId = customer.id!!,
+            deviceId = device.id!!,
+            applicationId = application.id!!,
+            resource = resource,
+            copyResourceId = null,
+            copyResourceParentId = null
+        )
+
         customerResourceIds[result.id] = customer.id
         deviceResourceIds[result.id] = device.id
         applicationResourceIds[result.id] = application.id
