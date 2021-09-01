@@ -277,4 +277,9 @@
     <dropNotNullConstraint tableName="device" columnName="apikey" columnDataType="varchar(191)"/>
   </changeSet>
 
+  <changeSet id="content-versions" author="antti.leppa">
+    <customChange class="fi.metatavu.oioi.cm.liquibase.changes.ContentVersionsChange"/>
+  </changeSet>
+
+
 </databaseChangeLog>
