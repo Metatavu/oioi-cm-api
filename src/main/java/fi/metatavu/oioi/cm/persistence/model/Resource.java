@@ -3,14 +3,7 @@ package fi.metatavu.oioi.cm.persistence.model;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
-import javax.persistence.Cacheable;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Lob;
-import javax.persistence.ManyToOne;
-import javax.persistence.PrePersist;
-import javax.persistence.PreUpdate;
+import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
@@ -41,7 +34,8 @@ public class Resource   {
   
   @ManyToOne
   private Resource parent;
-  
+
+  @Enumerated (EnumType.STRING)
   @Column (nullable = false)
   private ResourceType type;
   
