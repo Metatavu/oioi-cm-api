@@ -21,10 +21,10 @@ import java.util.stream.Collectors
  */
 abstract class AbstractCustomTaskChange: CustomTaskChange {
 
-    private val keycloakUrl: String = ConfigProvider.getConfig().getValue("oioi.keycloak.url", String::class.java)
-    private val keycloakRealm: String = ConfigProvider.getConfig().getValue("oioi.keycloak.realm", String::class.java)
-    private val keycloakClientId: String = ConfigProvider.getConfig().getValue("quarkus.oidc.client-id", String::class.java)
-    private val keycloakSecret: String = ConfigProvider.getConfig().getValue("quarkus.oidc.credentials.secret", String::class.java)
+    private val keycloakUrl: String? = getConfigValue("oioi.keycloak.url")
+    private val keycloakRealm: String? = getConfigValue("oioi.keycloak.realm")
+    private val keycloakClientId: String? = getConfigValue("quarkus.oidc.client-id")
+    private val keycloakSecret: String? = getConfigValue("quarkus.oidc.credentials.secret")
 
     /**
      * Return keycloak authorization client
@@ -130,6 +130,17 @@ abstract class AbstractCustomTaskChange: CustomTaskChange {
         return if (resources.isNotEmpty()) {
             resources[0]
         } else null
+    }
+
+    /**
+     * Returns value from config
+     *
+     * @param key key
+     * @return value from config
+     */
+    private fun getConfigValue(key: String): String? {
+        return ConfigProvider.getConfig().getOptionalValue(key, String::class.java)
+            .orElse(null)
     }
 
 }
