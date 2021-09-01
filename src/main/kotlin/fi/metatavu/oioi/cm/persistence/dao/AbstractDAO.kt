@@ -24,13 +24,26 @@ abstract class AbstractDAO<T> {
     @PersistenceContext
     lateinit var entityManager: EntityManager
 
+    private val genericTypeClass: Class<T?>?
+        get() {
+            val genericSuperclass = javaClass.genericSuperclass
+            if (genericSuperclass is ParameterizedType) {
+                return getFirstTypeArgument(genericSuperclass)
+            } else {
+                if ((genericSuperclass is Class<*>) && AbstractDAO::class.java.isAssignableFrom(genericSuperclass)) {
+                    return getFirstTypeArgument(genericSuperclass.genericSuperclass as ParameterizedType)
+                }
+            }
+            return null
+        }
+
     /**
      * Returns entity by id
      *
      * @param id entity id
      * @return entity or null if non found
      */
-    fun findById(id: UUID?): T? {
+    open fun findById(id: UUID?): T? {
         return entityManager.find(genericTypeClass, id)
     }
 
@@ -40,7 +53,7 @@ abstract class AbstractDAO<T> {
      * @param id entity id
      * @return entity or null if non found
      */
-    fun findById(id: String?): T? {
+    open fun findById(id: String?): T? {
         return entityManager.find(genericTypeClass, id)
     }
 
@@ -50,7 +63,7 @@ abstract class AbstractDAO<T> {
      * @param id entity id
      * @return entity or null if non found
      */
-    fun findById(id: Long?): T? {
+    open fun findById(id: Long?): T? {
         return entityManager.find(genericTypeClass, id)
     }
 
@@ -60,7 +73,7 @@ abstract class AbstractDAO<T> {
      * @return all entities from database
      */
     @Suppress("UNCHECKED_CAST")
-    fun listAll(): List<T> {
+    open fun listAll(): List<T> {
         val genericTypeClass: Class<*>? = genericTypeClass
         val query = entityManager.createQuery("select o from " + genericTypeClass!!.name + " o")
         return query.resultList as List<T>
@@ -74,7 +87,7 @@ abstract class AbstractDAO<T> {
      * @return all entities from database limited by firstResult and maxResults parameters
      */
     @Suppress("UNCHECKED_CAST")
-    fun listAll(firstResult: Int, maxResults: Int): List<T> {
+    open fun listAll(firstResult: Int, maxResults: Int): List<T> {
         val genericTypeClass: Class<*>? = genericTypeClass
         val query = entityManager.createQuery("select o from " + genericTypeClass!!.name + " o")
         query.firstResult = firstResult
@@ -87,7 +100,7 @@ abstract class AbstractDAO<T> {
      *
      * @return entity count
      */
-    fun count(): Long {
+    open fun count(): Long {
         val genericTypeClass: Class<*>? = genericTypeClass
         val query = entityManager.createQuery("select count(o) from " + genericTypeClass!!.name + " o")
         return query.singleResult as Long
@@ -98,16 +111,9 @@ abstract class AbstractDAO<T> {
      *
      * @param e entity
      */
-    fun delete(e: T) {
+    open fun delete(e: T) {
         entityManager.remove(e)
         flush()
-    }
-
-    /**
-     * Flushes persistence context state
-     */
-    private fun flush() {
-        entityManager.flush()
     }
 
     /**
@@ -116,7 +122,7 @@ abstract class AbstractDAO<T> {
      * @param id entity id
      * @return whether entity with given id exists
      */
-    fun isExisting(id: Long?): Boolean {
+    open fun isExisting(id: Long?): Boolean {
         return try {
             entityManager.find(genericTypeClass, id) != null
         } catch (e: EntityNotFoundException) {
@@ -130,7 +136,7 @@ abstract class AbstractDAO<T> {
      * @param object entity to be persisted
      * @return persisted entity
      */
-    protected fun persist(`object`: T): T {
+    protected open fun persist(`object`: T): T {
         entityManager.persist(`object`)
         return `object`
     }
@@ -141,7 +147,7 @@ abstract class AbstractDAO<T> {
      * @param query query
      * @return entity or null if result is empty
      */
-    protected fun <X> getSingleResult(query: TypedQuery<X>): X? {
+    protected open fun <X> getSingleResult(query: TypedQuery<X>): X? {
         val list = query.resultList
         if (list.isEmpty()) return null
         if (list.size > 1) {
@@ -161,16 +167,10 @@ abstract class AbstractDAO<T> {
         return parameterizedType.actualTypeArguments[0] as Class<T?>
     }
 
-    private val genericTypeClass: Class<T?>?
-        get() {
-            val genericSuperclass = javaClass.genericSuperclass
-            if (genericSuperclass is ParameterizedType) {
-                return getFirstTypeArgument(genericSuperclass)
-            } else {
-                if ((genericSuperclass is Class<*>) && AbstractDAO::class.java.isAssignableFrom(genericSuperclass)) {
-                    return getFirstTypeArgument(genericSuperclass.genericSuperclass as ParameterizedType)
-                }
-            }
-            return null
-        }
+    /**
+     * Flushes persistence context state
+     */
+    private fun flush() {
+        entityManager.flush()
+    }
 }
