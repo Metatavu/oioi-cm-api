@@ -172,16 +172,17 @@ class ResourceController {
         val id = UUID.randomUUID()
         val targetDevice = targetApplication.device
         val targetCustomer = targetDevice?.customer
+        val sameParent = source.parent?.id == targetParent.id
 
-        val slug = getUniqueSlug(
+        val slug = if (sameParent) getUniqueSlug(
             desiredSlug = source.slug ?: "",
             parent = targetParent
-        )
+        ) else source.slug
 
-        val name = getUniqueName(
+        val name = if (sameParent) getUniqueName(
             desiredName = source.name ?: "",
             parent = targetParent
-        )
+        ) else source.name
 
         val keycloakResourceId = createProtectedResource(
             authzClient = authzClient,
@@ -204,6 +205,28 @@ class ResourceController {
             creatorId = creatorId,
             lastModifierId = creatorId
         )
+
+        listProperties(source).forEach {
+            resourcePropertyDAO.create(
+                id = UUID.randomUUID(),
+                key = it.key,
+                value = it.value,
+                resource = result,
+                creatorId = creatorId,
+                lastModifierId = creatorId
+            )
+        }
+
+        listStyles(source).forEach {
+            resourceStyleDAO.create(
+                id = UUID.randomUUID(),
+                key = it.key,
+                value = it.value,
+                resource = result,
+                creatorId = creatorId,
+                lastModifierId = creatorId
+            )
+        }
 
         copyChildResources(
             authzClient = authzClient,

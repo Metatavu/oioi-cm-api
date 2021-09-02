@@ -305,11 +305,26 @@ class V1ApiImpl : AbstractApi(), V1Api {
         customerId: UUID?,
         deviceId: UUID?,
         applicationId: UUID?,
-        payload: Resource?,
         copyResourceId: UUID?,
-        copyResourceParentId: UUID?
+        copyResourceParentId: UUID?,
+        payload: Resource?
     ): Response {
         val loggedUserId = loggedUserId ?: return createUnauthorized(UNAUTHORIZED)
+
+        val customer = customerController.findCustomerById(customerId) ?: return createNotFound(NOT_FOUND_MESSAGE)
+        if (!isAdminOrHasCustomerGroup(customer.name)) {
+            return createForbidden(FORBIDDEN_MESSAGE)
+        }
+
+        val device = deviceController.findDeviceById(deviceId) ?: return createNotFound(NOT_FOUND_MESSAGE)
+        if (device.customer?.id != customer.id) {
+            return createNotFound(NOT_FOUND_MESSAGE)
+        }
+
+        val application = applicationController.findApplicationById(applicationId) ?: return createNotFound(NOT_FOUND_MESSAGE)
+        if (application.device?.id != device.id) {
+            return createNotFound(NOT_FOUND_MESSAGE)
+        }
 
         val result = if (copyResourceId != null) {
             if (payload != null) {
@@ -320,48 +335,23 @@ class V1ApiImpl : AbstractApi(), V1Api {
             val source = resourceController.findResourceById(copyResourceId) ?: return createBadRequest("Invalid copy resource id")
             val targetParent = resourceController.findResourceById(copyResourceParentId) ?: return createBadRequest("Invalid copy resource parent id")
             val sourceApplication = resourceController.getResourceApplication(resource = source) ?: return createInternalServerError("Could not resolve source application")
-            val targetApplication = resourceController.getResourceApplication(resource = targetParent) ?: return createInternalServerError("Could not resolve target application")
 
             val sourceCustomer = sourceApplication.device?.customer ?: return createInternalServerError("Could not resolve source customer")
             if (!isAdminOrHasCustomerGroup(sourceCustomer.name!!)) {
                 return createForbidden(FORBIDDEN_MESSAGE)
             }
 
-            val targetCustomer = targetApplication.device?.customer ?: return createInternalServerError("Could not resolve target customer")
-            if (!isAdminOrHasCustomerGroup(targetCustomer.name!!)) {
-                return createForbidden(FORBIDDEN_MESSAGE)
-            }
-
             resourceController.copyResource(
                 authzClient = authzClient,
                 source = source,
-                targetApplication = targetApplication,
+                targetApplication = application,
                 targetParent = targetParent,
                 creatorId = loggedUserId
             )
         } else {
             payload ?: return createBadRequest("Request body is required")
 
-            val customer = customerController.findCustomerById(customerId) ?: return createNotFound(NOT_FOUND_MESSAGE)
-            if (!isAdminOrHasCustomerGroup(customer.name)) {
-                return createForbidden(FORBIDDEN_MESSAGE)
-            }
-
-            val device = deviceController.findDeviceById(deviceId) ?: return createNotFound(NOT_FOUND_MESSAGE)
-            if (device.customer?.id != customer.id) {
-                return createNotFound(NOT_FOUND_MESSAGE)
-            }
-
-            if (device.customer?.id != customer.id) {
-                return createForbidden(FORBIDDEN_MESSAGE)
-            }
-
-            val application = applicationController.findApplicationById(applicationId) ?: return createNotFound(NOT_FOUND_MESSAGE)
-            if (application.device?.id != device.id) {
-                return createNotFound(NOT_FOUND_MESSAGE)
-            }
-
-            val parentId = payload.parentId
+            val parentId = payload.parentId ?: return createBadRequest(INVALID_PARENT_ID)
             val parent = resourceController.findResourceById(parentId) ?: return createBadRequest(INVALID_PARENT_ID)
 
             if (resourceController.isApplicationResource(application = application, resource = parent)) {
