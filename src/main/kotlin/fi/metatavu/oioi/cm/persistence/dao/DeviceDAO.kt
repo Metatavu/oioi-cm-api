@@ -15,7 +15,7 @@ class DeviceDAO : AbstractDAO<Device>() {
     /**
      * Creates new Device
      *
-     *  @param id id
+     * @param id id
      * @param customer customer
      * @param apiKey apiKey
      * @param name name
