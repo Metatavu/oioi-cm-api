@@ -40,7 +40,7 @@ class WallResourceTranslator : AbstractTranslator<Resource?, WallResource?>() {
      * @return styles as key value pairs
      */
     private fun getStyles(entity: Resource): Map<String, String> {
-        return resourceController.listStyles(entity).associate { it.key to it.value }
+        return resourceController.listStyles(entity).associate { it.key!! to it.value!! }
     }
 
     /**
@@ -50,6 +50,6 @@ class WallResourceTranslator : AbstractTranslator<Resource?, WallResource?>() {
      * @return styles as key value pairs
      */
     private fun getProperties(entity: Resource): Map<String, String> {
-        return resourceController.listProperties(entity).associate { it.key to it.value }
+        return resourceController.listProperties(entity).associate { it.key!! to it.value!! }
     }
 }

@@ -88,11 +88,13 @@ abstract class AbstractApi {
      *
      * @return whether logged user is either admin or has customer group membership
      */
-    protected fun isAdminOrHasCustomerGroup(customerName: String): Boolean {
+    protected fun isAdminOrHasCustomerGroup(customerName: String?): Boolean {
         val isAdmin = hasRealmRole(ADMIN_ROLE)
         if (isAdmin) {
             return true
         }
+
+        customerName ?: return false
 
         return loggedUserGroups.contains(customerName)
     }
@@ -110,7 +112,7 @@ abstract class AbstractApi {
     /**
      * Return keycloak authorization client
      */
-    protected val authzClient: AuthzClient?
+    protected val authzClient: AuthzClient
         get() {
            val configuration = Configuration()
             configuration.realm = keycloakRealm
@@ -133,17 +135,6 @@ abstract class AbstractApi {
         return Response
             .status(Response.Status.OK)
             .entity(entity)
-            .build()
-    }
-
-    /**
-     * Constructs ok response
-     *
-     * @return response
-     */
-    protected fun createOk(): Response {
-        return Response
-            .status(Response.Status.OK)
             .build()
     }
 
@@ -276,6 +267,7 @@ abstract class AbstractApi {
         const val NOT_FOUND_MESSAGE = "Not found"
         const val CUSTOMER_DEVICE_MISMATCH_MESSAGE = "Device does not belong to this customer"
         const val APPLICATION_DEVICE_MISMATCH_MESSAGE = "Application does not belong to this device"
+        const val UNAUTHORIZED = "Unauthorized"
         const val FORBIDDEN_MESSAGE = "Forbidden"
         const val ADMIN_ROLE = "admin"
     }

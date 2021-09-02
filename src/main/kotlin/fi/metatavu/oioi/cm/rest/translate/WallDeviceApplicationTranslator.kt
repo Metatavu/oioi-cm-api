@@ -27,7 +27,7 @@ class WallDeviceApplicationTranslator : AbstractTranslator<Application?, WallDev
         val rootResource = entity.rootResource
         var modifiedAt = entity.modifiedAt
         if (rootResource != null) {
-            val resourceModifiedAt = rootResource.modifiedAt
+            val resourceModifiedAt = rootResource.modifiedAt!!
             if (resourceModifiedAt.isAfter(modifiedAt)) {
                 modifiedAt = resourceModifiedAt
             }
@@ -45,7 +45,7 @@ class WallDeviceApplicationTranslator : AbstractTranslator<Application?, WallDev
      * @return styles as key value pairs
      */
     private fun getStyles(entity: Resource): Map<String, String> {
-        return resourceController.listStyles(entity).associate { it.key to it.value }
+        return resourceController.listStyles(entity).associate { it.key!! to it.value!! }
     }
 
     /**
@@ -55,6 +55,6 @@ class WallDeviceApplicationTranslator : AbstractTranslator<Application?, WallDev
      * @return styles as key value pairs
      */
     private fun getProperties(entity: Resource): Map<String, String> {
-        return resourceController.listProperties(entity).associate { it.key to it.value }
+        return resourceController.listProperties(entity).associate { it.key!! to it.value!! }
     }
 }

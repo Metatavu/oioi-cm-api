@@ -73,7 +73,7 @@ class V1ApiImpl : AbstractApi(), V1Api {
 
         val customer = customerController.findCustomerById(customerId) ?: return createNotFound(NOT_FOUND_MESSAGE)
         val device = deviceController.findDeviceById(deviceId) ?: return createNotFound(NOT_FOUND_MESSAGE)
-        if (device.customer.id != customer.id) {
+        if (device.customer?.id != customer.id) {
             return createBadRequest(CUSTOMER_DEVICE_MISMATCH_MESSAGE)
         }
 
@@ -97,7 +97,7 @@ class V1ApiImpl : AbstractApi(), V1Api {
 
         val device = deviceController.findDeviceById(deviceId) ?: return createNotFound(NOT_FOUND_MESSAGE)
 
-        return if (device.customer.id != customer.id) {
+        return if (device.customer?.id != customer.id) {
             createBadRequest(CUSTOMER_DEVICE_MISMATCH_MESSAGE)
         } else createOk(
             applicationTranslator.translate(applicationController.listDeviceApplications(device))
@@ -111,12 +111,12 @@ class V1ApiImpl : AbstractApi(), V1Api {
         }
 
         val device = deviceController.findDeviceById(deviceId) ?: return createNotFound(NOT_FOUND_MESSAGE)
-        if (device.customer.id != customer.id) {
+        if (device.customer?.id != customer.id) {
             return createBadRequest(CUSTOMER_DEVICE_MISMATCH_MESSAGE)
         }
 
         val applicationEntity = applicationController.findApplicationById(applicationId) ?: return createNotFound(NOT_FOUND_MESSAGE)
-        return if (applicationEntity.device.id != device.id) {
+        return if (applicationEntity.device?.id != device.id) {
             createBadRequest(APPLICATION_DEVICE_MISMATCH_MESSAGE)
         } else {
             createOk(applicationTranslator.translate(applicationEntity))
@@ -136,12 +136,12 @@ class V1ApiImpl : AbstractApi(), V1Api {
         }
 
         val device = deviceController.findDeviceById(deviceId) ?: return createNotFound(NOT_FOUND_MESSAGE)
-        if (device.customer.id != customer.id) {
+        if (device.customer?.id != customer.id) {
             return createBadRequest(CUSTOMER_DEVICE_MISMATCH_MESSAGE)
         }
 
         val applicationEntity = applicationController.findApplicationById(applicationId) ?: return createNotFound(NOT_FOUND_MESSAGE)
-        if (applicationEntity.device.id != device.id) {
+        if (applicationEntity.device?.id != device.id) {
             return createBadRequest(APPLICATION_DEVICE_MISMATCH_MESSAGE)
         }
 
@@ -158,12 +158,12 @@ class V1ApiImpl : AbstractApi(), V1Api {
 
         val customer = customerController.findCustomerById(customerId) ?: return createNotFound(NOT_FOUND_MESSAGE)
         val device = deviceController.findDeviceById(deviceId) ?: return createNotFound(NOT_FOUND_MESSAGE)
-        if (device.customer.id != customer.id) {
+        if (device.customer?.id != customer.id) {
             return createBadRequest(CUSTOMER_DEVICE_MISMATCH_MESSAGE)
         }
 
         val applicationEntity = applicationController.findApplicationById(applicationId) ?: return createNotFound(NOT_FOUND_MESSAGE)
-        if (applicationEntity.device.id != device.id) {
+        if (applicationEntity.device?.id != device.id) {
             return createBadRequest(APPLICATION_DEVICE_MISMATCH_MESSAGE)
         }
 
@@ -257,7 +257,7 @@ class V1ApiImpl : AbstractApi(), V1Api {
 
         val device = deviceController.findDeviceById(deviceId) ?: return createNotFound(NOT_FOUND_MESSAGE)
 
-        return if (device.customer.id != customer.id) {
+        return if (device.customer?.id != customer.id) {
             createNotFound(NOT_FOUND_MESSAGE)
         } else {
             createOk(deviceTranslator.translate(device))
@@ -273,7 +273,7 @@ class V1ApiImpl : AbstractApi(), V1Api {
             ?: return createNotFound(NOT_FOUND_MESSAGE)
         val device = deviceController.findDeviceById(deviceId)
             ?: return createNotFound(NOT_FOUND_MESSAGE)
-        if (device.customer.id != customer.id) {
+        if (device.customer?.id != customer.id) {
             return createNotFound(NOT_FOUND_MESSAGE)
         }
         val apiKey = payload!!.apiKey
@@ -292,7 +292,7 @@ class V1ApiImpl : AbstractApi(), V1Api {
             ?: return createNotFound(NOT_FOUND_MESSAGE)
         val device = deviceController.findDeviceById(deviceId)
             ?: return createNotFound(NOT_FOUND_MESSAGE)
-        if (device.customer.id != customer.id) {
+        if (device.customer?.id != customer.id) {
             return createNotFound(NOT_FOUND_MESSAGE)
         }
         deviceController.deleteDevice(authzClient, device)
@@ -300,57 +300,82 @@ class V1ApiImpl : AbstractApi(), V1Api {
     }
 
     /** RESOURCES  */
+
     override fun createResource(
-        customerId: UUID,
-        deviceId: UUID,
-        applicationId: UUID,
-        payload: @Valid Resource?
+        customerId: UUID?,
+        deviceId: UUID?,
+        applicationId: UUID?,
+        copyResourceId: UUID?,
+        copyResourceParentId: UUID?,
+        payload: Resource?
     ): Response {
-        val loggedUserId = loggedUserId!!
-        val customer = customerController.findCustomerById(customerId)
-            ?: return createNotFound(NOT_FOUND_MESSAGE)
+        val loggedUserId = loggedUserId ?: return createUnauthorized(UNAUTHORIZED)
+
+        val customer = customerController.findCustomerById(customerId) ?: return createNotFound(NOT_FOUND_MESSAGE)
         if (!isAdminOrHasCustomerGroup(customer.name)) {
             return createForbidden(FORBIDDEN_MESSAGE)
         }
-        val device = deviceController.findDeviceById(deviceId)
-            ?: return createNotFound(NOT_FOUND_MESSAGE)
-        if (device.customer.id != customer.id) {
-            return createNotFound(NOT_FOUND_MESSAGE)
-        }
-        val application = applicationController.findApplicationById(applicationId)
-            ?: return createNotFound(NOT_FOUND_MESSAGE)
-        if (application.device.id != device.id) {
-            return createNotFound(NOT_FOUND_MESSAGE)
-        }
-        val parentId = payload!!.parentId
-        val parent = resourceController.findResourceById(parentId)
-            ?: return createBadRequest(INVALID_PARENT_ID)
 
-        // TODO: parent permission?
-        val data = payload.data
-        val name = payload.name
-        val slug = payload.slug
-        val orderNumber = payload.orderNumber
-        val type = payload.type
-        return createOk(
-            resourceTranslator.translate(
-                resourceController.createResource(
-                    authzClient,
-                    customer,
-                    device,
-                    application,
-                    orderNumber,
-                    parent,
-                    data,
-                    name,
-                    slug,
-                    type,
-                    payload.properties,
-                    payload.styles,
-                    loggedUserId
-                )
+        val device = deviceController.findDeviceById(deviceId) ?: return createNotFound(NOT_FOUND_MESSAGE)
+        if (device.customer?.id != customer.id) {
+            return createNotFound(NOT_FOUND_MESSAGE)
+        }
+
+        val application = applicationController.findApplicationById(applicationId) ?: return createNotFound(NOT_FOUND_MESSAGE)
+        if (application.device?.id != device.id) {
+            return createNotFound(NOT_FOUND_MESSAGE)
+        }
+
+        val result = if (copyResourceId != null) {
+            if (payload != null) {
+                return createBadRequest("When copyResourceId is defined, request should not have a body")
+            }
+
+            copyResourceParentId ?: return createBadRequest("copyResourceParentId is required when copyResourceId is defined")
+            val source = resourceController.findResourceById(copyResourceId) ?: return createBadRequest("Invalid copy resource id")
+            val targetParent = resourceController.findResourceById(copyResourceParentId) ?: return createBadRequest("Invalid copy resource parent id")
+            val sourceApplication = resourceController.getResourceApplication(resource = source) ?: return createInternalServerError("Could not resolve source application")
+
+            val sourceCustomer = sourceApplication.device?.customer ?: return createInternalServerError("Could not resolve source customer")
+            if (!isAdminOrHasCustomerGroup(sourceCustomer.name!!)) {
+                return createForbidden(FORBIDDEN_MESSAGE)
+            }
+
+            resourceController.copyResource(
+                authzClient = authzClient,
+                source = source,
+                targetApplication = application,
+                targetParent = targetParent,
+                creatorId = loggedUserId
             )
-        )
+        } else {
+            payload ?: return createBadRequest("Request body is required")
+
+            val parentId = payload.parentId ?: return createBadRequest(INVALID_PARENT_ID)
+            val parent = resourceController.findResourceById(parentId) ?: return createBadRequest(INVALID_PARENT_ID)
+
+            if (!resourceController.isApplicationResource(application = application, resource = parent)) {
+                return createForbidden(FORBIDDEN_MESSAGE)
+            }
+
+            resourceController.createResource(
+                authzClient = authzClient,
+                customer = customer,
+                device = device,
+                application = application,
+                orderNumber = payload.orderNumber,
+                parent = parent,
+                data = payload.data,
+                name = payload.name,
+                slug = payload.slug,
+                type = payload.type,
+                properties = payload.properties,
+                styles = payload.styles,
+                creatorId = loggedUserId
+            )
+        }
+
+        return createOk(resourceTranslator.translate(result))
     }
 
     override fun listResources(customerId: UUID, deviceId: UUID, applicationId: UUID, parentId: UUID): Response {
@@ -361,12 +386,12 @@ class V1ApiImpl : AbstractApi(), V1Api {
         }
         val device = deviceController.findDeviceById(deviceId)
             ?: return createNotFound(NOT_FOUND_MESSAGE)
-        if (device.customer.id != customer.id) {
+        if (device.customer?.id != customer.id) {
             return createNotFound(NOT_FOUND_MESSAGE)
         }
         val application = applicationController.findApplicationById(applicationId)
             ?: return createNotFound(NOT_FOUND_MESSAGE)
-        if (application.device.id != device.id) {
+        if (application.device?.id != device.id) {
             return createNotFound(NOT_FOUND_MESSAGE)
         }
         val parent = resourceController.findResourceById(parentId)
@@ -382,12 +407,12 @@ class V1ApiImpl : AbstractApi(), V1Api {
         }
         val device = deviceController.findDeviceById(deviceId)
             ?: return createNotFound(NOT_FOUND_MESSAGE)
-        if (device.customer.id != customer.id) {
+        if (device.customer?.id != customer.id) {
             return createNotFound(NOT_FOUND_MESSAGE)
         }
         val application = applicationController.findApplicationById(applicationId)
             ?: return createNotFound(NOT_FOUND_MESSAGE)
-        if (application.device.id != device.id) {
+        if (application.device?.id != device.id) {
             return createNotFound(NOT_FOUND_MESSAGE)
         }
         val resource = resourceController.findResourceById(resourceId)
@@ -416,12 +441,12 @@ class V1ApiImpl : AbstractApi(), V1Api {
         }
         val device = deviceController.findDeviceById(deviceId)
             ?: return createNotFound(NOT_FOUND_MESSAGE)
-        if (device.customer.id != customer.id) {
+        if (device.customer?.id != customer.id) {
             return createNotFound(NOT_FOUND_MESSAGE)
         }
         val application = applicationController.findApplicationById(applicationId)
             ?: return createNotFound(NOT_FOUND_MESSAGE)
-        if (application.device.id != device.id) {
+        if (application.device?.id != device.id) {
             return createNotFound(NOT_FOUND_MESSAGE)
         }
         val resource = resourceController.findResourceById(resourceId)
@@ -475,12 +500,12 @@ class V1ApiImpl : AbstractApi(), V1Api {
         }
         val device = deviceController.findDeviceById(deviceId)
             ?: return createNotFound(NOT_FOUND_MESSAGE)
-        if (device.customer.id != customer.id) {
+        if (device.customer?.id != customer.id) {
             return createNotFound(NOT_FOUND_MESSAGE)
         }
         val application = applicationController.findApplicationById(applicationId)
             ?: return createNotFound(NOT_FOUND_MESSAGE)
-        if (application.device.id != device.id) {
+        if (application.device?.id != device.id) {
             return createNotFound(NOT_FOUND_MESSAGE)
         }
         val resource = resourceController.findResourceById(resourceId)
@@ -526,7 +551,7 @@ class V1ApiImpl : AbstractApi(), V1Api {
             return createForbidden(FORBIDDEN_MESSAGE)
         }
         val media = mediaController.findMediaById(mediaId)
-        return if (media == null || media.customer.id != customer.id) {
+        return if (media == null || media.customer?.id != customer.id) {
             createNotFound(NOT_FOUND_MESSAGE)
         } else createOk(mediaTranslator.translate(media))
     }
@@ -539,7 +564,7 @@ class V1ApiImpl : AbstractApi(), V1Api {
             return createForbidden(FORBIDDEN_MESSAGE)
         }
         val media = mediaController.findMediaById(mediaId)
-        return if (media == null || media.customer.id != customer.id) {
+        return if (media == null || media.customer?.id != customer.id) {
             createNotFound(NOT_FOUND_MESSAGE)
         } else createOk(
             mediaTranslator.translate(
@@ -561,7 +586,7 @@ class V1ApiImpl : AbstractApi(), V1Api {
             return createForbidden(FORBIDDEN_MESSAGE)
         }
         val media = mediaController.findMediaById(mediaId)
-        if (media == null || media.customer.id != customer.id) {
+        if (media == null || media.customer?.id != customer.id) {
             return createNotFound(NOT_FOUND_MESSAGE)
         }
         mediaController.deleteMedia(media)
@@ -572,7 +597,7 @@ class V1ApiImpl : AbstractApi(), V1Api {
 
     override fun getApplicationJson(applicationId: UUID?): Response {
         val application = applicationController.findApplicationById(applicationId) ?: return Response.status(Response.Status.NOT_FOUND).build()
-        val device = application.device
+        val device = application.device ?: return createInternalServerError("Could not find application device")
         val deviceApiKey = device.apiKey
 
         if (!deviceApiKey.isNullOrEmpty()) {

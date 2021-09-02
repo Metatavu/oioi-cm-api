@@ -49,7 +49,7 @@ class WallApplicationTestsIT : AbstractFunctionalTest() {
                 device,
                 application,
                 0,
-                langFi!!.id,
+                langFi.id,
                 null,
                 "Intro",
                 "intro",
@@ -61,7 +61,7 @@ class WallApplicationTestsIT : AbstractFunctionalTest() {
                 device,
                 application,
                 0,
-                intro!!.id,
+                intro.id,
                 null,
                 "Intro slideshow",
                 "slideshow",
@@ -73,7 +73,7 @@ class WallApplicationTestsIT : AbstractFunctionalTest() {
                 device,
                 application,
                 0,
-                introSlide!!.id,
+                introSlide.id,
                 null,
                 "Intro slideshow page 1",
                 "page-1",
@@ -85,7 +85,7 @@ class WallApplicationTestsIT : AbstractFunctionalTest() {
                 device,
                 application,
                 0,
-                introPage1!!.id,
+                introPage1.id,
                 "https://oioi-static.metatavu.io/0f57bd21-7bb1-4308-bf52-0ab6d40bd88e/0f57bd21-7bb1-4308-bf52-0ab6d40bd88e",
                 "Intro PDF",
                 "pdf",
@@ -109,7 +109,7 @@ class WallApplicationTestsIT : AbstractFunctionalTest() {
                 device,
                 application,
                 0,
-                introPage2!!.id,
+                introPage2.id,
                 "https://oioi-static.metatavu.io/0f57bd21-7bb1-4308-bf52-0ab6d40bd88e/bc55c04e-1d9e-4e71-a384-d1621c90162a",
                 "Intro Image",
                 "image",
@@ -145,7 +145,7 @@ class WallApplicationTestsIT : AbstractFunctionalTest() {
                 device,
                 application,
                 0,
-                menu!!.id,
+                menu.id,
                 null,
                 "Menu Page 1",
                 "page-1",
@@ -157,7 +157,7 @@ class WallApplicationTestsIT : AbstractFunctionalTest() {
                 device,
                 application,
                 0,
-                menuPage1!!.id,
+                menuPage1.id,
                 "https://oioi-static.metatavu.io/0f57bd21-7bb1-4308-bf52-0ab6d40bd88e/71b700d7-1264-43f9-9686-a137780cef4b",
                 "Video",
                 "video",
@@ -181,7 +181,7 @@ class WallApplicationTestsIT : AbstractFunctionalTest() {
                 device,
                 application,
                 0,
-                menuPage2!!.id,
+                menuPage2.id,
                 "https://oioi-static.metatavu.io/0f57bd21-7bb1-4308-bf52-0ab6d40bd88e/71b700d7-1264-43f9-9686-a137780cef4b",
                 "Video",
                 "video",
@@ -201,9 +201,9 @@ class WallApplicationTestsIT : AbstractFunctionalTest() {
             )
 
             val wallApplication = builder.admin().wallApplication.getApplicationJson(application.id!!)
-            assertNotNull(wallApplication, "Assert JSON not null",)
-            assertNotNull(wallApplication.root, "Assert JSON root not null",)
-            Asserts.assertEqualsOffsetDateTime(menuPage2Video?.modifiedAt, wallApplication.modifiedAt)
+            assertNotNull(wallApplication, "Assert JSON not null")
+            assertNotNull(wallApplication.root, "Assert JSON root not null")
+            Asserts.assertEqualsOffsetDateTime(menuPage2Video.modifiedAt, wallApplication.modifiedAt)
 
             val exportRootChildren = wallApplication.root.children
             assertEquals(1, exportRootChildren.size.toLong(), "Assert 1 root child")
@@ -215,9 +215,9 @@ class WallApplicationTestsIT : AbstractFunctionalTest() {
             val exportIntroPage2 = exportIntroSlide.children[1]
             assertEquals(introPage2.slug, exportIntroPage2.slug, "Assert intro page 2 slug")
             val exportIntroPage2Image = exportIntroPage2.children[0]
-            assertEquals(exportIntroPage2Image.slug, introPage2Image!!.slug,"Assert intro page 2 image slug")
+            assertEquals(exportIntroPage2Image.slug, introPage2Image.slug,"Assert intro page 2 image slug")
             val exportIntroPage2Text = exportIntroPage2.children[1]
-            assertEquals(exportIntroPage2Text.slug, introPage2Text!!.slug,"Assert intro page 2 text slug")
+            assertEquals(exportIntroPage2Text.slug, introPage2Text.slug,"Assert intro page 2 text slug")
         }
     }
 

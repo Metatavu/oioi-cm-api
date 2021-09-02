@@ -1,7 +1,7 @@
 package fi.metatavu.oioi.cm.test.functional.tests
 
 import fi.metatavu.ikioma.integrations.test.functional.resources.MysqlResource
-import fi.metatavu.oioi.cm.client.models.ResourceType
+import fi.metatavu.oioi.cm.client.models.*
 import fi.metatavu.oioi.cm.test.functional.builder.TestBuilder
 import fi.metatavu.oioi.cm.test.functional.resources.KeycloakTestResource
 import io.quarkus.test.common.QuarkusTestResource
@@ -61,7 +61,8 @@ class ResourceTestsIT : AbstractFunctionalTest() {
                 "name",
                 "slug",
                 ResourceType.mENU
-            )!!
+            )
+
             builder.admin().resources.assertFindFailStatus(404, customer, device, application, UUID.randomUUID())
             builder.admin().resources.assertFindFailStatus(404, UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID())
             val foundResource = builder.admin().resources.findResource(customer, device, application, createdResource.id!!)
@@ -86,7 +87,8 @@ class ResourceTestsIT : AbstractFunctionalTest() {
                 "name",
                 "slug",
                 ResourceType.mENU
-            )!!
+            )
+
             val createdResource2 = builder.admin().resources.create(
                 customer,
                 device,
@@ -130,7 +132,7 @@ class ResourceTestsIT : AbstractFunctionalTest() {
                 device, application, 0, application.rootResourceId, "data", "name", "slug", ResourceType.mENU,
                 arrayOf(getKeyValue("prop-1", "value"), getKeyValue("prop-2", "value-2")),
                 arrayOf(getKeyValue("style-1", "value"), getKeyValue("style-2", "value-2"))
-            )!!
+            )
 
             val updateResource = builder.admin().resources.findResource(customer, device, application, resource.id!!)
 
@@ -168,7 +170,7 @@ class ResourceTestsIT : AbstractFunctionalTest() {
                 "name",
                 "slug",
                 ResourceType.mENU
-            )!!
+            )
 
             val foundResource = builder.admin().resources.findResource(customer, device, application, createdResource.id!!)
 
@@ -177,4 +179,140 @@ class ResourceTestsIT : AbstractFunctionalTest() {
             builder.admin().resources.assertDeleteFailStatus(404, customer, device, application, createdResource)
         }
     }
+
+    @Test
+    fun testContentVersionCopy() {
+        TestBuilder().use { builder ->
+            val customer = builder.admin().customers.create()
+            val device = builder.admin().devices.create(customer)
+            val application = builder.admin().applications.create(customer, device)
+
+            val rootItem = ResourceItem(slug = "1", ResourceType.cONTENTVERSION, children = arrayOf(
+                ResourceItem(slug = "l", ResourceType.lANGUAGEMENU, children = arrayOf(
+                    ResourceItem(slug = "fi", ResourceType.lANGUAGE, properties = arrayOf(getKeyValue("description", "Finnish language page")), styles = arrayOf(getKeyValue("background", "#fff"), getKeyValue("color", "#00f")), children = arrayOf(
+                        ResourceItem(slug = "intro", ResourceType.iNTRO, children = arrayOf(
+                            ResourceItem(slug = "s", ResourceType.sLIDESHOW, children = arrayOf(
+                                ResourceItem(slug = "page-1", ResourceType.pAGE, children = arrayOf(
+                                    ResourceItem(slug = "pdf", ResourceType.pDF, data = "https://cdn.example.com/0f57bd21-7bb1-4308-bf52-0ab6d40bd88e/0f57bd21-7bb1-4308-bf52-0ab6d40bd88e")
+                                )),
+                                ResourceItem(slug = "page-2", ResourceType.pAGE, children = arrayOf(
+                                    ResourceItem(slug = "img", ResourceType.iMAGE, data = "https://cdn.example.com/0f57bd21-7bb1-4308-bf52-0ab6d40bd88e/bc55c04e-1d9e-4e71-a384-d1621c90162a"),
+                                    ResourceItem(slug = "txt", ResourceType.tEXT, data = "Hello world")
+                                ))
+                           ))
+                        )),
+                        ResourceItem(slug = "menu", ResourceType.mENU, children = arrayOf(
+                            ResourceItem(slug = "menu-page-1", ResourceType.pAGE, children = arrayOf(
+                                ResourceItem(slug = "video", ResourceType.vIDEO, data = "https://cdn.example.com/0f57bd21-7bb1-4308-bf52-0ab6d40bd88e/71b700d7-1264-43f9-9686-a137780cef4b"),
+                            )),
+                            ResourceItem(slug = "menu-page-2", ResourceType.pAGE, children = arrayOf(
+                                ResourceItem(slug = "video", ResourceType.vIDEO, data = "https://cdn.example.com/0f57bd21-7bb1-4308-bf52-0ab6d40bd88e/71b700d7-1264-43f9-9686-a137780cef4b"),
+                                ResourceItem(slug = "text", ResourceType.tEXT, data = "Hello again"),
+                            ))
+                        ))
+                    ))
+                ))
+            ))
+
+            val version1 = createResourceFromItem(
+                builder = builder,
+                item = rootItem,
+                customer = customer,
+                device = device,
+                application = application,
+                parentId = application.rootResourceId!!,
+                orderNumber = 0
+            )
+
+            val version2 = builder.admin().resources.copyResource(
+                customerId = customer.id!!,
+                deviceId = device.id!!,
+                applicationId = application.id!!,
+                copyResourceId = version1.id!!,
+                copyResourceParentId = application.rootResourceId
+            )
+
+            assertNotNull(version2)
+            assertEquals("2", version2.slug)
+            assertEquals("2", version2.name)
+
+            assertCopiedTree(
+                builder = builder,
+                customer = customer,
+                device = device,
+                application = application,
+                source = version1,
+                target = version2
+            )
+        }
+    }
+
+    /**
+     * Asserts that resource tree is copied correctly
+     *
+     * @param builder builder
+     * @param customer customer
+     * @param device device
+     * @param application application
+     * @param source source resource
+     * @param target target resource
+     */
+    private fun assertCopiedTree(builder: TestBuilder, customer: Customer, device: Device, application: Application, source: Resource, target: Resource) {
+        assertCopiedResource(source = source, target = target)
+
+        val sourceChildren = builder.admin().resources.listResources(
+            customer = customer,
+            device = device,
+            application = application,
+            parent = source
+        )
+
+        val targetChildren = builder.admin().resources.listResources(
+            customer = customer,
+            device = device,
+            application = application,
+            parent = target
+        )
+
+        assertEquals(sourceChildren.size, targetChildren.size)
+
+        sourceChildren.forEachIndexed { index, sourceChild ->
+            val targetChild = targetChildren[index]
+
+            assertCopiedTree(
+                builder = builder,
+                customer = customer,
+                device = device,
+                application = application,
+                source = sourceChild,
+                target = targetChild
+            )
+        }
+    }
+
+    /**
+     * Asserts that copied resource is copied correctly
+     *
+     * @param source source resource
+     * @param target target resource
+     */
+    private fun assertCopiedResource(source: Resource, target: Resource?) {
+        assertNotNull(source)
+        assertNotNull(target)
+        assertNotEquals(source.id, target!!.id)
+        assertEquals(source.data, target.data)
+        assertEquals(source.orderNumber, target.orderNumber)
+        assertEquals(source.type, target.type)
+        assertDeepEquals(source.properties, target.properties)
+        assertDeepEquals(source.styles, target.styles)
+
+        if (source.parentId == target.parentId) {
+            assertNotEquals(source.name, target.name)
+            assertNotEquals(source.slug, target.slug)
+        } else {
+            assertEquals(source.name, target.name)
+            assertEquals(source.slug, target.slug)
+        }
+    }
 }
+
