@@ -51,15 +51,15 @@ class ResourceTestBuilderResource (
         customer: Customer,
         device: Device,
         application: Application,
-        orderNumber: Int?,
-        parentId: UUID?,
-        data: String?,
+        orderNumber: Int? = null,
+        parentId: UUID? = null,
+        data: String? = null,
         name: String,
         slug: String,
         type: ResourceType,
-        properties: Array<KeyValueProperty> = emptyArray<KeyValueProperty>(),
-        styles: Array<KeyValueProperty> = emptyArray<KeyValueProperty>()
-    ): Resource? {
+        properties: Array<KeyValueProperty> = emptyArray(),
+        styles: Array<KeyValueProperty> = emptyArray()
+    ): Resource {
         val resource = Resource(
             type = type,
             name = name,
@@ -87,6 +87,33 @@ class ResourceTestBuilderResource (
     }
 
     /**
+     * Creates a copy of a resource.
+     *
+     * This method does not register resources for auto cleaning
+     */
+    fun copyResource(
+        customerId: UUID,
+        deviceId: UUID,
+        applicationId: UUID,
+        copyResourceId: UUID,
+        copyResourceParentId: UUID
+    ): Resource {
+        val result = api.createResource(
+            customerId = customerId,
+            deviceId = deviceId,
+            applicationId = applicationId,
+            resource = null,
+            copyResourceId = copyResourceId,
+            copyResourceParentId = copyResourceParentId
+        )
+
+        customerResourceIds[result.id] = customerId
+        deviceResourceIds[result.id] = deviceId
+        applicationResourceIds[result.id] = applicationId
+        return addClosable(result)
+    }
+
+    /**
      * Finds a resource
      *
      * @param customer customer
@@ -106,9 +133,31 @@ class ResourceTestBuilderResource (
      * @return found resources
      * @throws ClientException
      */
-    @Throws(ClientException::class)
     fun listResources(customer: Customer, device: Device, application: Application, parent: Resource?): Array<Resource> {
-        return api.listResources(customer.id!!, device.id!!, application.id!!, parent?.id)
+        return listResources(
+            customerId = customer.id!!,
+            deviceId = device.id!!,
+            applicationId = application.id!!,
+            parentId = parent?.id
+        )
+    }
+
+    /**
+     * Lists resources
+     *
+     * @param customerId customer id
+     * @param deviceId device id
+     * @param applicationId application id
+     * @param parentId parent id
+     * @return found resources
+     */
+    fun listResources(customerId: UUID, deviceId: UUID, applicationId: UUID, parentId: UUID?): Array<Resource> {
+        return api.listResources(
+            customerId = customerId,
+            deviceId = deviceId,
+            applicationId = applicationId,
+            parentId = parentId
+        )
     }
 
     /**
@@ -149,7 +198,7 @@ class ResourceTestBuilderResource (
      * @param customer customer
      * @throws ClientException
      */
-    @Throws(ClientException::class)
+    @Suppress("unused")
     fun assertCount(expected: Int, customer: Customer, device: Device, application: Application, parent: Resource?) {
         assertEquals(expected.toLong(), listResources(customer, device, application, parent).size.toLong())
     }
@@ -209,6 +258,7 @@ class ResourceTestBuilderResource (
      * @param properties properties
      * @param styles styles
      */
+    @Suppress("unused")
     fun assertCreateFailStatus(
         expectedStatus: Int,
         customer: Customer,
@@ -238,6 +288,7 @@ class ResourceTestBuilderResource (
      * @param customer customer
      * @param resource resource
      */
+    @Suppress("unused")
     fun assertUpdateFailStatus(
         expectedStatus: Int,
         customer: Customer,
@@ -279,17 +330,27 @@ class ResourceTestBuilderResource (
      * Asserts list status fails with given status code
      *
      * @param expectedStatus expected status code
-     * @param customer customer
+     * @param customerId customer id
+     * @param deviceId device id
+     * @param applicationId application id
+     * @param parentId parent id
      */
+    @Suppress("unused")
     fun assertListFailStatus(
         expectedStatus: Int,
-        customer: Customer,
-        device: Device,
-        application: Application,
-        parent: Resource?
+        customerId: UUID,
+        deviceId: UUID,
+        applicationId: UUID,
+        parentId: UUID?
     ) {
         try {
-            listResources(customer, device, application, parent)
+            listResources(
+                customerId = customerId,
+                deviceId = deviceId,
+                applicationId = applicationId,
+                parentId = parentId
+            )
+
             fail(String.format("Expected list to fail with status %d", expectedStatus))
         } catch (e: ClientException) {
             assertEquals(expectedStatus, e.statusCode)
@@ -306,7 +367,6 @@ class ResourceTestBuilderResource (
         assertJsonsEqual(expected, actual)
     }
 
-    @Throws(ClientException::class)
     override fun clean(t: Resource) {
         val customerId: UUID = customerResourceIds.remove(t.id)!!
         val deviceId: UUID = deviceResourceIds.remove(t.id)!!
