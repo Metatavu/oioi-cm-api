@@ -14,6 +14,7 @@ import javax.persistence.criteria.Predicate
  */
 @ApplicationScoped
 class MediaDAO : AbstractDAO<Media>() {
+
     /**
      * Creates new Media
      *
