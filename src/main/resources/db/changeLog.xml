@@ -291,4 +291,8 @@
     <sql>UPDATE resource SET type = 'TEXT' WHERE type = '10'</sql>
   </changeSet>
 
+  <changeSet id="content-versions" author="antti.leppa">
+    <customChange class="fi.metatavu.oioi.cm.liquibase.changes.ContentVersionsChange"/>
+  </changeSet>
+
 </databaseChangeLog>

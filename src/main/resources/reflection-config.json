@@ -16,5 +16,14 @@
     "allPublicMethods" : true,
     "allDeclaredFields" : true,
     "allPublicFields" : true
+  },
+  {
+    "name" : "fi.metatavu.oioi.cm.liquibase.changes.ContentVersionsChange",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true,
+    "allDeclaredFields" : true,
+    "allPublicFields" : true
   }
 ]

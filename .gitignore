@@ -37,3 +37,4 @@ nb-configuration.xml
 
 production-data
 key.txt
+/docker-compose.yml
