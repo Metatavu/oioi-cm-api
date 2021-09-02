@@ -11,6 +11,7 @@ import javax.enterprise.context.ApplicationScoped
  */
 @ApplicationScoped
 class ResourcePropertyDAO : AbstractDAO<ResourceProperty>() {
+
     /**
      * Creates new ResourceProperty
      *
