@@ -11,6 +11,7 @@ import javax.enterprise.context.ApplicationScoped
  */
 @ApplicationScoped
 class DeviceMetaDAO : AbstractDAO<DeviceMeta>() {
+
     /**
      * Creates new DeviceMeta
      *
