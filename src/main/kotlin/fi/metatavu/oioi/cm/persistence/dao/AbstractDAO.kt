@@ -3,6 +3,7 @@ package fi.metatavu.oioi.cm.persistence.dao
 import org.slf4j.Logger
 import java.lang.reflect.ParameterizedType
 import java.util.*
+import javax.enterprise.context.ApplicationScoped
 import javax.inject.Inject
 import javax.persistence.EntityManager
 import javax.persistence.EntityNotFoundException
@@ -16,6 +17,7 @@ import javax.persistence.TypedQuery
  *
  * @param <T> entity type </T>
  **/
+@ApplicationScoped
 abstract class AbstractDAO<T> {
 
     @Inject
@@ -43,7 +45,7 @@ abstract class AbstractDAO<T> {
      * @param id entity id
      * @return entity or null if non found
      */
-    open fun findById(id: UUID?): T? {
+    fun findById(id: UUID): T? {
         return entityManager.find(genericTypeClass, id)
     }
 
@@ -53,7 +55,7 @@ abstract class AbstractDAO<T> {
      * @param id entity id
      * @return entity or null if non found
      */
-    open fun findById(id: String?): T? {
+    fun findById(id: String): T? {
         return entityManager.find(genericTypeClass, id)
     }
 
@@ -63,7 +65,7 @@ abstract class AbstractDAO<T> {
      * @param id entity id
      * @return entity or null if non found
      */
-    open fun findById(id: Long?): T? {
+    fun findById(id: Long?): T? {
         return entityManager.find(genericTypeClass, id)
     }
 
@@ -73,7 +75,7 @@ abstract class AbstractDAO<T> {
      * @return all entities from database
      */
     @Suppress("UNCHECKED_CAST")
-    open fun listAll(): List<T> {
+    fun listAll(): List<T> {
         val genericTypeClass: Class<*>? = genericTypeClass
         val query = entityManager.createQuery("select o from " + genericTypeClass!!.name + " o")
         return query.resultList as List<T>
@@ -87,7 +89,7 @@ abstract class AbstractDAO<T> {
      * @return all entities from database limited by firstResult and maxResults parameters
      */
     @Suppress("UNCHECKED_CAST")
-    open fun listAll(firstResult: Int, maxResults: Int): List<T> {
+    fun listAll(firstResult: Int, maxResults: Int): List<T> {
         val genericTypeClass: Class<*>? = genericTypeClass
         val query = entityManager.createQuery("select o from " + genericTypeClass!!.name + " o")
         query.firstResult = firstResult
@@ -100,7 +102,7 @@ abstract class AbstractDAO<T> {
      *
      * @return entity count
      */
-    open fun count(): Long {
+    fun count(): Long {
         val genericTypeClass: Class<*>? = genericTypeClass
         val query = entityManager.createQuery("select count(o) from " + genericTypeClass!!.name + " o")
         return query.singleResult as Long
@@ -111,7 +113,7 @@ abstract class AbstractDAO<T> {
      *
      * @param e entity
      */
-    open fun delete(e: T) {
+    fun delete(e: T) {
         entityManager.remove(e)
         flush()
     }
@@ -122,7 +124,7 @@ abstract class AbstractDAO<T> {
      * @param id entity id
      * @return whether entity with given id exists
      */
-    open fun isExisting(id: Long?): Boolean {
+    fun isExisting(id: Long?): Boolean {
         return try {
             entityManager.find(genericTypeClass, id) != null
         } catch (e: EntityNotFoundException) {
@@ -136,7 +138,7 @@ abstract class AbstractDAO<T> {
      * @param object entity to be persisted
      * @return persisted entity
      */
-    protected open fun persist(`object`: T): T {
+    protected fun persist(`object`: T): T {
         entityManager.persist(`object`)
         return `object`
     }
@@ -147,7 +149,7 @@ abstract class AbstractDAO<T> {
      * @param query query
      * @return entity or null if result is empty
      */
-    protected open fun <X> getSingleResult(query: TypedQuery<X>): X? {
+    protected fun <X> getSingleResult(query: TypedQuery<X>): X? {
         val list = query.resultList
         if (list.isEmpty()) return null
         if (list.size > 1) {

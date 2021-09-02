@@ -58,22 +58,66 @@ class ResourceDAO : AbstractDAO<Resource>() {
      * Lists resources by parent
      *
      * @param parent parent
-     * @return List of applications
+     * @return List of resources
      */
-    fun listByParent(parent: Resource?): List<Resource> {
+    fun listByParent(parent: Resource): List<Resource> {
         val entityManager = entityManager
         val criteriaBuilder = entityManager.criteriaBuilder
-        val criteria = criteriaBuilder.createQuery(
-            Resource::class.java
-        )
-        val root = criteria.from(
-            Resource::class.java
-        )
+        val criteria = criteriaBuilder.createQuery(Resource::class.java)
+        val root = criteria.from(Resource::class.java)
         criteria.select(root)
         criteria.where(criteriaBuilder.equal(root.get(Resource_.parent), parent))
         criteria.orderBy(criteriaBuilder.asc(root.get(Resource_.orderNumber)))
         val query = entityManager.createQuery(criteria)
         return query.resultList
+    }
+
+    /**
+     * Find resource by parent and slug
+     *
+     * @param parent parent
+     * @param slug slug
+     * @return resource or null if not found
+     */
+    fun findByParentAndSlug(parent: Resource, slug: String): Resource? {
+        val entityManager = entityManager
+        val criteriaBuilder = entityManager.criteriaBuilder
+        val criteria = criteriaBuilder.createQuery(Resource::class.java)
+        val root = criteria.from(Resource::class.java)
+
+        criteria.select(root)
+        criteria.where(
+            criteriaBuilder.and(
+                criteriaBuilder.equal(root.get(Resource_.parent), parent),
+                criteriaBuilder.equal(root.get(Resource_.slug), slug)
+            )
+        )
+
+        return getSingleResult(entityManager.createQuery(criteria))
+    }
+
+    /**
+     * Find resource by parent and name
+     *
+     * @param parent parent
+     * @param name name
+     * @return resource or null if not found
+     */
+    fun findByParentAndName(parent: Resource, name: String): Resource? {
+        val entityManager = entityManager
+        val criteriaBuilder = entityManager.criteriaBuilder
+        val criteria = criteriaBuilder.createQuery(Resource::class.java)
+        val root = criteria.from(Resource::class.java)
+
+        criteria.select(root)
+        criteria.where(
+            criteriaBuilder.and(
+                criteriaBuilder.equal(root.get(Resource_.parent), parent),
+                criteriaBuilder.equal(root.get(Resource_.name), name)
+            )
+        )
+
+        return getSingleResult(entityManager.createQuery(criteria))
     }
 
     /**
@@ -103,13 +147,13 @@ class ResourceDAO : AbstractDAO<Resource>() {
     }
 
     /**
-     * Updates keycloakResorceId
+     * Updates keycloakResourceId
      *
-     * @param keycloakResourceId keycloakResorceId
+     * @param keycloakResourceId keycloakResourceId
      * @param lastModifierId last modifier's id
      * @return updated resource
      */
-    fun updateKeycloakResorceId(resource: Resource, keycloakResourceId: UUID?, lastModifierId: UUID?): Resource? {
+    fun updateKeycloakResourceId(resource: Resource, keycloakResourceId: UUID?, lastModifierId: UUID?): Resource? {
         resource.lastModifierId = lastModifierId
         resource.keycloakResorceId = keycloakResourceId
         return persist(resource)
