@@ -11,6 +11,7 @@ import javax.enterprise.context.ApplicationScoped
  */
 @ApplicationScoped
 class ResourceStyleDAO : AbstractDAO<ResourceStyle>() {
+
     /**
      * Creates new ResourceStyle
      *
