@@ -11,6 +11,7 @@ import javax.enterprise.context.ApplicationScoped
  */
 @ApplicationScoped
 class DeviceDAO : AbstractDAO<Device>() {
+
     /**
      * Creates new Device
      *
