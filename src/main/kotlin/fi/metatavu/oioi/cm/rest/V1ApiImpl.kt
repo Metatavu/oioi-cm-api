@@ -354,7 +354,7 @@ class V1ApiImpl : AbstractApi(), V1Api {
             val parentId = payload.parentId ?: return createBadRequest(INVALID_PARENT_ID)
             val parent = resourceController.findResourceById(parentId) ?: return createBadRequest(INVALID_PARENT_ID)
 
-            if (resourceController.isApplicationResource(application = application, resource = parent)) {
+            if (!resourceController.isApplicationResource(application = application, resource = parent)) {
                 return createForbidden(FORBIDDEN_MESSAGE)
             }
 
