@@ -240,62 +240,6 @@ class ResourceController {
     }
 
     /**
-     * Generates unique slug for resource.
-     *
-     * If desiredSlug ends with numbers, method attempts to use next available sequence
-     * otherwise sequence number will be prepended after the name
-     *
-     * @param desiredSlug desired slug
-     * @param parent parent
-     * @return unique name
-     */
-    private fun getUniqueSlug(desiredSlug: String, parent: Resource): String {
-        val prefix = desiredSlug.replace("[0-9]*$".toRegex(), "")
-        var result = prefix
-        var index = 1
-
-        do {
-            if (result.isNotEmpty() && resourceDAO.findByParentAndSlug(parent = parent, slug = result) == null) {
-                return result
-            }
-
-            if (result.isNotEmpty()) {
-                index++
-            }
-
-            result = "$prefix$index"
-        } while (true)
-    }
-
-    /**
-     * Generates unique slug for resource.
-     *
-     * If desiredSlug ends with numbers, method attempts to use next available sequence
-     * otherwise sequence number will be prepended after the name
-     *
-     * @param desiredName desired name
-     * @param parent parent
-     * @return unique name
-     */
-    private fun getUniqueName(desiredName: String, parent: Resource): String {
-        val prefix = desiredName.replace("[0-9]*$".toRegex(), "")
-        var result = prefix
-        var index = 1
-
-        do {
-            if (result.isNotEmpty() && resourceDAO.findByParentAndName(parent = parent, name = result) == null) {
-                return result
-            }
-
-            if (result.isNotEmpty()) {
-                index++
-            }
-
-            result = "$prefix$index"
-        } while (true)
-    }
-
-    /**
      * Find resource by id
      *
      * @param id resource id
@@ -457,6 +401,62 @@ class ResourceController {
     fun getResourceApplication(resource: Resource): Application? {
         val rootResource = getResourceRootResource(resource = resource) ?: return null
         return applicationDAO.findByRootResource(rootResource = rootResource)
+    }
+
+    /**
+     * Generates unique slug for resource.
+     *
+     * If desiredSlug ends with numbers, method attempts to use next available sequence
+     * otherwise sequence number will be prepended after the name
+     *
+     * @param desiredSlug desired slug
+     * @param parent parent
+     * @return unique name
+     */
+    private fun getUniqueSlug(desiredSlug: String, parent: Resource): String {
+        val prefix = desiredSlug.replace("[0-9]*$".toRegex(), "")
+        var result = prefix
+        var index = 1
+
+        do {
+            if (result.isNotEmpty() && resourceDAO.findByParentAndSlug(parent = parent, slug = result) == null) {
+                return result
+            }
+
+            if (result.isNotEmpty()) {
+                index++
+            }
+
+            result = "$prefix$index"
+        } while (true)
+    }
+
+    /**
+     * Generates unique slug for resource.
+     *
+     * If desiredSlug ends with numbers, method attempts to use next available sequence
+     * otherwise sequence number will be prepended after the name
+     *
+     * @param desiredName desired name
+     * @param parent parent
+     * @return unique name
+     */
+    private fun getUniqueName(desiredName: String, parent: Resource): String {
+        val prefix = desiredName.replace("[0-9]*$".toRegex(), "")
+        var result = prefix
+        var index = 1
+
+        do {
+            if (result.isNotEmpty() && resourceDAO.findByParentAndName(parent = parent, name = result) == null) {
+                return result
+            }
+
+            if (result.isNotEmpty()) {
+                index++
+            }
+
+            result = "$prefix$index"
+        } while (true)
     }
 
     /**
