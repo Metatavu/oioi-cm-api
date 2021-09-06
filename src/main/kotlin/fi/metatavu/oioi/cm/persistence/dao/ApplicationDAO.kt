@@ -1,16 +1,20 @@
 package fi.metatavu.oioi.cm.persistence.dao
 
+import fi.metatavu.oioi.cm.persistence.model.Application
+import fi.metatavu.oioi.cm.persistence.model.Application_
+import fi.metatavu.oioi.cm.persistence.model.Device
+import fi.metatavu.oioi.cm.persistence.model.Resource
 import java.util.UUID
-import fi.metatavu.oioi.cm.persistence.model.*
 import javax.enterprise.context.ApplicationScoped
 
 /**
  * DAO class for Application
  *
  * @author Antti Leppä
+ * @author Jari Nykänen
  */
 @ApplicationScoped
-class ApplicationDAO : AbstractDAO<Application>() {
+class ApplicationDAO: AbstractDAO<Application>() {
 
     /**
      * Creates new Application
@@ -18,24 +22,27 @@ class ApplicationDAO : AbstractDAO<Application>() {
      * @param id id
      * @param name name
      * @param rootResource rootResource
+     * @param activeContentVersionResource active content version resource
      * @param device device
      * @param creatorId creator's id
      * @param lastModifierId last modifier's id
      * @return created application
      */
     fun create(
-        id: UUID?,
-        name: String?,
-        rootResource: Resource?,
+        id: UUID,
+        name: String,
+        rootResource: Resource,
+        activeContentVersionResource: Resource?,
         device: Device?,
         creatorId: UUID?,
         lastModifierId: UUID?
-    ): Application? {
+    ): Application {
         val application = Application()
         application.name = name
         application.rootResource = rootResource
         application.device = device
         application.id = id
+        application.activeContentVersionResource = activeContentVersionResource
         application.creatorId = creatorId
         application.lastModifierId = lastModifierId
         return persist(application)

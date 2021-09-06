@@ -71,18 +71,20 @@ class V1ApiImpl : AbstractApi(), V1Api {
             return createForbidden(FORBIDDEN_MESSAGE)
         }
 
+        payload ?: return createBadRequest(MISSING_PAYLOAD)
+
         val customer = customerController.findCustomerById(customerId) ?: return createNotFound(NOT_FOUND_MESSAGE)
         val device = deviceController.findDeviceById(deviceId) ?: return createNotFound(NOT_FOUND_MESSAGE)
         if (device.customer?.id != customer.id) {
             return createBadRequest(CUSTOMER_DEVICE_MISMATCH_MESSAGE)
         }
 
-        val loggedUserId = loggedUserId!!
+        val loggedUserId = loggedUserId ?: return createUnauthorized(UNAUTHORIZED)
         val result = applicationController.createApplication(
             authzClient,
             customer,
             device,
-            payload!!.name,
+            payload.name,
             loggedUserId
         )
 
@@ -354,6 +356,10 @@ class V1ApiImpl : AbstractApi(), V1Api {
             val parentId = payload.parentId ?: return createBadRequest(INVALID_PARENT_ID)
             val parent = resourceController.findResourceById(parentId) ?: return createBadRequest(INVALID_PARENT_ID)
 
+            if (payload.type === ResourceType.CONTENT_VERSION && parent.type !== ResourceType.ROOT) {
+                return createBadRequest("Content version can only be created under ROOT")
+            }
+
             if (!resourceController.isApplicationResource(application = application, resource = parent)) {
                 return createForbidden(FORBIDDEN_MESSAGE)
             }
@@ -375,10 +381,18 @@ class V1ApiImpl : AbstractApi(), V1Api {
             )
         }
 
+        result ?: return createInternalServerError("Internal server error when creating resource")
+
         return createOk(resourceTranslator.translate(result))
     }
 
-    override fun listResources(customerId: UUID, deviceId: UUID, applicationId: UUID, parentId: UUID): Response {
+    override fun listResources(
+        customerId: UUID,
+        deviceId: UUID,
+        applicationId: UUID,
+        parentId: UUID,
+        resourceType: ResourceType?
+    ): Response {
         val customer = customerController.findCustomerById(customerId)
             ?: return createNotFound(NOT_FOUND_MESSAGE)
         if (!isAdminOrHasCustomerGroup(customer.name)) {
@@ -396,34 +410,42 @@ class V1ApiImpl : AbstractApi(), V1Api {
         }
         val parent = resourceController.findResourceById(parentId)
             ?: return createBadRequest(INVALID_PARENT_ID)
-        return createOk(resourceTranslator.translate(resourceController.listResourcesByParent(parent)))
+
+        val resources = resourceController.listResourcesByParent(parent, resourceType)
+        return createOk(resources.map(resourceTranslator::translate))
     }
 
     override fun findResource(customerId: UUID, deviceId: UUID, applicationId: UUID, resourceId: UUID): Response {
         val customer = customerController.findCustomerById(customerId)
             ?: return createNotFound(NOT_FOUND_MESSAGE)
+
         if (!isAdminOrHasCustomerGroup(customer.name)) {
             return createForbidden(FORBIDDEN_MESSAGE)
         }
+
         val device = deviceController.findDeviceById(deviceId)
             ?: return createNotFound(NOT_FOUND_MESSAGE)
+
         if (device.customer?.id != customer.id) {
             return createNotFound(NOT_FOUND_MESSAGE)
         }
+
         val application = applicationController.findApplicationById(applicationId)
             ?: return createNotFound(NOT_FOUND_MESSAGE)
+
         if (application.device?.id != device.id) {
             return createNotFound(NOT_FOUND_MESSAGE)
         }
+
         val resource = resourceController.findResourceById(resourceId)
             ?: return createNotFound(NOT_FOUND_MESSAGE)
+
         return if (!resourceController.isApplicationResource(application, resource)) {
             createNotFound(NOT_FOUND_MESSAGE)
-        } else createOk(
-            resourceTranslator.translate(
-                resourceController.findResourceById(resourceId)
-            )
-        )
+        } else {
+            val foundResource = resourceController.findResourceById(resourceId) ?: return createNotFound(NOT_FOUND_MESSAGE)
+            createOk(resourceTranslator.translate(foundResource))
+        }
     }
 
     override fun updateResource(

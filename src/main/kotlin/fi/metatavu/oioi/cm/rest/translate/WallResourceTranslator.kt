@@ -23,7 +23,7 @@ class WallResourceTranslator : AbstractTranslator<Resource?, WallResource?>() {
 
         val result = WallResource()
         result.slug = entity.slug
-        result.children = translate(resourceController.listResourcesByParent(entity))
+        result.children = translate(resourceController.listResourcesByParent(entity, null))
         result.data = entity.data
         result.name = entity.name
         result.properties = getProperties(entity)

@@ -45,6 +45,12 @@ class Application {
     var name: String? = null
 
     /**
+     * Active content version resource
+     */
+    @ManyToOne
+    var activeContentVersionResource: Resource? = null
+
+    /**
      * creation time of the entity
      */
     @Column(nullable = false)

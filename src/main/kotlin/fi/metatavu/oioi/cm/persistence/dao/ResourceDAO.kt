@@ -3,7 +3,9 @@ package fi.metatavu.oioi.cm.persistence.dao
 import fi.metatavu.oioi.cm.model.ResourceType
 import java.util.UUID
 import fi.metatavu.oioi.cm.persistence.model.*
+import java.util.ArrayList
 import javax.enterprise.context.ApplicationScoped
+import javax.persistence.criteria.Predicate
 
 /**
  * DAO class for Resource
@@ -58,15 +60,24 @@ class ResourceDAO : AbstractDAO<Resource>() {
      * Lists resources by parent
      *
      * @param parent parent
+     * @param resourceType filter by resource type
      * @return List of resources
      */
-    fun listByParent(parent: Resource): List<Resource> {
+    fun listByParent(parent: Resource, resourceType: ResourceType?): List<Resource> {
         val entityManager = entityManager
         val criteriaBuilder = entityManager.criteriaBuilder
         val criteria = criteriaBuilder.createQuery(Resource::class.java)
         val root = criteria.from(Resource::class.java)
         criteria.select(root)
-        criteria.where(criteriaBuilder.equal(root.get(Resource_.parent), parent))
+
+        val restrictions = ArrayList<Predicate>()
+        restrictions.add(criteriaBuilder.equal(root.get(Resource_.parent), parent))
+
+        if (resourceType != null) {
+            restrictions.add(criteriaBuilder.equal(root.get(Resource_.type), resourceType))
+        }
+
+        criteria.where(criteriaBuilder.and(*restrictions.toTypedArray()))
         criteria.orderBy(criteriaBuilder.asc(root.get(Resource_.orderNumber)))
         val query = entityManager.createQuery(criteria)
         return query.resultList
