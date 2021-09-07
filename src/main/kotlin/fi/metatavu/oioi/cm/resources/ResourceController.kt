@@ -253,10 +253,11 @@ class ResourceController {
      * Lists resources by parent
      *
      * @param parent parent
+     * @param resourceType filter by resource type
      * @return resources
      */
-    fun listResourcesByParent(parent: Resource): List<Resource> {
-        return resourceDAO.listByParent(parent)
+    fun listResourcesByParent(parent: Resource, resourceType: ResourceType?): List<Resource> {
+        return resourceDAO.listByParent(parent, resourceType)
     }
 
     /**
@@ -318,7 +319,7 @@ class ResourceController {
      * @param resource resource to be deleted
      */
     fun delete(authzClient: AuthzClient, resource: Resource) {
-        listResourcesByParent(resource).forEach(Consumer { child: Resource -> delete(authzClient, child) })
+        listResourcesByParent(parent = resource, resourceType = null).forEach(Consumer { child: Resource -> delete(authzClient, child) })
         listProperties(resource).forEach(Consumer { resourceProperty: ResourceProperty ->
             deleteProperty(
                 resourceProperty
@@ -565,7 +566,7 @@ class ResourceController {
         targetParent: Resource,
         creatorId: UUID
     ) {
-        val sourceChildResources = resourceDAO.listByParent(parent = source)
+        val sourceChildResources = resourceDAO.listByParent(parent = source, resourceType = null)
         sourceChildResources.forEach { sourceChildResource ->
             copyResource(
                 authzClient = authzClient,

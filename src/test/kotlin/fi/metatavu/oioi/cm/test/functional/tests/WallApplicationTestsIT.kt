@@ -35,7 +35,7 @@ class WallApplicationTestsIT : AbstractFunctionalTest() {
                 device,
                 application,
                 0,
-                application.rootResourceId,
+                application.activeContentVersionResourceId,
                 null,
                 "fi",
                 "fi",

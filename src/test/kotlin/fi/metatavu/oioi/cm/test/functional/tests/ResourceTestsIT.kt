@@ -113,11 +113,17 @@ class ResourceTestsIT : AbstractFunctionalTest() {
             )
             val rootResource =
                 builder.admin().resources.findResource(customer, device, application, application.rootResourceId!!)
-            val foundResources = builder.admin().resources.listResources(customer, device, application, rootResource)
-            assertEquals(3, foundResources.size.toLong())
-            builder.admin().resources.assertResourcesEqual(createdResource2, foundResources[0])
-            builder.admin().resources.assertResourcesEqual(createdResource3, foundResources[1])
-            builder.admin().resources.assertResourcesEqual(createdResource1, foundResources[2])
+            val foundResources = builder.admin().resources.listResources(
+                customerId = customer.id!!,
+                deviceId = device.id!!,
+                applicationId = application.id!!,
+                parentId = rootResource.id!!,
+                resourceType = null
+            )
+            assertEquals(4, foundResources.size.toLong())
+            builder.admin().resources.assertResourcesEqual(createdResource2, foundResources[1])
+            builder.admin().resources.assertResourcesEqual(createdResource3, foundResources[2])
+            builder.admin().resources.assertResourcesEqual(createdResource1, foundResources[3])
         }
     }
 
@@ -261,17 +267,19 @@ class ResourceTestsIT : AbstractFunctionalTest() {
         assertCopiedResource(source = source, target = target)
 
         val sourceChildren = builder.admin().resources.listResources(
-            customer = customer,
-            device = device,
-            application = application,
-            parent = source
+            customerId = customer.id!!,
+            deviceId = device.id!!,
+            applicationId = application.id!!,
+            parentId = source.id!!,
+            resourceType = null
         )
 
         val targetChildren = builder.admin().resources.listResources(
-            customer = customer,
-            device = device,
-            application = application,
-            parent = target
+            customerId = customer.id,
+            deviceId = device.id,
+            applicationId = application.id,
+            parentId = target.id!!,
+            resourceType = null
         )
 
         assertEquals(sourceChildren.size, targetChildren.size)

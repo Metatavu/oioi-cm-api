@@ -129,34 +129,20 @@ class ResourceTestBuilderResource (
     /**
      * Lists resources
      *
-     * @param customer customer
-     * @return found resources
-     * @throws ClientException
-     */
-    fun listResources(customer: Customer, device: Device, application: Application, parent: Resource?): Array<Resource> {
-        return listResources(
-            customerId = customer.id!!,
-            deviceId = device.id!!,
-            applicationId = application.id!!,
-            parentId = parent?.id
-        )
-    }
-
-    /**
-     * Lists resources
-     *
      * @param customerId customer id
      * @param deviceId device id
      * @param applicationId application id
      * @param parentId parent id
+     * @param resourceType resource type
      * @return found resources
      */
-    fun listResources(customerId: UUID, deviceId: UUID, applicationId: UUID, parentId: UUID?): Array<Resource> {
+    fun listResources(customerId: UUID, deviceId: UUID, applicationId: UUID, parentId: UUID, resourceType: ResourceType?): Array<Resource> {
         return api.listResources(
             customerId = customerId,
             deviceId = deviceId,
             applicationId = applicationId,
-            parentId = parentId
+            parentId = parentId,
+            resourceType = resourceType
         )
     }
 
@@ -200,7 +186,7 @@ class ResourceTestBuilderResource (
      */
     @Suppress("unused")
     fun assertCount(expected: Int, customer: Customer, device: Device, application: Application, parent: Resource?) {
-        assertEquals(expected.toLong(), listResources(customer, device, application, parent).size.toLong())
+        assertEquals(expected.toLong(), listResources(customer.id!!, device.id!!, application.id!!, parent?.id!!, null).size.toLong())
     }
 
     /**
@@ -341,14 +327,16 @@ class ResourceTestBuilderResource (
         customerId: UUID,
         deviceId: UUID,
         applicationId: UUID,
-        parentId: UUID?
+        parentId: UUID,
+        resourceType: ResourceType?
     ) {
         try {
             listResources(
                 customerId = customerId,
                 deviceId = deviceId,
                 applicationId = applicationId,
-                parentId = parentId
+                parentId = parentId,
+                resourceType = resourceType
             )
 
             fail(String.format("Expected list to fail with status %d", expectedStatus))

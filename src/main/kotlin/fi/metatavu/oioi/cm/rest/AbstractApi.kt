@@ -270,6 +270,7 @@ abstract class AbstractApi {
         const val UNAUTHORIZED = "Unauthorized"
         const val FORBIDDEN_MESSAGE = "Forbidden"
         const val ADMIN_ROLE = "admin"
+        const val MISSING_PAYLOAD = "Missing payload"
     }
 
 }
