@@ -21,10 +21,10 @@ import javax.inject.Inject
 class ApplicationController {
 
     @Inject
-    private lateinit var resourceController: ResourceController
+    lateinit var resourceController: ResourceController
 
     @Inject
-    private lateinit var applicationDAO: ApplicationDAO
+    lateinit var applicationDAO: ApplicationDAO
 
     /**
      * Create application
@@ -81,7 +81,7 @@ class ApplicationController {
      * @param id application id
      * @return found application or null if not found
      */
-    fun findApplicationById(id: UUID?): Application? {
+    fun findApplicationById(id: UUID): Application? {
         return applicationDAO.findById(id!!)
     }
 
@@ -92,7 +92,7 @@ class ApplicationController {
      * @param lastModifierId last modifier id
      * @return updated application
      */
-    fun updateApplication(application: Application, name: String?, lastModifierId: UUID?): Application {
+    fun updateApplication(application: Application, name: String, lastModifierId: UUID): Application {
         applicationDAO.updateName(application, name, lastModifierId)
         return application
     }
@@ -103,7 +103,7 @@ class ApplicationController {
      * @param device device to list the applications from
      * @return List of applications
      */
-    fun listDeviceApplications(device: Device?): List<Application> {
+    fun listDeviceApplications(device: Device): List<Application> {
         return applicationDAO.listByDevice(device)
     }
 

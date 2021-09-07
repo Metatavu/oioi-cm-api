@@ -32,7 +32,7 @@ class ApplicationDAO: AbstractDAO<Application>() {
         id: UUID,
         name: String,
         rootResource: Resource,
-        activeContentVersionResource: Resource?,
+        activeContentVersionResource: Resource,
         device: Device?,
         creatorId: UUID?,
         lastModifierId: UUID?
