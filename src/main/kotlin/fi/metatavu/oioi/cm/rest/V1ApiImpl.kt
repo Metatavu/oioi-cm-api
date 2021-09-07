@@ -80,12 +80,43 @@ class V1ApiImpl : AbstractApi(), V1Api {
         }
 
         val loggedUserId = loggedUserId ?: return createUnauthorized(UNAUTHORIZED)
+        val applicationId = UUID.randomUUID()
+        val rootResource = resourceController.createResource(
+            authzClient = authzClient,
+            customer = customer,
+            device = device,
+            applicationId = applicationId,
+            orderNumber = 0,
+            parent = null,
+            data = null,
+            name = payload.name,
+            slug = "[root]",
+            type = ResourceType.ROOT,
+            creatorId = loggedUserId
+        )
+
+        val defaultContentVersion = resourceController.createResource(
+            authzClient = authzClient,
+            customer = customer,
+            device = device,
+            applicationId = applicationId,
+            orderNumber = 0,
+            parent = rootResource,
+            data = null,
+            name = "1",
+            slug = "1",
+            type = ResourceType.CONTENT_VERSION,
+            creatorId = loggedUserId
+        )
+
         val result = applicationController.createApplication(
-            authzClient,
-            customer,
-            device,
-            payload.name,
-            loggedUserId
+            applicationId = applicationId,
+            rootResource = rootResource,
+            defaultContentVersion = defaultContentVersion,
+            customer = customer,
+            device = device,
+            name = payload.name,
+            creatorId = loggedUserId
         )
 
         return createOk(applicationTranslator.translate(result))
@@ -323,6 +354,8 @@ class V1ApiImpl : AbstractApi(), V1Api {
             return createNotFound(NOT_FOUND_MESSAGE)
         }
 
+        applicationId ?: return createBadRequest("Missing application ID from request")
+
         val application = applicationController.findApplicationById(applicationId) ?: return createNotFound(NOT_FOUND_MESSAGE)
         if (application.device?.id != device.id) {
             return createNotFound(NOT_FOUND_MESSAGE)
@@ -336,6 +369,11 @@ class V1ApiImpl : AbstractApi(), V1Api {
             copyResourceParentId ?: return createBadRequest("copyResourceParentId is required when copyResourceId is defined")
             val source = resourceController.findResourceById(copyResourceId) ?: return createBadRequest("Invalid copy resource id")
             val targetParent = resourceController.findResourceById(copyResourceParentId) ?: return createBadRequest("Invalid copy resource parent id")
+
+            if (source.type === ResourceType.CONTENT_VERSION && targetParent.type !== ResourceType.ROOT) {
+                return createBadRequest("Content version can only be created under ROOT")
+            }
+
             val sourceApplication = resourceController.getResourceApplication(resource = source) ?: return createInternalServerError("Could not resolve source application")
 
             val sourceCustomer = sourceApplication.device?.customer ?: return createInternalServerError("Could not resolve source customer")
@@ -618,7 +656,9 @@ class V1ApiImpl : AbstractApi(), V1Api {
     /* Wall */
 
     override fun getApplicationJson(applicationId: UUID?): Response {
-        val application = applicationController.findApplicationById(applicationId) ?: return Response.status(Response.Status.NOT_FOUND).build()
+        applicationId ?: return createBadRequest("Missing application ID from request")
+
+        val application = applicationController.findApplicationById(applicationId) ?: return createNotFound("Application with id: $applicationId could not be found!")
         val device = application.device ?: return createInternalServerError("Could not find application device")
         val deviceApiKey = device.apiKey
 
@@ -636,7 +676,7 @@ class V1ApiImpl : AbstractApi(), V1Api {
     }
 
     override fun getDeviceJson(deviceId: UUID?): Response {
-        val device = deviceController.findDeviceById(deviceId) ?: return Response.status(Response.Status.NOT_FOUND).build()
+        val device = deviceController.findDeviceById(deviceId) ?: return createNotFound("Device with id: $deviceId could not be found!")
         val deviceApiKey = device.apiKey
 
         if (!deviceApiKey.isNullOrEmpty()) {

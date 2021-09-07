@@ -15,7 +15,7 @@ services:
       MYSQL_PASSWORD: password
 
   keycloak:
-    image: quay.io/keycloak/keycloak:13.0.1
+    image: quay.io/keycloak/keycloak:15.0.2
     container_name: oioi-keycloak
     ports:
       - 8080:8080
@@ -38,8 +38,16 @@ services:
     container_name: oioi-api
     depends_on:
       - mysql
-    env_file:
-      .env
+    environment:
+      QUARKUS_DATASOURCE_JDBC_URL: jdbc:mysql://mysql:3306/oioi?useSSL=false&allowPublicKeyRetrieval=true&zeroDateTimeBehavior=convertToNull
+      QUARKUS_DATASOURCE_PASSWORD: root
+      QUARKUS_DATASOURCE_USERNAME: root
+      QUARKUS_OIDC_AUTH_SERVER_URL: http://keycloak:8080/auth/realms/oioi
+      OIOI_KEYCLOAK_URL: http://keycloak:8080/auth
+      OIOI_KEYCLOAK_REALM: oioi
+      QUARKUS_OIDC_CLIENT_ID: api
+      QUARKUS_OIDC_CREDENTIALS_SECRET: e69bc12b-a285-4147-b06c-3be83693a2f1
+      QUARKUS_OIDC_CONNECTION_DELAY: 60s
 
 volumes:
   db_data: {}

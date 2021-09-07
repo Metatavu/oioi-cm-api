@@ -20,43 +20,13 @@ class ResourceTranslator: AbstractTranslator<Resource, fi.metatavu.oioi.cm.model
     @Inject
     private lateinit var resourceController: ResourceController
 
-    /**
-     * Translates styles to REST format
-     *
-     * @param entity resource
-     * @return styles as REST key value pairs
-     */
-    private fun getStyles(entity: Resource): List<KeyValueProperty> {
-        return resourceController.listStyles(entity).stream().map { resourceStyle: ResourceStyle ->
-            val result = KeyValueProperty()
-            result.key = resourceStyle.key
-            result.value = resourceStyle.value
-            result
-        }.collect(Collectors.toList())
-    }
-
-    /**
-     * Translates properties to REST format
-     *
-     * @param entity resource
-     * @return properties as REST key value pairs
-     */
-    private fun getProperties(entity: Resource): List<KeyValueProperty> {
-        return resourceController.listProperties(entity).stream().map { resourceProperty: ResourceProperty ->
-            val result = KeyValueProperty()
-            result.key = resourceProperty.key
-            result.value = resourceProperty.value
-            result
-        }.collect(Collectors.toList())
-    }
-
     override fun translate(entity: Resource): fi.metatavu.oioi.cm.model.Resource {
         val result = fi.metatavu.oioi.cm.model.Resource()
         result.id = entity.id
         result.data = entity.data
         result.name = entity.name
         result.orderNumber = entity.orderNumber
-        result.parentId = if (entity.parent != null) entity.parent!!.id else null
+        result.parentId = entity.parent?.id
         result.slug = entity.slug
         result.type = entity.type
         result.properties = getProperties(entity)
@@ -66,6 +36,36 @@ class ResourceTranslator: AbstractTranslator<Resource, fi.metatavu.oioi.cm.model
         result.lastModifierId = entity.lastModifierId
         result.modifiedAt = entity.modifiedAt
         return result
+    }
+
+    /**
+     * Translates styles to REST format
+     *
+     * @param entity resource
+     * @return styles as REST key value pairs
+     */
+    private fun getStyles(entity: Resource): List<KeyValueProperty> {
+        return resourceController.listStyles(entity).map { resourceStyle: ResourceStyle ->
+            val result = KeyValueProperty()
+            result.key = resourceStyle.key
+            result.value = resourceStyle.value
+            result
+        }
+    }
+
+    /**
+     * Translates properties to REST format
+     *
+     * @param entity resource
+     * @return properties as REST key value pairs
+     */
+    private fun getProperties(entity: Resource): List<KeyValueProperty> {
+        return resourceController.listProperties(entity).map { resourceProperty: ResourceProperty ->
+            val result = KeyValueProperty()
+            result.key = resourceProperty.key
+            result.value = resourceProperty.value
+            result
+        }
     }
 
 }

@@ -5,6 +5,7 @@ import fi.metatavu.oioi.cm.persistence.dao.ApplicationDAO
 import fi.metatavu.oioi.cm.persistence.model.Application
 import fi.metatavu.oioi.cm.persistence.model.Customer
 import fi.metatavu.oioi.cm.persistence.model.Device
+import fi.metatavu.oioi.cm.persistence.model.Resource
 import fi.metatavu.oioi.cm.resources.ResourceController
 import org.keycloak.authorization.client.AuthzClient
 import java.util.*
@@ -29,7 +30,9 @@ class ApplicationController {
     /**
      * Create application
      *
-     * @param authzClient authz client
+     * @param applicationId application ID
+     * @param rootResource application root resource
+     * @param defaultContentVersion application default active content version
      * @param customer customer
      * @param device device
      * @param name name
@@ -37,42 +40,23 @@ class ApplicationController {
      * @return created application
      */
     fun createApplication(
-        authzClient: AuthzClient,
+        applicationId: UUID,
+        rootResource: Resource,
+        defaultContentVersion: Resource,
         customer: Customer,
         device: Device,
         name: String,
         creatorId: UUID
     ): Application {
-        val applicationId = UUID.randomUUID()
-        val rootResource = resourceController.createResource(
-            authzClient = authzClient,
-            customer = customer,
-            device = device,
-            applicationId = applicationId,
-            orderNumber = 0,
-            parent = null,
-            data = null,
+        return applicationDAO.create(
+            id = applicationId,
             name = name,
-            slug = "[root]",
-            type = ResourceType.ROOT,
-            creatorId = creatorId
-        )
-
-        val defaultContentVersion = resourceController.createResource(
-            authzClient = authzClient,
-            customer = customer,
+            rootResource = rootResource,
+            activeContentVersionResource = defaultContentVersion,
             device = device,
-            applicationId = applicationId,
-            orderNumber = 0,
-            parent = rootResource,
-            data = null,
-            name = "1",
-            slug = "1",
-            type = ResourceType.CONTENT_VERSION,
-            creatorId = creatorId
+            creatorId = creatorId,
+            lastModifierId = creatorId
         )
-
-        return applicationDAO.create(applicationId, name, rootResource, defaultContentVersion, device, creatorId, creatorId)
     }
 
     /**
@@ -82,7 +66,7 @@ class ApplicationController {
      * @return found application or null if not found
      */
     fun findApplicationById(id: UUID): Application? {
-        return applicationDAO.findById(id!!)
+        return applicationDAO.findById(id)
     }
 
     /**

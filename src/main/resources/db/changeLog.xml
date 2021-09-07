@@ -291,17 +291,17 @@
     <sql>UPDATE resource SET type = 'TEXT' WHERE type = '10'</sql>
   </changeSet>
 
-    <changeSet id="content-versions" author="antti.leppa">
-        <customChange class="fi.metatavu.oioi.cm.liquibase.changes.ContentVersionsChange"/>
-    </changeSet>
+  <changeSet id="content-versions" author="antti.leppa">
+    <customChange class="fi.metatavu.oioi.cm.liquibase.changes.ContentVersionsChange"/>
+  </changeSet>
 
-    <changeSet author="jari.nykanen" id="active-content-version">
-        <addColumn tableName="application">
-            <column name="activecontentversionresource_id" type="binary(16)">
-                <constraints foreignKeyName="FK_APPLICATION_ACTIVE_CONTENT_VERSION_RESOURCE_RESOURCE_ID" referencedColumnNames="id" referencedTableName="resource"/>
-            </column>
-        </addColumn>
-        <sql>UPDATE application SET activecontentversionresource_id = (SELECT id FROM resource WHERE parent_id = application.rootresource_id AND type = 'CONTENT_VERSION')</sql>
-        <addNotNullConstraint columnDataType="binary(16)" columnName="activecontentversionresource_id" tableName="application"/>
-    </changeSet>
+  <changeSet author="jari.nykanen" id="active-content-version">
+    <addColumn tableName="application">
+      <column name="activecontentversionresource_id" type="binary(16)">
+        <constraints foreignKeyName="FK_APPLICATION_ACTIVE_CONTENT_VERSION_RESOURCE_RESOURCE_ID" referencedColumnNames="id" referencedTableName="resource"/>
+      </column>
+    </addColumn>
+    <sql>UPDATE application SET activecontentversionresource_id = (SELECT id FROM resource WHERE parent_id = application.rootresource_id AND type = 'CONTENT_VERSION' LIMIT 1)</sql>
+    <addNotNullConstraint columnDataType="binary(16)" columnName="activecontentversionresource_id" tableName="application"/>
+  </changeSet>
 </databaseChangeLog>
