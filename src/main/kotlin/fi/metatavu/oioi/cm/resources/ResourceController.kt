@@ -103,6 +103,7 @@ class ResourceController {
      * @param customer customer
      * @param device device
      * @param applicationId application id
+     * @param orderNumber order number
      * @param parent parent
      * @param data data
      * @param name name
@@ -122,6 +123,112 @@ class ResourceController {
         name: String?,
         slug: String?,
         type: ResourceType?,
+        creatorId: UUID
+    ): Resource {
+        val id = UUID.randomUUID()
+        val keycloakResourceId = createProtectedResource(
+            authzClient = authzClient,
+            resourceId = id,
+            customerId = customer.id!!,
+            deviceId = device.id!!,
+            applicationId = applicationId,
+            userId = creatorId
+        )
+
+        return resourceDAO.create(
+            id = id,
+            orderNumber = orderNumber,
+            data = data,
+            keycloakResourceId = keycloakResourceId,
+            name = name,
+            parent = parent,
+            slug = slug,
+            type = type,
+            creatorId = creatorId,
+            lastModifierId = creatorId
+        )
+    }
+
+    /**
+     * Creates root resource
+     *
+     * @param authzClient authzClient
+     * @param customer customer
+     * @param device device
+     * @param applicationId application id
+     * @param orderNumber order number
+     * @param parent parent
+     * @param data data
+     * @param name name
+     * @param slug slug
+     * @param type type
+     * @param creatorId creator id
+     * @return created resource
+     */
+    fun createRootResource(
+        authzClient: AuthzClient,
+        customer: Customer,
+        device: Device,
+        applicationId: UUID,
+        orderNumber: Int = 0,
+        parent: Resource? = null,
+        data: String? = null,
+        name: String?,
+        slug: String? = "[root]",
+        type: ResourceType? = ResourceType.ROOT,
+        creatorId: UUID
+    ): Resource {
+        val id = UUID.randomUUID()
+        val keycloakResourceId = createProtectedResource(
+            authzClient = authzClient,
+            resourceId = id,
+            customerId = customer.id!!,
+            deviceId = device.id!!,
+            applicationId = applicationId,
+            userId = creatorId
+        )
+
+        return resourceDAO.create(
+            id = id,
+            orderNumber = orderNumber,
+            data = data,
+            keycloakResourceId = keycloakResourceId,
+            name = name,
+            parent = parent,
+            slug = slug,
+            type = type,
+            creatorId = creatorId,
+            lastModifierId = creatorId
+        )
+    }
+
+    /**
+     * Creates default content version resource
+     *
+     * @param authzClient authzClient
+     * @param customer customer
+     * @param device device
+     * @param applicationId application id
+     * @param orderNumber order number
+     * @param parent parent
+     * @param data data
+     * @param name name
+     * @param slug slug
+     * @param type type
+     * @param creatorId creator id
+     * @return created resource
+     */
+    fun createDefaultContentVersionResource(
+        authzClient: AuthzClient,
+        customer: Customer,
+        device: Device,
+        applicationId: UUID,
+        orderNumber: Int = 0,
+        parent: Resource?,
+        data: String? = null,
+        name: String? = "1",
+        slug: String? = "1",
+        type: ResourceType? = ResourceType.CONTENT_VERSION,
         creatorId: UUID
     ): Resource {
         val id = UUID.randomUUID()
@@ -247,6 +354,17 @@ class ResourceController {
      */
     fun findResourceById(id: UUID): Resource? {
         return resourceDAO.findById(id)
+    }
+
+    /**
+     * Find resource by parent and slug
+     *
+     * @param parent parent resource
+     * @param slug resource slug
+     * @return found resource or null if not found
+     */
+    fun findResourceByParentAndSlug(parent: Resource, slug: String): Resource? {
+        return resourceDAO.findByParentAndSlug(parent = parent, slug = slug)
     }
 
     /**
