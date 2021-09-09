@@ -48,6 +48,28 @@ class WallApplicationTestBuilderResource (
     }
 
     /**
+     * Returns a wall application JSON for specific content version
+     *
+     * @param applicationId application id
+     * @param apiKey api key (optional)
+     * @param slug slug
+     * @return wall application JSON
+     * @throws ClientException
+     */
+    @Throws(ClientException::class)
+    fun getApplicationJsonForContentVersion(applicationId: UUID, apiKey: String? = null, slug: String): WallApplication {
+        try {
+            if (apiKey != null) {
+                ApiClient.apiKey["X-API-KEY"] = apiKey
+            }
+
+            return api.getApplicationJsonForContentVersion(applicationId = applicationId, slug = slug)
+        } finally {
+            ApiClient.apiKey.remove("X-API-KEY")
+        }
+    }
+
+    /**
      * Asserts that getApplicationJson status fails with given status code
      *
      * @param expectedStatus expected status code

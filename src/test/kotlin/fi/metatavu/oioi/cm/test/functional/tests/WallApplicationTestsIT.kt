@@ -241,4 +241,32 @@ class WallApplicationTestsIT : AbstractFunctionalTest() {
             assertNotNull(builder.admin().wallApplication.getApplicationJson(applicationId = application.id, apiKey = null))
         }
     }
+
+    @Test
+    fun testFindSpecificContentVersion() {
+        TestBuilder().use { builder ->
+            val customer = builder.admin().customers.create()
+            val device = builder.admin().devices.create(customer)
+            val application = builder.admin().applications.create(customer, device)
+
+            builder.admin().resources.create(
+                customer = customer,
+                device = device,
+                application = application,
+                orderNumber = 1,
+                parentId = application.rootResourceId,
+                data = null,
+                name = "second_content_version",
+                slug = "second_content_version",
+                type = ResourceType.cONTENTVERSION
+            )
+
+            val activeContentVersion = builder.admin().wallApplication.getApplicationJson(applicationId =  application.id!!)
+            val specificContentVersion = builder.admin().wallApplication.getApplicationJsonForContentVersion(applicationId = application.id, slug = "second_content_version")
+
+            assertEquals(activeContentVersion.root.slug, "1")
+            assertEquals(specificContentVersion.root.slug, "second_content_version")
+
+        }
+    }
 }

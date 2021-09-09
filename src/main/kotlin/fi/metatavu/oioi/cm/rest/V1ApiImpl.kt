@@ -81,31 +81,21 @@ class V1ApiImpl : AbstractApi(), V1Api {
 
         val loggedUserId = loggedUserId ?: return createUnauthorized(UNAUTHORIZED)
         val applicationId = UUID.randomUUID()
-        val rootResource = resourceController.createResource(
+        val rootResource = resourceController.createRootResource(
             authzClient = authzClient,
             customer = customer,
             device = device,
             applicationId = applicationId,
-            orderNumber = 0,
-            parent = null,
-            data = null,
             name = payload.name,
-            slug = "[root]",
-            type = ResourceType.ROOT,
             creatorId = loggedUserId
         )
 
-        val defaultContentVersion = resourceController.createResource(
+        val defaultContentVersion = resourceController.createDefaultContentVersionResource(
             authzClient = authzClient,
             customer = customer,
             device = device,
             applicationId = applicationId,
-            orderNumber = 0,
             parent = rootResource,
-            data = null,
-            name = "1",
-            slug = "1",
-            type = ResourceType.CONTENT_VERSION,
             creatorId = loggedUserId
         )
 
@@ -663,16 +653,37 @@ class V1ApiImpl : AbstractApi(), V1Api {
         val deviceApiKey = device.apiKey
 
         if (!deviceApiKey.isNullOrEmpty()) {
-            if (apiKey == null) {
-                return createUnauthorized("Missing X-API-KEY header")
-            }
+            apiKey ?: return createUnauthorized("Missing X-API-KEY header")
 
             if (apiKey != deviceApiKey) {
                 return createForbidden("Invalid API Key provided")
             }
         }
 
-        return Response.ok(wallApplicationTranslator.translate(application)).build()
+        return createOk(wallApplicationTranslator.translate(application))
+    }
+
+    override fun getApplicationJsonForContentVersion(applicationId: UUID?, slug: String?): Response {
+        applicationId ?: return createBadRequest("Missing application ID from request")
+        slug ?: return createBadRequest("Missing slug from request")
+
+        val application = applicationController.findApplicationById(applicationId) ?: return createNotFound("Application with id: $applicationId could not be found!")
+        val device = application.device ?: return createInternalServerError("Could not find application device")
+        val rootResource = application.rootResource ?: return createInternalServerError("Could not find root resource from application")
+        val deviceApiKey = device.apiKey
+
+        if (!deviceApiKey.isNullOrEmpty()) {
+            apiKey ?: return createUnauthorized("Missing X-API-KEY header")
+
+            if (apiKey != deviceApiKey) {
+                return createForbidden("Invalid API Key provided")
+            }
+        }
+
+        val contentVersion = resourceController.findResourceByParentAndSlug(parent = rootResource, slug = slug)
+            ?: return createNotFound("Could not find resource with parent: ${rootResource.id} and slug $slug")
+
+        return createOk(wallApplicationTranslator.translate(entity = application, contentVersion = contentVersion))
     }
 
     override fun getDeviceJson(deviceId: UUID?): Response {
@@ -680,16 +691,14 @@ class V1ApiImpl : AbstractApi(), V1Api {
         val deviceApiKey = device.apiKey
 
         if (!deviceApiKey.isNullOrEmpty()) {
-            if (apiKey == null) {
-                return createUnauthorized("Missing X-API-KEY header")
-            }
+            apiKey ?: return createUnauthorized("Missing X-API-KEY header")
 
             if (apiKey != deviceApiKey) {
                 return createForbidden("Invalid API Key provided")
             }
         }
 
-        return Response.ok(wallDeviceTranslator.translate(device)).build()
+        return createOk(wallDeviceTranslator.translate(device))
     }
 
     companion object {
