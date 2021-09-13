@@ -21,7 +21,7 @@ class ResourceLockTranslator: AbstractTranslator<ResourceLock, fi.metatavu.oioi.
         val result = fi.metatavu.oioi.cm.model.ResourceLock()
         result.userId = entity.userId
         result.expiresAt = entity.expiresAt
-        result.userDisplayName = keycloakController.getUsername(entity.userId!!)
+        result.userDisplayName = keycloakController.getDisplayName(entity.userId!!)
         return result
     }
 

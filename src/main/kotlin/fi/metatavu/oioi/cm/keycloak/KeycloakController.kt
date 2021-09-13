@@ -47,10 +47,10 @@ class KeycloakController {
      * @param userId UUID keycloak ID
      * @return username
      */
-    fun getUsername(userId: UUID): String? {
+    fun getDisplayName(userId: UUID): String? {
         val userResource = getUserResource(userId) ?: return null
         val userRepresentation = userResource.toRepresentation() ?: return null
-        return userRepresentation.username
+        return "${userRepresentation.firstName} ${userRepresentation.lastName}"
     }
 
     /**
