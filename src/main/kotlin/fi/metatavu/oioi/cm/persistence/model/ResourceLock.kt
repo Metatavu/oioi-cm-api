@@ -23,19 +23,19 @@ class ResourceLock {
     var id: UUID? = null
 
     /**
-     * Application ID
+     * Application
      */
     @ManyToOne(optional = false)
     var application: Application? = null
 
     /**
-     * Resource ID
+     * Resource
      */
     @ManyToOne(optional = false)
     var resource: Resource? = null
 
     /**
-     * User ID
+     * User
      */
     @Column(nullable = false)
     var userId: UUID? = null

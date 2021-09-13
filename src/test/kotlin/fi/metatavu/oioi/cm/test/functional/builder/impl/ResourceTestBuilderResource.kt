@@ -432,7 +432,7 @@ class ResourceTestBuilderResource (
                 device = device,
                 resource = resource
             )
-            fail(String.format("Expected update to fail with status %d", expectedStatus))
+            fail(String.format("Expected delete to fail with status %d", expectedStatus))
         } catch (e: ClientException) {
             assertEquals(expectedStatus, e.statusCode)
         }
