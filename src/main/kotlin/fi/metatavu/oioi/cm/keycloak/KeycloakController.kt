@@ -42,10 +42,10 @@ class KeycloakController {
     private lateinit var apiAdminPassword: String
 
     /**
-     * Gets username from keycloak
+     * Gets display name from keycloak
      *
      * @param userId UUID keycloak ID
-     * @return username
+     * @return display name
      */
     fun getDisplayName(userId: UUID): String? {
         val userResource = getUserResource(userId) ?: return null
