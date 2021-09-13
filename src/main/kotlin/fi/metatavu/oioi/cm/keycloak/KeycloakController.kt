@@ -72,7 +72,6 @@ class KeycloakController {
     * @return Keycloak client
     */
     private fun getKeycloakClient(): Keycloak {
-
         return KeycloakBuilder.builder()
           .serverUrl(authServerUrl)
           .realm(realm)
