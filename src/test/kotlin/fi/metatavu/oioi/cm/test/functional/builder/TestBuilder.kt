@@ -21,14 +21,16 @@ open class TestBuilder: AbstractTestBuilder<ApiClient> () {
 
     private var admin: TestBuilderAuthentication? = null
 
+    private var user: TestBuilderAuthentication? = null
+
     override fun createTestBuilderAuthentication(testBuilder: AbstractTestBuilder<ApiClient>, accessTokenProvider: AccessTokenProvider): AuthorizedTestBuilderAuthentication<ApiClient> {
         return TestBuilderAuthentication(this, accessTokenProvider)
     }
 
     /**
-     * Returns authentication resource authenticated as non registered Tero Äyrämö
+     * Returns authentication resource for admin
      *
-     * @return authentication resource authenticated as non registered Tero Äyrämö
+     * @return authentication resource for admin
      * @throws IOException
      */
     @kotlin.jvm.Throws(IOException::class)
@@ -43,6 +45,26 @@ open class TestBuilder: AbstractTestBuilder<ApiClient> () {
         }
 
         return admin!!
+    }
+
+    /**
+     * Returns authentication resource authenticated as non registered Tero Äyrämö
+     *
+     * @return authentication resource authenticated as non registered Tero Äyrämö
+     * @throws IOException
+     */
+    @kotlin.jvm.Throws(IOException::class)
+    fun user(): TestBuilderAuthentication {
+        if (user == null) {
+            val authServerUrl: String = ConfigProvider.getConfig().getValue("oioi.keycloak.url", String::class.java)
+            val realm: String = ConfigProvider.getConfig().getValue("oioi.keycloak.realm", String::class.java)
+            val clientId = "ui"
+            val username = "user"
+            val password = "user"
+            user = TestBuilderAuthentication(this, KeycloakAccessTokenProvider(authServerUrl, realm, clientId, username, password, null))
+        }
+
+        return user!!
     }
     
 }

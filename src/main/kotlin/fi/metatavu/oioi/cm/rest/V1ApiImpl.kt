@@ -3,6 +3,7 @@ package fi.metatavu.oioi.cm.rest
 import fi.metatavu.oioi.cm.applications.ApplicationController
 import fi.metatavu.oioi.cm.customers.CustomerController
 import fi.metatavu.oioi.cm.devices.DeviceController
+import fi.metatavu.oioi.cm.lock.ResourceLockController
 import fi.metatavu.oioi.cm.medias.MediaController
 import fi.metatavu.oioi.cm.model.*
 import fi.metatavu.oioi.cm.resources.ResourceController
@@ -51,6 +52,12 @@ class V1ApiImpl : AbstractApi(), V1Api {
 
     @Inject
     lateinit var resourceTranslator: ResourceTranslator
+
+    @Inject
+    lateinit var resourceLockController: ResourceLockController
+
+    @Inject
+    lateinit var resourceLockTranslator: ResourceLockTranslator
 
     @Inject
     lateinit var mediaController: MediaController
@@ -563,8 +570,81 @@ class V1ApiImpl : AbstractApi(), V1Api {
         if (!resourceController.isApplicationResource(application, resource)) {
             return createNotFound(NOT_FOUND_MESSAGE)
         }
-        resourceController.delete(authzClient, resource)
+
+        resourceController.delete(authzClient = authzClient, application = application, resource = resource)
         return createNoContent()
+    }
+
+    override fun findResourceLock(
+        customerId: UUID,
+        deviceId: UUID,
+        applicationId: UUID,
+        resourceId: UUID
+    ): Response {
+        loggedUserId ?: return createUnauthorized(UNAUTHORIZED)
+
+        val resource = resourceController.findResourceById(resourceId) ?: return createNotFound("Resource with ID $resourceId could not be found!")
+        val foundLock = resourceLockController.findResourceLockByResource(resource) ?: return createNotFound("No lock for resource $resourceId")
+
+        return createOk(resourceLockTranslator.translate(foundLock))
+    }
+
+    override fun updateResourceLock(
+        customerId: UUID,
+        deviceId: UUID,
+        applicationId: UUID,
+        resourceId: UUID,
+        payload: ResourceLock?
+    ): Response {
+        payload ?: return createBadRequest(MISSING_PAYLOAD)
+        val loggedUserId = loggedUserId ?: return createUnauthorized(UNAUTHORIZED)
+
+        val application = applicationController.findApplicationById(applicationId) ?: return createNotFound("Application with ID $applicationId could not be found")
+        val resource = resourceController.findResourceById(resourceId) ?: return createNotFound("Resource with ID $resourceId could not be found!")
+        val foundLock = resourceLockController.findResourceLockByResource(resource)
+
+        if (foundLock != null && !resourceLockController.isExpired(foundLock)) {
+            if (foundLock.userId != loggedUserId) {
+                return createConflict("Resource $resourceId is already locked for user ${foundLock.userId}")
+            }
+
+            val updatedLock = resourceLockController.updateResourceLock(foundLock)
+            return createOk(resourceLockTranslator.translate(updatedLock))
+        } else {
+            val createdLock = resourceLockController.createResourceLock(application = application, resource = resource, userId = loggedUserId)
+            return createOk(resourceLockTranslator.translate(createdLock))
+        }
+    }
+
+    override fun deleteResourceLock(
+        customerId: UUID,
+        deviceId: UUID,
+        applicationId: UUID,
+        resourceId: UUID
+    ): Response {
+        loggedUserId ?: return createUnauthorized(UNAUTHORIZED)
+        val resource = resourceController.findResourceById(resourceId) ?: return createNotFound("Resource with ID $resourceId could not be found!")
+        val foundLock = resourceLockController.findResourceLockByResource(resource) ?: return createNotFound("No lock for resource $resourceId")
+
+        if (foundLock.userId != loggedUserId) {
+            return createConflict("Resource $resourceId is already locked for user ${foundLock.userId}")
+        }
+
+        resourceLockController.deleteResourceLock(foundLock)
+        return createNoContent()
+    }
+
+    override fun getLockedResourceIds(applicationId: UUID, resourceId: UUID?): Response {
+        loggedUserId ?: return createUnauthorized(UNAUTHORIZED)
+
+        val application = applicationController.findApplicationById(applicationId) ?: return createNotFound("Application with ID $applicationId could not be found")
+        var resource: fi.metatavu.oioi.cm.persistence.model.Resource? = null
+        if (resourceId != null) {
+            resource = resourceController.findResourceById(resourceId) ?: return createNotFound("Resource with ID $resourceId could not be found!")
+        }
+
+        val foundLocks = resourceLockController.list(application = application, resource = resource)
+        return createOk(resourceLockTranslator.translateLockedResourceIds(foundLocks))
     }
 
     /** MEDIAS  */
