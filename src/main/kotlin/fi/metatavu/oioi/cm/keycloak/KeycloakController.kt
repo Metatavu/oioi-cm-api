@@ -50,7 +50,14 @@ class KeycloakController {
     fun getDisplayName(userId: UUID): String? {
         val userResource = getUserResource(userId) ?: return null
         val userRepresentation = userResource.toRepresentation() ?: return null
-        return "${userRepresentation.firstName} ${userRepresentation.lastName}"
+        val firstName = userRepresentation.firstName
+        val lastName = userRepresentation.lastName
+
+        if (firstName == null || lastName == null) {
+            return userRepresentation.email
+        }
+
+        return "$firstName $lastName"
     }
 
     /**

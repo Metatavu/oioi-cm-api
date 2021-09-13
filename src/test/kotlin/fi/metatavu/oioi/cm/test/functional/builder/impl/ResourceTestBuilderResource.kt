@@ -192,6 +192,15 @@ class ResourceTestBuilderResource (
         }
     }
 
+    /**
+     * Find resource lock
+     *
+     * @param customer customer
+     * @param device device
+     * @param application application
+     * @param resource resource
+     * @return found resource lock
+     */
     fun findResourceLock(
         customer: Customer,
         device: Device,
@@ -206,6 +215,15 @@ class ResourceTestBuilderResource (
         )
     }
 
+    /**
+     * Find resource lock
+     *
+     * @param customer customer
+     * @param device device
+     * @param application application
+     * @param resource resource
+     * @return updated resource lock
+     */
     fun updateResourceLock(
         customer: Customer,
         device: Device,
@@ -221,6 +239,14 @@ class ResourceTestBuilderResource (
         )
     }
 
+    /**
+     * Find resource lock
+     *
+     * @param customer customer
+     * @param device device
+     * @param application application
+     * @param resource resource
+     */
     fun deleteResourceLock(
         customer: Customer,
         device: Device,

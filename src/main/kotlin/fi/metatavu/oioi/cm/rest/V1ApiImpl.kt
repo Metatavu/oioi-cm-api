@@ -571,9 +571,7 @@ class V1ApiImpl : AbstractApi(), V1Api {
             return createNotFound(NOT_FOUND_MESSAGE)
         }
 
-        val resourceLocks = resourceLockController.list(application = application, resource = resource)
-        resourceLocks.map(resourceLockController::deleteResourceLock)
-        resourceController.delete(authzClient, resource)
+        resourceController.delete(authzClient = authzClient, application = application, resource = resource)
         return createNoContent()
     }
 

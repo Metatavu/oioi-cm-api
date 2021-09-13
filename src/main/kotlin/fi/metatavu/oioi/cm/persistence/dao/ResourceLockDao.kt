@@ -58,6 +58,8 @@ class ResourceLockDao: AbstractDAO<ResourceLock>() {
             restrictions.add(criteriaBuilder.equal(root.get(ResourceLock_.resource), resource))
         }
 
+        restrictions.add(criteriaBuilder.greaterThanOrEqualTo(root.get(ResourceLock_.expiresAt), OffsetDateTime.now()))
+
         criteria.where(criteriaBuilder.and(*restrictions.toTypedArray()))
         val query = entityManager.createQuery(criteria)
         return query.resultList
@@ -83,13 +85,14 @@ class ResourceLockDao: AbstractDAO<ResourceLock>() {
     }
 
     /**
-     * Updates resource lock
+     * Updates resource lock expires at
      *
      * @param resourceLock resource lock
+     * @param expiresAt expires at
      * @return updated resource lock
      */
-    fun updateResourceLock(resourceLock: ResourceLock): ResourceLock {
-        resourceLock.expiresAt = OffsetDateTime.now().plusMinutes(5)
+    fun updateExpiresAt(resourceLock: ResourceLock, expiresAt: OffsetDateTime): ResourceLock {
+        resourceLock.expiresAt = expiresAt
         return persist(resourceLock)
     }
 

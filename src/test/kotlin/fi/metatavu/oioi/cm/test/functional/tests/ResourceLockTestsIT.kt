@@ -54,7 +54,7 @@ class ResourceLockTestsIT : AbstractFunctionalTest() {
             )
 
             assertNotNull(resourceLock)
-            assertEquals(resourceLock.userDisplayName, "admin")
+            assertEquals(resourceLock.userDisplayName, "Admin User")
             assertEquals(resourceLock.userId, UUID.fromString("64763625-dda7-4983-b18c-6daa9e299ec4"))
 
             val secondResource = builder.admin().resources.create(
@@ -77,7 +77,7 @@ class ResourceLockTestsIT : AbstractFunctionalTest() {
             )
 
             assertNotNull(resourceLockForAnotherUser)
-            assertEquals(resourceLockForAnotherUser.userDisplayName, "user")
+            assertEquals(resourceLockForAnotherUser.userDisplayName, "user@example.com")
             assertEquals(resourceLockForAnotherUser.userId, UUID.fromString("6901afcc-435c-4780-93ba-9171cb604344"))
 
             val resourceInOtherApplication = builder.admin().resources.create(
@@ -100,7 +100,7 @@ class ResourceLockTestsIT : AbstractFunctionalTest() {
             )
 
             assertNotNull(resourceLockForAnotherUserInOtherApplication)
-            assertEquals(resourceLockForAnotherUserInOtherApplication.userDisplayName, "admin")
+            assertEquals(resourceLockForAnotherUserInOtherApplication.userDisplayName, "Admin User")
             assertEquals(resourceLockForAnotherUserInOtherApplication.userId, UUID.fromString("64763625-dda7-4983-b18c-6daa9e299ec4"))
         }
     }
@@ -142,7 +142,7 @@ class ResourceLockTestsIT : AbstractFunctionalTest() {
             )
 
             assertNotNull(updateLock)
-            assertEquals(updateLock.userDisplayName, "admin")
+            assertEquals(updateLock.userDisplayName, "Admin User")
             assertEquals(updateLock.userId, UUID.fromString("64763625-dda7-4983-b18c-6daa9e299ec4"))
             assertEquals(resourceLock.userDisplayName, updateLock.userDisplayName)
             assertEquals(resourceLock.userId, updateLock.userId)
@@ -241,7 +241,7 @@ class ResourceLockTestsIT : AbstractFunctionalTest() {
             )
 
             assertNotNull(resourceLock)
-            assertEquals(resourceLock.userDisplayName, "user")
+            assertEquals(resourceLock.userDisplayName, "user@example.com")
             assertEquals(resourceLock.userId, UUID.fromString("6901afcc-435c-4780-93ba-9171cb604344"))
         }
     }
@@ -255,6 +255,7 @@ class ResourceLockTestsIT : AbstractFunctionalTest() {
             val customer = builder.admin().customers.create()
             val device = builder.admin().devices.create(customer)
             val application = builder.admin().applications.create(customer, device)
+            val secondApplication = builder.admin().applications.create(customer, device)
 
             val emptyList = builder.user().resources.listLockedResourceIds(
                 application = application,
@@ -299,6 +300,18 @@ class ResourceLockTestsIT : AbstractFunctionalTest() {
                 customer = customer,
                 device = device,
                 resource = secondResource
+            )
+
+            builder.admin().resources.create(
+                customer = customer,
+                device = device,
+                application = secondApplication,
+                orderNumber = 0,
+                parentId = secondApplication.activeContentVersionResourceId,
+                data = "data",
+                name = "name",
+                slug = "slug",
+                ResourceType.mENU
             )
 
             val resourceLocks = builder.user().resources.listLockedResourceIds(
@@ -368,7 +381,7 @@ class ResourceLockTestsIT : AbstractFunctionalTest() {
             )
 
             assertNotNull(foundLock)
-            assertEquals(foundLock.userDisplayName, "admin")
+            assertEquals(foundLock.userDisplayName, "Admin User")
             assertEquals(foundLock.userId, UUID.fromString("64763625-dda7-4983-b18c-6daa9e299ec4"))
             assertEquals(createdLock.userDisplayName, foundLock.userDisplayName)
             assertEquals(createdLock.userId, foundLock.userId)

@@ -2,6 +2,7 @@ package fi.metatavu.oioi.cm.resources
 
 import fi.metatavu.oioi.cm.authz.ResourceScope
 import fi.metatavu.oioi.cm.copy.CopyException
+import fi.metatavu.oioi.cm.lock.ResourceLockController
 import fi.metatavu.oioi.cm.model.KeyValueProperty
 import fi.metatavu.oioi.cm.model.ResourceType
 import fi.metatavu.oioi.cm.persistence.dao.ApplicationDAO
@@ -41,6 +42,9 @@ class ResourceController {
 
     @Inject
     lateinit var applicationDAO: ApplicationDAO
+
+    @Inject
+    lateinit var resourceLockController: ResourceLockController
 
     /**
      * Create resource
@@ -434,10 +438,14 @@ class ResourceController {
      * Deletes an resource
      *
      * @param authzClient authzClient
+     * @param application application
      * @param resource resource to be deleted
      */
-    fun delete(authzClient: AuthzClient, resource: Resource) {
-        listResourcesByParent(parent = resource, resourceType = null).forEach(Consumer { child: Resource -> delete(authzClient, child) })
+    fun delete(authzClient: AuthzClient, application: Application, resource: Resource) {
+        val resourceLocks = resourceLockController.list(application = application, resource = resource)
+        resourceLocks.map(resourceLockController::deleteResourceLock)
+
+        listResourcesByParent(parent = resource, resourceType = null).forEach(Consumer { child: Resource -> delete(authzClient, application, child) })
         listProperties(resource).forEach(Consumer { resourceProperty: ResourceProperty ->
             deleteProperty(
                 resourceProperty
