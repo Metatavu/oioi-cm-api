@@ -19,6 +19,8 @@ class KeycloakTestResource: QuarkusTestResourceLifecycleManager {
 
         config["oioi.keycloak.url"] = keycloak.authServerUrl
         config["oioi.keycloak.realm"] = "oioi"
+        config["oioi.keycloak.api-admin.password"] = "70cc3724-c0e7-42d8-8334-c1acb1eb7742"
+        config["oioi.keycloak.api-admin.user"] = "api-admin"
 
         return config
     }

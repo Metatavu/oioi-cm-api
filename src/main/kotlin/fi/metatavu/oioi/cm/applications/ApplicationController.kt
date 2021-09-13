@@ -1,6 +1,5 @@
 package fi.metatavu.oioi.cm.applications
 
-import fi.metatavu.oioi.cm.model.ResourceType
 import fi.metatavu.oioi.cm.persistence.dao.ApplicationDAO
 import fi.metatavu.oioi.cm.persistence.model.Application
 import fi.metatavu.oioi.cm.persistence.model.Customer

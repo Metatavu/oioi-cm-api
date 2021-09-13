@@ -150,12 +150,20 @@ class ResourceTestBuilderResource (
      * Updates a resource into the API
      *
      * @param customer customer
-     * @param body body payload
+     * @param device device
+     * @param application application
+     * @param resource body payload
      * @throws ClientException
      */
     @Throws(ClientException::class)
-    fun updateResource(customer: Customer, device: Device, application: Application, body: Resource): Resource {
-        return api.updateResource(customer.id!!, device.id!!, application.id!!, body.id!!, body)
+    fun updateResource(customer: Customer, device: Device, application: Application, resource: Resource): Resource {
+        return api.updateResource(
+            applicationId = application.id!!,
+            customerId = customer.id!!,
+            deviceId = device.id!!,
+            resourceId = resource.id!!,
+            resource = resource
+        )
     }
 
     /**
@@ -167,7 +175,14 @@ class ResourceTestBuilderResource (
      */
     @Throws(ClientException::class)
     fun delete(customer: Customer, device: Device, application: Application, resource: Resource) {
-        api.deleteResource(customer.id!!, device.id!!, application.id!!, resource.id!!)
+
+        api.deleteResource(
+            applicationId = application.id!!,
+            customerId = customer.id!!,
+            deviceId = device.id!!,
+            resourceId = resource.id!!
+        )
+
         removeCloseable { closable: Any? ->
             if (closable !is Resource) {
                 return@removeCloseable false
@@ -175,6 +190,59 @@ class ResourceTestBuilderResource (
             val (_, _, _, id) = closable
             id == resource.id
         }
+    }
+
+    fun findResourceLock(
+        customer: Customer,
+        device: Device,
+        application: Application,
+        resource: Resource
+    ): ResourceLock {
+        return api.findResourceLock(
+            applicationId = application.id!!,
+            customerId = customer.id!!,
+            deviceId = device.id!!,
+            resourceId = resource.id!!
+        )
+    }
+
+    fun updateResourceLock(
+        customer: Customer,
+        device: Device,
+        application: Application,
+        resource: Resource
+    ): ResourceLock {
+        return api.updateResourceLock(
+            applicationId = application.id!!,
+            customerId = customer.id!!,
+            deviceId = device.id!!,
+            resourceId = resource.id!!,
+            resourceLock = ResourceLock()
+        )
+    }
+
+    fun deleteResourceLock(
+        customer: Customer,
+        device: Device,
+        application: Application,
+        resource: Resource
+    ) {
+        return api.deleteResourceLock(
+            applicationId = application.id!!,
+            customerId = customer.id!!,
+            deviceId = device.id!!,
+            resourceId = resource.id!!
+        )
+    }
+
+    fun listLockedResourceIds(
+        application: Application,
+        resource: Resource?
+    ): Array<UUID> {
+        return api.getLockedResourceIds(
+            applicationId = application.id!!,
+            resourceId = resource?.id
+        )
     }
 
     /**
@@ -291,10 +359,39 @@ class ResourceTestBuilderResource (
     }
 
     /**
+     * Asserts update status fails with given status code
+     *
+     * @param expectedStatus expected status code
+     * @param customer customer
+     * @param resource resource
+     */
+    fun assertUpdateLockFailStatus(
+        expectedStatus: Int,
+        customer: Customer,
+        device: Device,
+        application: Application,
+        resource: Resource
+    ) {
+        try {
+            updateResourceLock(
+                customer = customer,
+                application = application,
+                device = device,
+                resource = resource
+            )
+            fail(String.format("Expected update to fail with status %d", expectedStatus))
+        } catch (e: ClientException) {
+            assertEquals(expectedStatus, e.statusCode)
+        }
+    }
+
+    /**
      * Asserts delete status fails with given status code
      *
      * @param expectedStatus expected status code
      * @param customer customer
+     * @param device device
+     * @param application application
      * @param resource resource
      */
     fun assertDeleteFailStatus(
@@ -307,6 +404,35 @@ class ResourceTestBuilderResource (
         try {
             api.deleteResource(customer.id!!, device.id!!, application.id!!, resource.id!!)
             fail(String.format("Expected delete to fail with status %d", expectedStatus))
+        } catch (e: ClientException) {
+            assertEquals(expectedStatus, e.statusCode)
+        }
+    }
+
+    /**
+     * Asserts update status fails with given status code
+     *
+     * @param expectedStatus expected status code
+     * @param customer customer
+     * @param device device
+     * @param application application
+     * @param resource resource
+     */
+    fun assertDeleteLockFailStatus(
+        expectedStatus: Int,
+        customer: Customer,
+        device: Device,
+        application: Application,
+        resource: Resource
+    ) {
+        try {
+            deleteResourceLock(
+                customer = customer,
+                application = application,
+                device = device,
+                resource = resource
+            )
+            fail(String.format("Expected update to fail with status %d", expectedStatus))
         } catch (e: ClientException) {
             assertEquals(expectedStatus, e.statusCode)
         }

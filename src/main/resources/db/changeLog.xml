@@ -304,4 +304,25 @@
     <sql>UPDATE application SET activecontentversionresource_id = (SELECT id FROM resource WHERE parent_id = application.rootresource_id AND type = 'CONTENT_VERSION' LIMIT 1)</sql>
     <addNotNullConstraint columnDataType="binary(16)" columnName="activecontentversionresource_id" tableName="application"/>
   </changeSet>
+
+    <changeSet id="resourcelocks" author="jari.nykanen">
+      <createTable tableName="resourcelock">
+        <column name="id" type="binary(16)">
+          <constraints nullable="false" primaryKey="true"/>
+        </column>
+        <column name="application_id" type="binary(16)">
+          <constraints foreignKeyName="FK_RESOURCE_LOCK_APPLICATION_ID_APPLICATION_ID" referencedColumnNames="id" referencedTableName="application"/>
+        </column>
+        <column name="resource_id" type="binary(16)">
+          <constraints foreignKeyName="FK_RESOURCE_LOCK_RESOURCE_ID_RESOURCE_ID" referencedColumnNames="id" referencedTableName="resource"/>
+        </column>
+        <column name="expiresAt" type="datetime(6)">
+          <constraints nullable="false"/>
+        </column>
+        <column name="userid" type="binary(16)">
+          <constraints nullable="false"/>
+        </column>
+      </createTable>
+    </changeSet>
+
 </databaseChangeLog>
