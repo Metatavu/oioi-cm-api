@@ -32,7 +32,7 @@ class ResourceLockTranslator: AbstractTranslator<ResourceLock, fi.metatavu.oioi.
      * @return list of resource IDs
      */
     fun translateLockedResourceIds(entities: List<ResourceLock>): List<UUID?> {
-        return entities.map(ResourceLock::id)
+        return entities.map{ lock -> lock.resource?.id }
     }
 
 }
