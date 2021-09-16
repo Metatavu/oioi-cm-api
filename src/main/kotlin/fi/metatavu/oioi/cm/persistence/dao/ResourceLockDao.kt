@@ -42,9 +42,10 @@ class ResourceLockDao: AbstractDAO<ResourceLock>() {
      *
      * @param application filter by application
      * @param resource filter by resource
+     * @param notExpired filter by not expired
      * @return list of resource locks
      */
-    fun list(application: Application, resource: Resource?): List<ResourceLock> {
+    fun list(application: Application, resource: Resource?, notExpired: Boolean): List<ResourceLock> {
         val entityManager = entityManager
         val criteriaBuilder = entityManager.criteriaBuilder
         val criteria = criteriaBuilder.createQuery(ResourceLock::class.java)
@@ -58,7 +59,9 @@ class ResourceLockDao: AbstractDAO<ResourceLock>() {
             restrictions.add(criteriaBuilder.equal(root.get(ResourceLock_.resource), resource))
         }
 
-        restrictions.add(criteriaBuilder.greaterThanOrEqualTo(root.get(ResourceLock_.expiresAt), OffsetDateTime.now()))
+        if (notExpired) {
+            restrictions.add(criteriaBuilder.greaterThanOrEqualTo(root.get(ResourceLock_.expiresAt), OffsetDateTime.now()))
+        }
 
         criteria.where(criteriaBuilder.and(*restrictions.toTypedArray()))
         val query = entityManager.createQuery(criteria)
@@ -79,6 +82,7 @@ class ResourceLockDao: AbstractDAO<ResourceLock>() {
 
         val restrictions = ArrayList<Predicate>()
         restrictions.add(criteriaBuilder.equal(root.get(ResourceLock_.resource), resource))
+        restrictions.add(criteriaBuilder.greaterThanOrEqualTo(root.get(ResourceLock_.expiresAt), OffsetDateTime.now()))
 
         criteria.where(criteriaBuilder.and(*restrictions.toTypedArray()))
         return getSingleResult(entityManager.createQuery(criteria))
