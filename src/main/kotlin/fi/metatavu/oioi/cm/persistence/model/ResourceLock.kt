@@ -51,6 +51,6 @@ class ResourceLock {
      */
     @PrePersist
     fun onCreate() {
-        expiresAt = OffsetDateTime.now().plusMinutes(5)
+        expiresAt = OffsetDateTime.now().plusMinutes(1)
     }
 }

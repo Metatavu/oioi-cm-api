@@ -442,7 +442,7 @@ class ResourceController {
      * @param resource resource to be deleted
      */
     fun delete(authzClient: AuthzClient, application: Application, resource: Resource) {
-        val resourceLocks = resourceLockController.list(application = application, resource = resource)
+        val resourceLocks = resourceLockController.list(application = application, resource = resource, notExpired = false)
         resourceLocks.map(resourceLockController::deleteResourceLock)
 
         listResourcesByParent(parent = resource, resourceType = null).forEach(Consumer { child: Resource -> delete(authzClient, application, child) })

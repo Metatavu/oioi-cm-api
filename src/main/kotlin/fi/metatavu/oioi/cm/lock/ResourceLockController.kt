@@ -42,10 +42,11 @@ class ResourceLockController {
      *
      * @param application application
      * @param resource filter by resource
+     * @param notExpired filter by not expired
      * @return found resource locks
      */
-    fun list(application: Application, resource: Resource?): List<ResourceLock> {
-        return resourceLockDao.list(application = application, resource = resource)
+    fun list(application: Application, resource: Resource?, notExpired: Boolean): List<ResourceLock> {
+        return resourceLockDao.list(application = application, resource = resource, notExpired = notExpired)
     }
 
     /**
@@ -65,7 +66,7 @@ class ResourceLockController {
      * @return updated resource lock
      */
     fun updateResourceLock(resourceLock: ResourceLock): ResourceLock {
-        return resourceLockDao.updateExpiresAt(resourceLock, expiresAt = OffsetDateTime.now().plusMinutes(5))
+        return resourceLockDao.updateExpiresAt(resourceLock, expiresAt = OffsetDateTime.now().plusMinutes(1))
     }
 
     /**
