@@ -19,7 +19,7 @@ class ResourceLockService {
     /**
      * Clear the database and request and analyze new orders data
      */
-    @Scheduled(every = "15min")
+    @Scheduled(every = "15m")
     fun clearResourceLocks() {
         resourceLockController.listExpired().map(resourceLockController::deleteResourceLock)
     }
