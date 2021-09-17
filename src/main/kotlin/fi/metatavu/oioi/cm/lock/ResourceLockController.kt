@@ -50,6 +50,15 @@ class ResourceLockController {
     }
 
     /**
+     * Lists all expired resource locks
+     *
+     * @return found resource locks
+     */
+    fun listExpired(): List<ResourceLock> {
+        return resourceLockDao.listExpired()
+    }
+
+    /**
      * Finds resource lock for single resource
      *
      * @param resource resource
