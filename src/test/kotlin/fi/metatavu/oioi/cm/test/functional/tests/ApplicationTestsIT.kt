@@ -119,7 +119,9 @@ class ApplicationTestsIT : AbstractFunctionalTest() {
                 createdApplication.id!!
             ).copy(name = "updated application", activeContentVersionResourceId = newContentVersion.id!!)
 
-            val (name, id) = builder.admin().applications.updateApplication(customer, device, applicationToUpdate)
+            val (name, id, _, activeContentVersionResourceId) = builder.admin().applications.updateApplication(customer, device, applicationToUpdate)
+
+            assertEquals(activeContentVersionResourceId, newContentVersion.id)
             assertEquals(createdApplication.id, id)
             assertNotEquals(createdApplication.name, name)
 
