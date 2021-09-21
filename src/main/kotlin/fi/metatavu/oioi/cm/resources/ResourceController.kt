@@ -15,7 +15,6 @@ import org.keycloak.representations.idm.authorization.ResourceRepresentation
 import org.keycloak.representations.idm.authorization.ScopeRepresentation
 import org.slf4j.Logger
 import java.util.*
-import java.util.function.Consumer
 import java.util.stream.Collectors
 import javax.enterprise.context.ApplicationScoped
 import javax.inject.Inject
@@ -445,13 +444,12 @@ class ResourceController {
         val resourceLocks = resourceLockController.list(application = application, resource = resource, notExpired = false)
         resourceLocks.map(resourceLockController::deleteResourceLock)
 
-        listResourcesByParent(parent = resource, resourceType = null).forEach(Consumer { child: Resource -> delete(authzClient, application, child) })
-        listProperties(resource).forEach(Consumer { resourceProperty: ResourceProperty ->
-            deleteProperty(
-                resourceProperty
-            )
-        })
-        listStyles(resource).forEach(Consumer { resourceStyle: ResourceStyle -> deleteStyle(resourceStyle) })
+        val resources = listResourcesByParent(parent = resource, resourceType = null)
+        resources.map{ _resource -> delete(authzClient, application, _resource) }
+
+        listProperties(resource).map{ property -> deleteProperty(property) }
+        listStyles(resource).map{ style -> deleteStyle(style) }
+
         val keycloakResourceId = resource.keycloakResorceId
         try {
             authzClient.protection().resource().delete(keycloakResourceId.toString())
@@ -460,6 +458,7 @@ class ResourceController {
                 logger.error(String.format("Failed to remove Keycloak resource %s ", resource.keycloakResorceId), e)
             }
         }
+
         resourceDAO.delete(resource)
     }
 

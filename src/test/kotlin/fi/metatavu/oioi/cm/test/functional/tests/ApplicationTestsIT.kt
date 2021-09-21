@@ -2,6 +2,7 @@ package fi.metatavu.oioi.cm.test.functional.tests
 
 import fi.metatavu.oioi.cm.test.functional.resources.KeycloakTestResource
 import fi.metatavu.ikioma.integrations.test.functional.resources.MysqlResource
+import fi.metatavu.oioi.cm.client.models.ResourceType
 import kotlin.Throws
 import fi.metatavu.oioi.cm.test.functional.builder.TestBuilder
 import io.quarkus.test.common.QuarkusTestResource
@@ -100,28 +101,49 @@ class ApplicationTestsIT : AbstractFunctionalTest() {
             val customer = builder.admin().customers.create()
             val device = builder.admin().devices.create(customer)
             val createdApplication = builder.admin().applications.create(customer, device, "test application")
-            val updateApplication = builder.admin().applications.findApplication(
+            val defaultContentVersionId = createdApplication.activeContentVersionResourceId
+            val newContentVersion = builder.admin().resources.create(
+                customer = customer,
+                device = device,
+                application = createdApplication,
+                name = "New content version",
+                slug = "new_content_version",
+                type = ResourceType.cONTENTVERSION,
+                orderNumber = 1,
+                parentId = createdApplication.rootResourceId
+            )
+
+            val applicationToUpdate = builder.admin().applications.findApplication(
                 customer,
                 device,
                 createdApplication.id!!
-            ).copy(name = "updated application")
+            ).copy(name = "updated application", activeContentVersionResourceId = newContentVersion.id!!)
 
-            val (name, id) = builder.admin().applications.updateApplication(customer, device, updateApplication)
+            val (name, id) = builder.admin().applications.updateApplication(customer, device, applicationToUpdate)
             assertEquals(createdApplication.id, id)
             assertNotEquals(createdApplication.name, name)
-            val foundApplication =
-                builder.admin().applications.findApplication(customer, device, createdApplication.id)
+
+            val foundApplication =  builder.admin().applications.findApplication(customer, device, createdApplication.id)
+
             assertEquals(createdApplication.id, foundApplication.id)
-            assertEquals(updateApplication.name, foundApplication.name)
+            assertEquals(applicationToUpdate.name, foundApplication.name)
+
             val randomCustomerId = UUID.randomUUID()
             val randomDeviceId = UUID.randomUUID()
+
             builder.admin().applications.assertUpdateFailStatus(404, randomCustomerId, randomDeviceId, foundApplication)
             builder.admin().applications.assertUpdateFailStatus(404, randomCustomerId, device.id!!, foundApplication)
             builder.admin().applications.assertUpdateFailStatus(404, customer.id!!, randomDeviceId, foundApplication)
+
             val anotherCustomer = builder.admin().customers.create()
             val anotherDevice = builder.admin().devices.create(anotherCustomer)
+
             builder.admin().applications.assertUpdateFailStatus(400, anotherCustomer, device, foundApplication)
             builder.admin().applications.assertUpdateFailStatus(400, anotherCustomer, anotherDevice, foundApplication)
+
+            builder.admin().applications.updateApplication(
+                customer, device, applicationToUpdate.copy(activeContentVersionResourceId = defaultContentVersionId)
+            )
         }
     }
 

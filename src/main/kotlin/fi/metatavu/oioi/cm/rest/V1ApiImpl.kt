@@ -160,6 +160,7 @@ class V1ApiImpl : AbstractApi(), V1Api {
         application: @Valid Application?
     ): Response {
         val customer = customerController.findCustomerById(customerId) ?: return createNotFound(NOT_FOUND_MESSAGE)
+        application ?: return createBadRequest(MISSING_PAYLOAD)
 
         if (!isAdminOrHasCustomerGroup(customer.name)) {
             return createForbidden(FORBIDDEN_MESSAGE)
@@ -176,7 +177,16 @@ class V1ApiImpl : AbstractApi(), V1Api {
         }
 
         val loggedUserId = loggedUserId!!
-        val updatedApplicationEntity = applicationController.updateApplication(applicationEntity, application!!.name, loggedUserId)
+        val name = application.name
+        val activeContentVersionResource = resourceController.findResourceById(application.activeContentVersionResourceId) ?:
+            return createNotFound("Resource with ID ${application.activeContentVersionResourceId} could not be found")
+
+        val updatedApplicationEntity = applicationController.updateApplication(
+            application = applicationEntity,
+            name = name,
+            activeContentVersionResource = activeContentVersionResource,
+            lastModifierId = loggedUserId
+        )
 
         return createOk(applicationTranslator.translate(updatedApplicationEntity))
     }
@@ -551,24 +561,24 @@ class V1ApiImpl : AbstractApi(), V1Api {
 
     override fun deleteResource(customerId: UUID, deviceId: UUID, applicationId: UUID, resourceId: UUID): Response {
         val customer = customerController.findCustomerById(customerId)
-            ?: return createNotFound(NOT_FOUND_MESSAGE)
+            ?: return createNotFound("Customer with ID: $customerId could not be found!")
         if (!isAdminOrHasCustomerGroup(customer.name)) {
             return createForbidden(FORBIDDEN_MESSAGE)
         }
         val device = deviceController.findDeviceById(deviceId)
-            ?: return createNotFound(NOT_FOUND_MESSAGE)
+            ?: return createNotFound("Device with ID: $deviceId could not be found!")
         if (device.customer?.id != customer.id) {
-            return createNotFound(NOT_FOUND_MESSAGE)
+            return createNotFound("Devices: ${device.name} customer ID does not match given customer!")
         }
         val application = applicationController.findApplicationById(applicationId)
-            ?: return createNotFound(NOT_FOUND_MESSAGE)
+            ?: return createNotFound("Application with ID: $applicationId could not be found!")
         if (application.device?.id != device.id) {
-            return createNotFound(NOT_FOUND_MESSAGE)
+            return createNotFound("Applications: ${application.name} device ID does not match given device!")
         }
         val resource = resourceController.findResourceById(resourceId)
-            ?: return createNotFound(NOT_FOUND_MESSAGE)
+            ?: return createNotFound("Resource with ID: $resourceId could not be found!")
         if (!resourceController.isApplicationResource(application, resource)) {
-            return createNotFound(NOT_FOUND_MESSAGE)
+            return createNotFound("Resource ${resource.name} does not belong to application ${application.name}!")
         }
 
         resourceController.delete(authzClient = authzClient, application = application, resource = resource)
