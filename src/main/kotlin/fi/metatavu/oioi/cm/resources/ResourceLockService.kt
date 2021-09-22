@@ -21,6 +21,6 @@ class ResourceLockService {
      */
     @Scheduled(every = "15m")
     fun clearResourceLocks() {
-        resourceLockController.listExpired().map(resourceLockController::deleteResourceLock)
+        resourceLockController.deleteExpired()
     }
 }
