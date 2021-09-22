@@ -5,14 +5,6 @@ import java.time.OffsetDateTime
 import java.util.*
 import javax.enterprise.context.ApplicationScoped
 import javax.persistence.criteria.Predicate
-import javax.persistence.criteria.Root
-
-import javax.persistence.criteria.CriteriaDelete
-
-import javax.persistence.criteria.CriteriaBuilder
-
-
-
 
 /**
  * DAO class for resource locks
