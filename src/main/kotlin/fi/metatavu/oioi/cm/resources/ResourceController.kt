@@ -445,10 +445,10 @@ class ResourceController {
         resourceLocks.map(resourceLockController::deleteResourceLock)
 
         val resources = listResourcesByParent(parent = resource, resourceType = null)
-        resources.map{ _resource -> delete(authzClient, application, _resource) }
+        resources.map { delete(authzClient, application, it) }
 
-        listProperties(resource).map{ property -> deleteProperty(property) }
-        listStyles(resource).map{ style -> deleteStyle(style) }
+        listProperties(resource).forEach(this::deleteProperty)
+        listStyles(resource).forEach(this::deleteStyle)
 
         val keycloakResourceId = resource.keycloakResorceId
         try {
