@@ -55,9 +55,23 @@ class ApplicationDAO: AbstractDAO<Application>() {
      * @param lastModifierId last modifier's id
      * @return updated application
      */
-    fun updateName(application: Application, name: String?, lastModifierId: UUID?): Application? {
+    fun updateName(application: Application, name: String?, lastModifierId: UUID?): Application {
         application.lastModifierId = lastModifierId
         application.name = name
+        return persist(application)
+    }
+
+    /**
+     * Updates active content version resource
+     *
+     * @param application application
+     * @param activeContentVersionResource active content version resource
+     * @param lastModifierId last modifier's id
+     * @return updated application
+     */
+    fun updateActiveContentVersionResource(application: Application, activeContentVersionResource: Resource?, lastModifierId: UUID?): Application {
+        application.lastModifierId = lastModifierId
+        application.activeContentVersionResource = activeContentVersionResource
         return persist(application)
     }
 

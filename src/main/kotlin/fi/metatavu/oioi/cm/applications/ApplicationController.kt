@@ -71,13 +71,21 @@ class ApplicationController {
     /**
      * Update application
      *
+     * @param application application
      * @param name name
+     * @param activeContentVersionResource active content version resource
      * @param lastModifierId last modifier id
      * @return updated application
      */
-    fun updateApplication(application: Application, name: String, lastModifierId: UUID): Application {
-        applicationDAO.updateName(application, name, lastModifierId)
-        return application
+    fun updateApplication(
+        application: Application,
+        name: String,
+        activeContentVersionResource: Resource,
+        lastModifierId: UUID
+    ): Application {
+        val result = applicationDAO.updateName(application, name, lastModifierId)
+        applicationDAO.updateActiveContentVersionResource(result, activeContentVersionResource, lastModifierId)
+        return result
     }
 
     /**

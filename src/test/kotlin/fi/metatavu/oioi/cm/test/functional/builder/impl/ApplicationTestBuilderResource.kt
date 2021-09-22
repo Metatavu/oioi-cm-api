@@ -85,12 +85,12 @@ class ApplicationTestBuilderResource (
      *
      * @param customer customer
      * @param device device
-     * @param body body payload
+     * @param application application payload
      * @throws ClientException
      */
     @Throws(ClientException::class)
-    fun updateApplication(customer: Customer, device: Device, body: Application): Application {
-        return api.updateApplication(customer.id!!, device.id!!, body.id!!, body)
+    fun updateApplication(customer: Customer, device: Device, application: Application): Application {
+        return api.updateApplication(customer.id!!, device.id!!, application.id!!, application)
     }
 
     /**

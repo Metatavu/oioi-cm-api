@@ -69,6 +69,23 @@ class ResourceLockDao: AbstractDAO<ResourceLock>() {
     }
 
     /**
+     * Deletes expired resource locks
+     */
+    fun deleteExpired() {
+        val entityManager = entityManager
+        val criteriaBuilder = entityManager.criteriaBuilder
+        val criteria = criteriaBuilder.createQuery(ResourceLock::class.java)
+        val root = criteria.from(ResourceLock::class.java)
+        criteria.select(root)
+
+        val restrictions = ArrayList<Predicate>()
+        restrictions.add(criteriaBuilder.lessThan(root.get(ResourceLock_.expiresAt), OffsetDateTime.now()))
+
+        criteria.where(criteriaBuilder.and(*restrictions.toTypedArray()))
+        entityManager.remove(criteria)
+    }
+
+    /**
      * Find lock by resource
      *
      * @param resource resource
