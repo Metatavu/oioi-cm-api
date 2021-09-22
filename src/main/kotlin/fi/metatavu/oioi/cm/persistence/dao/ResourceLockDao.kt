@@ -5,6 +5,14 @@ import java.time.OffsetDateTime
 import java.util.*
 import javax.enterprise.context.ApplicationScoped
 import javax.persistence.criteria.Predicate
+import javax.persistence.criteria.Root
+
+import javax.persistence.criteria.CriteriaDelete
+
+import javax.persistence.criteria.CriteriaBuilder
+
+
+
 
 /**
  * DAO class for resource locks
@@ -74,15 +82,11 @@ class ResourceLockDao: AbstractDAO<ResourceLock>() {
     fun deleteExpired() {
         val entityManager = entityManager
         val criteriaBuilder = entityManager.criteriaBuilder
-        val criteria = criteriaBuilder.createQuery(ResourceLock::class.java)
+        val criteria = criteriaBuilder.createCriteriaDelete(ResourceLock::class.java)
         val root = criteria.from(ResourceLock::class.java)
-        criteria.select(root)
 
-        val restrictions = ArrayList<Predicate>()
-        restrictions.add(criteriaBuilder.lessThan(root.get(ResourceLock_.expiresAt), OffsetDateTime.now()))
-
-        criteria.where(criteriaBuilder.and(*restrictions.toTypedArray()))
-        entityManager.remove(criteria)
+        criteria.where(criteriaBuilder.lessThan(root.get(ResourceLock_.expiresAt), OffsetDateTime.now()))
+        entityManager.createQuery(criteria).executeUpdate()
     }
 
     /**
