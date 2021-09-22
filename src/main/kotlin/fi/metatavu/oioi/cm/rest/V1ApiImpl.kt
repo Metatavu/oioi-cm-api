@@ -176,10 +176,18 @@ class V1ApiImpl : AbstractApi(), V1Api {
             return createBadRequest(APPLICATION_DEVICE_MISMATCH_MESSAGE)
         }
 
-        val loggedUserId = loggedUserId!!
+        val loggedUserId = loggedUserId ?: return createUnauthorized("No logged user found!")
         val name = application.name
         val activeContentVersionResource = resourceController.findResourceById(application.activeContentVersionResourceId) ?:
-            return createNotFound("Resource with ID ${application.activeContentVersionResourceId} could not be found")
+            return createBadRequest("Resource with ID ${application.activeContentVersionResourceId} could not be found")
+
+        if (activeContentVersionResource.type != ResourceType.CONTENT_VERSION) {
+            return createBadRequest("Resource type for active content version resource was not typed as CONTENT_VERSION!")
+        }
+
+        if (!resourceController.isApplicationResource(applicationEntity, activeContentVersionResource)) {
+            return createBadRequest("Resource ${activeContentVersionResource.name} does not belong to application ${application.name}!")
+        }
 
         val updatedApplicationEntity = applicationController.updateApplication(
             application = applicationEntity,
@@ -500,30 +508,39 @@ class V1ApiImpl : AbstractApi(), V1Api {
         resourceId: UUID,
         payload: @Valid Resource?
     ): Response {
-        val loggedUserId = loggedUserId!!
+        val loggedUserId = loggedUserId ?: return createUnauthorized("No logged user ID!")
         val customer = customerController.findCustomerById(customerId)
-            ?: return createNotFound(NOT_FOUND_MESSAGE)
+            ?: return createNotFound("Customer with ID: $customerId could not be found!")
         if (!isAdminOrHasCustomerGroup(customer.name)) {
             return createForbidden(FORBIDDEN_MESSAGE)
         }
+
         val device = deviceController.findDeviceById(deviceId)
-            ?: return createNotFound(NOT_FOUND_MESSAGE)
+            ?: return createNotFound("Device with ID: $deviceId could not be found!")
         if (device.customer?.id != customer.id) {
-            return createNotFound(NOT_FOUND_MESSAGE)
+            return createNotFound("Devices: ${device.name} customer ID does not match given customer!")
         }
+
         val application = applicationController.findApplicationById(applicationId)
-            ?: return createNotFound(NOT_FOUND_MESSAGE)
+            ?: return createNotFound("Application with ID: $applicationId could not be found!")
         if (application.device?.id != device.id) {
-            return createNotFound(NOT_FOUND_MESSAGE)
+            return createNotFound("Applications: ${application.name} device ID does not match given device!")
         }
+
         val resource = resourceController.findResourceById(resourceId)
-            ?: return createNotFound(NOT_FOUND_MESSAGE)
+            ?: return createNotFound("Resource with ID: $resourceId could not be found!")
         if (resource.id == payload!!.parentId) {
             return createBadRequest(INVALID_PARENT_ID)
         }
+
         if (!resourceController.isApplicationResource(application, resource)) {
-            return createNotFound(NOT_FOUND_MESSAGE)
+            return createBadRequest("Resource ${resource.name} does not belong to application ${application.name}!")
         }
+
+        if (resourceLockController.isResourceLockedForAnotherUser(resource, loggedUserId)) {
+            return createConflict("Resource ${resource.id}-${resource.name} is already locked for another user!")
+        }
+
         val parentId = payload.parentId
         if (resource.type == ResourceType.ROOT) {
             resourceController.setResourceProperties(resource, payload.properties, loggedUserId)
@@ -532,6 +549,7 @@ class V1ApiImpl : AbstractApi(), V1Api {
         } else if (parentId == null) {
             return createBadRequest(INVALID_PARENT_ID)
         }
+
         val parent = resourceController.findResourceById(parentId)
             ?: return createBadRequest(INVALID_PARENT_ID)
 
@@ -543,23 +561,24 @@ class V1ApiImpl : AbstractApi(), V1Api {
         val orderNumber = payload.orderNumber
         resourceController.setResourceProperties(resource, payload.properties, loggedUserId)
         resourceController.setResourceStyles(resource, payload.styles, loggedUserId)
-        return createOk(
-            resourceTranslator.translate(
-                resourceController.updateResource(
-                    resource,
-                    orderNumber,
-                    data,
-                    name,
-                    parent,
-                    slug,
-                    type,
-                    loggedUserId
-                )
-            )
+
+        val updatedResource = resourceController.updateResource(
+            resource = resource,
+            orderNumber = orderNumber,
+            data = data,
+            name = name,
+            parent = parent,
+            slug = slug,
+            type = type,
+            lastModifierId = loggedUserId
         )
+
+        return createOk(resourceTranslator.translate(updatedResource))
     }
 
     override fun deleteResource(customerId: UUID, deviceId: UUID, applicationId: UUID, resourceId: UUID): Response {
+        val loggedUserId = loggedUserId ?: return createUnauthorized("No logged user ID!")
+
         val customer = customerController.findCustomerById(customerId)
             ?: return createNotFound("Customer with ID: $customerId could not be found!")
         if (!isAdminOrHasCustomerGroup(customer.name)) {
@@ -579,6 +598,14 @@ class V1ApiImpl : AbstractApi(), V1Api {
             ?: return createNotFound("Resource with ID: $resourceId could not be found!")
         if (!resourceController.isApplicationResource(application, resource)) {
             return createNotFound("Resource ${resource.name} does not belong to application ${application.name}!")
+        }
+
+        if (resourceLockController.isResourceLockedForAnotherUser(resource, loggedUserId)) {
+            return createConflict("Resource ${resource.id}-${resource.name} is already locked for another user!")
+        }
+
+        if (!resourceLockController.isUserAllowedToDeleteResource(resource = resource, loggedUserId = loggedUserId, application = application)) {
+            return createConflict("Resource ${resource.id}-${resource.name} can not be deleted because some child element is locked for another user!")
         }
 
         resourceController.delete(authzClient = authzClient, application = application, resource = resource)

@@ -102,6 +102,13 @@ class ResourceLockTestsIT : AbstractFunctionalTest() {
             assertNotNull(resourceLockForAnotherUserInOtherApplication)
             assertEquals(resourceLockForAnotherUserInOtherApplication.userDisplayName, "Admin User")
             assertEquals(resourceLockForAnotherUserInOtherApplication.userId, UUID.fromString("64763625-dda7-4983-b18c-6daa9e299ec4"))
+
+            builder.user().resources.deleteResourceLock(
+                application = application,
+                customer = customer,
+                device = device,
+                resource = secondResource
+            )
         }
     }
 
@@ -211,14 +218,14 @@ class ResourceLockTestsIT : AbstractFunctionalTest() {
                 ResourceType.mENU
             )
 
-            builder.admin().resources.updateResourceLock(
+            builder.user().resources.updateResourceLock(
                 application = application,
                 customer = customer,
                 device = device,
                 resource = resource
             )
 
-            builder.user().resources.assertDeleteLockFailStatus(
+            builder.admin().resources.assertDeleteLockFailStatus(
                 expectedStatus = 409,
                 application = application,
                 customer = customer,
@@ -226,14 +233,14 @@ class ResourceLockTestsIT : AbstractFunctionalTest() {
                 resource = resource
             )
 
-            builder.admin().resources.deleteResourceLock(
+            builder.user().resources.deleteResourceLock(
                 application = application,
                 customer = customer,
                 device = device,
                 resource = resource
             )
 
-            val resourceLock = builder.user().resources.updateResourceLock(
+            val resourceLock = builder.admin().resources.updateResourceLock(
                 application = application,
                 customer = customer,
                 device = device,
@@ -241,8 +248,8 @@ class ResourceLockTestsIT : AbstractFunctionalTest() {
             )
 
             assertNotNull(resourceLock)
-            assertEquals(resourceLock.userDisplayName, "user@example.com")
-            assertEquals(resourceLock.userId, UUID.fromString("6901afcc-435c-4780-93ba-9171cb604344"))
+            assertEquals(resourceLock.userDisplayName, "Admin User")
+            assertEquals(resourceLock.userId, UUID.fromString("64763625-dda7-4983-b18c-6daa9e299ec4"))
         }
     }
 

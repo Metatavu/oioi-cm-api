@@ -132,6 +132,7 @@ class ApplicationTestsIT : AbstractFunctionalTest() {
 
             val randomCustomerId = UUID.randomUUID()
             val randomDeviceId = UUID.randomUUID()
+            val randomResourceId = UUID.randomUUID()
 
             builder.admin().applications.assertUpdateFailStatus(404, randomCustomerId, randomDeviceId, foundApplication)
             builder.admin().applications.assertUpdateFailStatus(404, randomCustomerId, device.id!!, foundApplication)
@@ -146,6 +147,40 @@ class ApplicationTestsIT : AbstractFunctionalTest() {
             builder.admin().applications.updateApplication(
                 customer, device, applicationToUpdate.copy(activeContentVersionResourceId = defaultContentVersionId)
             )
+
+            val anotherApplication = builder.admin().applications.create(customer, device, "another application")
+            val resourceWithAnotherType = builder.admin().resources.create(
+                customer = customer,
+                device = device,
+                application = createdApplication,
+                name = "Incorrect type",
+                slug = "incorrect_type",
+                type = ResourceType.mENU,
+                orderNumber = 1,
+                parentId = createdApplication.rootResourceId
+            )
+
+            builder.admin().applications.assertUpdateFailStatus(
+                expectedStatus = 400,
+                customer = anotherCustomer,
+                device = device,
+                application = foundApplication.copy(activeContentVersionResourceId = resourceWithAnotherType.id)
+            )
+
+            builder.admin().applications.assertUpdateFailStatus(
+                expectedStatus = 400,
+                customer = anotherCustomer,
+                device = device,
+                application = foundApplication.copy(activeContentVersionResourceId = randomResourceId)
+            )
+
+            builder.admin().applications.assertUpdateFailStatus(
+                expectedStatus = 400,
+                customer = anotherCustomer,
+                device = device,
+                application = foundApplication.copy(activeContentVersionResourceId = anotherApplication.activeContentVersionResourceId)
+            )
+
         }
     }
 

@@ -253,6 +253,193 @@ class ResourceTestsIT : AbstractFunctionalTest() {
         }
     }
 
+    @Test
+    fun testUpdateLockedResource() {
+        TestBuilder().use { builder ->
+            val customer = builder.admin().customers.create()
+            val device = builder.admin().devices.create(customer)
+            val application = builder.admin().applications.create(customer, device)
+            val resource = builder.admin().resources.create(
+                customer = customer,
+                device = device,
+                application = application,
+                orderNumber = 0,
+                parentId = application.rootResourceId,
+                data = "data",
+                name = "name",
+                slug = "slug",
+                type = ResourceType.mENU,
+                properties = arrayOf(getKeyValue("prop-1", "value"), getKeyValue("prop-2", "value-2")),
+                styles = arrayOf(getKeyValue("style-1", "value"), getKeyValue("style-2", "value-2"))
+            )
+
+            builder.admin().resources.updateResourceLock(
+                customer = customer,
+                device = device,
+                application = application,
+                resource = resource
+            )
+
+            val updateResource = builder.admin().resources.findResource(
+                customer = customer,
+                device = device,
+                application = application,
+                resourceId = resource.id!!
+            )
+
+            val updateProperties = arrayOf(getKeyValue("prop-1", "value-1"), getKeyValue("prop-3", "value-3"))
+            val updateStyles = arrayOf(getKeyValue("style-1", "value-1"), getKeyValue("style-3", "value-3"))
+
+            val updatedResource = builder.admin().resources.updateResource(
+                customer = customer,
+                device = device,
+                application = application,
+                resource = updateResource.copy(
+                    data = "updated data",
+                    name = "updated name",
+                    styles = updateStyles,
+                    properties = updateProperties
+                ))
+
+            builder.admin().resources.assertJsonsEqual(updateProperties, updatedResource.properties)
+            builder.admin().resources.assertJsonsEqual(updateStyles, updatedResource.styles)
+            assertEquals("updated data", updatedResource.data)
+            assertEquals("updated name", updatedResource.name)
+
+            builder.user().resources.assertUpdateFailStatus(
+                expectedStatus = 409,
+                customer = customer,
+                device = device,
+                application = application,
+                resource = updateResource.copy(
+                    data = "updated data",
+                    name = "updated name",
+                    styles = updateStyles,
+                    properties = updateProperties
+                )
+            )
+        }
+    }
+
+    @Test
+    fun testDeleteLockedResource() {
+        TestBuilder().use { builder ->
+            val customer = builder.admin().customers.create()
+            val device = builder.admin().devices.create(customer)
+            val application = builder.admin().applications.create(customer, device)
+            val rootItem = ResourceItem(slug = "1", ResourceType.cONTENTVERSION, children = arrayOf(
+                ResourceItem(slug = "l", ResourceType.lANGUAGEMENU, children = arrayOf(
+                    ResourceItem(slug = "fi", ResourceType.lANGUAGE, properties = arrayOf(getKeyValue("description", "Finnish language page")), styles = arrayOf(getKeyValue("background", "#fff"), getKeyValue("color", "#00f")), children = arrayOf(
+                        ResourceItem(slug = "intro", ResourceType.iNTRO, children = arrayOf(
+                            ResourceItem(slug = "s", ResourceType.sLIDESHOW, children = arrayOf(
+                                ResourceItem(slug = "page-1", ResourceType.pAGE, children = arrayOf(
+                                    ResourceItem(slug = "pdf", ResourceType.pDF, data = "https://cdn.example.com/0f57bd21-7bb1-4308-bf52-0ab6d40bd88e/0f57bd21-7bb1-4308-bf52-0ab6d40bd88e")
+                                )),
+                                ResourceItem(slug = "page-2", ResourceType.pAGE, children = arrayOf(
+                                    ResourceItem(slug = "img", ResourceType.iMAGE, data = "https://cdn.example.com/0f57bd21-7bb1-4308-bf52-0ab6d40bd88e/bc55c04e-1d9e-4e71-a384-d1621c90162a"),
+                                    ResourceItem(slug = "txt", ResourceType.tEXT, data = "Hello world")
+                                ))
+                            ))
+                        )),
+                        ResourceItem(slug = "menu", ResourceType.mENU, children = arrayOf(
+                            ResourceItem(slug = "menu-page-1", ResourceType.pAGE, children = arrayOf(
+                                ResourceItem(slug = "video", ResourceType.vIDEO, data = "https://cdn.example.com/0f57bd21-7bb1-4308-bf52-0ab6d40bd88e/71b700d7-1264-43f9-9686-a137780cef4b"),
+                            )),
+                            ResourceItem(slug = "menu-page-2", ResourceType.pAGE, children = arrayOf(
+                                ResourceItem(slug = "video", ResourceType.vIDEO, data = "https://cdn.example.com/0f57bd21-7bb1-4308-bf52-0ab6d40bd88e/71b700d7-1264-43f9-9686-a137780cef4b"),
+                                ResourceItem(slug = "text", ResourceType.tEXT, data = "Hello again"),
+                            ))
+                        ))
+                    ))
+                ))
+            ))
+
+            val version1 = createResourceFromItem(
+                builder = builder,
+                item = rootItem,
+                customer = customer,
+                device = device,
+                application = application,
+                parentId = application.rootResourceId!!,
+                orderNumber = 0
+            )
+
+            val version1ChildResources = builder.admin().resources.listResources(
+                customerId = customer.id!!,
+                deviceId = device.id!!,
+                applicationId = application.id!!,
+                parentId = version1.id!!,
+                resourceType = null
+            )
+
+            val firstChild = version1ChildResources[0]
+
+            val secondList = builder.admin().resources.listResources(
+                customerId = customer.id,
+                deviceId = device.id,
+                applicationId = application.id,
+                parentId = firstChild.id!!,
+                resourceType = null
+            )
+
+            val secondChild = secondList[0]
+
+            val thirdList = builder.admin().resources.listResources(
+                customerId = customer.id,
+                deviceId = device.id,
+                applicationId = application.id,
+                parentId = secondChild.id!!,
+                resourceType = null
+            )
+
+            val thirdChild = thirdList[0]
+
+            val fourthList = builder.admin().resources.listResources(
+                customerId = customer.id,
+                deviceId = device.id,
+                applicationId = application.id,
+                parentId = thirdChild.id!!,
+                resourceType = null
+            )
+
+            val fourthChild = fourthList[0]
+
+            val fifthList = builder.admin().resources.listResources(
+                customerId = customer.id,
+                deviceId = device.id,
+                applicationId = application.id,
+                parentId = fourthChild.id!!,
+                resourceType = null
+            )
+
+            val fifthChild = fifthList[0]
+
+            builder.admin().resources.updateResourceLock(
+                customer = customer,
+                device = device,
+                application = application,
+                resource = fifthChild
+            )
+
+            builder.user().resources.assertDeleteFailStatus(
+                expectedStatus = 409,
+                customer = customer,
+                device = device,
+                application = application,
+                resource = fifthChild
+            )
+
+            builder.user().resources.assertDeleteFailStatus(
+                expectedStatus = 409,
+                customer = customer,
+                device = device,
+                application = application,
+                resource = version1
+            )
+
+        }
+    }
+
     /**
      * Asserts that resource tree is copied correctly
      *
