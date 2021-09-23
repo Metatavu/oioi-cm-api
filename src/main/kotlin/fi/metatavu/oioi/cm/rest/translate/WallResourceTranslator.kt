@@ -34,6 +34,29 @@ class WallResourceTranslator : AbstractTranslator<Resource?, WallResource?>() {
     }
 
     /**
+     * Translates wall resource
+     *
+     * @param entity resource entity
+     * @param applicationName application name
+     * @return translated wall resource
+     */
+    fun translate(entity: Resource?, applicationName: String?): WallResource? {
+        entity ?: return null
+        applicationName ?: return null
+
+        val result = WallResource()
+        result.slug = entity.slug
+        result.children = translate(resourceController.listResourcesByParent(parent = entity, resourceType = null))
+        result.data = entity.data
+        result.name = applicationName
+        result.properties = getProperties(entity)
+        result.styles = getStyles(entity)
+        result.type = entity.type
+        result.modifiedAt = entity.modifiedAt
+        return result
+    }
+
+    /**
      * Translates styles
      *
      * @param entity resource
