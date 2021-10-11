@@ -172,7 +172,7 @@ abstract class AbstractDAO<T> {
     /**
      * Flushes persistence context state
      */
-    private fun flush() {
+    protected fun flush() {
         entityManager.flush()
     }
 }

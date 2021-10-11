@@ -14,6 +14,9 @@ import javax.persistence.*
 @Entity
 @Cacheable(true)
 @Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
+@Table(
+    uniqueConstraints = [UniqueConstraint(name = "UN_RESOURCE_LOCK_RESOURCE_ID", columnNames = ["resource_id"])]
+)
 class ResourceLock {
 
     /**

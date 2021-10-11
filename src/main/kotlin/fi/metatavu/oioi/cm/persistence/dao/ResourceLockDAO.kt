@@ -12,7 +12,7 @@ import javax.persistence.criteria.Predicate
  * @author Jari Nykänen
  */
 @ApplicationScoped
-class ResourceLockDao: AbstractDAO<ResourceLock>() {
+class ResourceLockDAO: AbstractDAO<ResourceLock>() {
 
     /**
      * Creates resource lock
@@ -79,6 +79,8 @@ class ResourceLockDao: AbstractDAO<ResourceLock>() {
 
         criteria.where(criteriaBuilder.lessThan(root.get(ResourceLock_.expiresAt), OffsetDateTime.now()))
         entityManager.createQuery(criteria).executeUpdate()
+
+        flush()
     }
 
     /**

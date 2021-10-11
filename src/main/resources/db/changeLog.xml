@@ -325,4 +325,9 @@
     </createTable>
   </changeSet>
 
+  <changeSet id="unique-resource-locks" author="antti.leppa">
+    <sql>DELETE FROM resourcelock</sql>
+    <addUniqueConstraint columnNames="resource_id" constraintName="UN_RESOURCE_LOCK_RESOURCE_ID" tableName="resourcelock"/>
+  </changeSet>
+
 </databaseChangeLog>
