@@ -216,4 +216,41 @@ class ApplicationTestsIT : AbstractFunctionalTest() {
             builder.admin.applications.assertDeleteFailStatus(404, customer, device, createdApplication)
         }
     }
+
+    @Test
+    @Throws(Exception::class)
+    fun testDeletePermissions() {
+        TestBuilder().use { builder ->
+            val customer = builder.admin.customers.create(name = "customer-1")
+            val device = builder.admin.devices.create(customer)
+            val application = builder.admin.applications.create(customer = customer, device = device)
+
+            builder.customer2User.applications.assertDeleteFailStatus(
+                expectedStatus = 403,
+                customer = customer,
+                device = device,
+                application = application
+            )
+
+            builder.customer2Admin.applications.assertDeleteFailStatus(
+                expectedStatus = 403,
+                customer = customer,
+                device = device,
+                application = application
+            )
+
+            builder.customer1User.applications.assertDeleteFailStatus(
+                expectedStatus = 403,
+                customer = customer,
+                device = device,
+                application = application
+            )
+
+            builder.customer1Admin.applications.delete(
+                customer = customer,
+                device = device,
+                application = application
+            )
+        }
+    }
 }

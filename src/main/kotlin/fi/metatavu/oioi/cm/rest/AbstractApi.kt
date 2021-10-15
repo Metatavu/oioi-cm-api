@@ -84,13 +84,29 @@ abstract class AbstractApi {
     }
 
     /**
+     * Returns whether logged user is either admin or customer admin
+     *
+     * @param customerName customer's name
+     * @return whether logged user is either admin or customer admin
+     */
+    protected fun isCustomerAdmin(customerName: String?): Boolean {
+        if (hasRealmRole(ADMIN_ROLE)) {
+            return true
+        }
+
+        customerName ?: return false
+        val roleName = "$customerName-admin"
+        return hasRealmRole(roleName) || loggedUserGroups.contains(roleName)
+    }
+
+    /**
      * Returns whether logged user is either admin or has customer group membership
      *
+     * @param customerName customer's name
      * @return whether logged user is either admin or has customer group membership
      */
     protected fun isAdminOrHasCustomerGroup(customerName: String?): Boolean {
-        val isAdmin = hasRealmRole(ADMIN_ROLE)
-        if (isAdmin) {
+        if (isCustomerAdmin(customerName = customerName)) {
             return true
         }
 

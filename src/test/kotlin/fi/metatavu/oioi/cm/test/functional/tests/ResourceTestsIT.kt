@@ -421,7 +421,7 @@ class ResourceTestsIT : AbstractFunctionalTest() {
                 resource = fifthChild
             )
 
-            builder.customer1User.resources.assertDeleteFailStatus(
+            builder.customer1Admin.resources.assertDeleteFailStatus(
                 expectedStatus = 409,
                 customer = customer,
                 device = device,
@@ -429,7 +429,7 @@ class ResourceTestsIT : AbstractFunctionalTest() {
                 resource = fifthChild
             )
 
-            builder.customer1User.resources.assertDeleteFailStatus(
+            builder.customer1Admin.resources.assertDeleteFailStatus(
                 expectedStatus = 409,
                 customer = customer,
                 device = device,
@@ -437,6 +437,55 @@ class ResourceTestsIT : AbstractFunctionalTest() {
                 resource = version1
             )
 
+        }
+    }
+
+    @Test
+    fun testDeletePermissions() {
+        TestBuilder().use { builder ->
+            val customer = builder.admin.customers.create(name = "customer-1")
+            val device = builder.admin.devices.create(customer)
+            val application = builder.admin.applications.create(customer, device)
+            val resource = createResourceFromItem(
+                builder = builder,
+                item = ResourceItem(slug = "1", ResourceType.cONTENTVERSION),
+                customer = customer,
+                device = device,
+                application = application,
+                parentId = application.rootResourceId!!,
+                orderNumber = 0
+            )
+
+            builder.customer2User.resources.assertDeleteFailStatus(
+                expectedStatus = 403,
+                customer = customer,
+                device = device,
+                application = application,
+                resource = resource
+            )
+
+            builder.customer2Admin.resources.assertDeleteFailStatus(
+                expectedStatus = 403,
+                customer = customer,
+                device = device,
+                application = application,
+                resource = resource
+            )
+
+            builder.customer1User.resources.assertDeleteFailStatus(
+                expectedStatus = 403,
+                customer = customer,
+                device = device,
+                application = application,
+                resource = resource
+            )
+
+            builder.customer1Admin.resources.delete(
+                customer = customer,
+                device = device,
+                application = application,
+                resource = resource
+            )
         }
     }
 

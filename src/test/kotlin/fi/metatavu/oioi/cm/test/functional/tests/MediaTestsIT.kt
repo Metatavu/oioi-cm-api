@@ -40,7 +40,7 @@ class MediaTestsIT : AbstractFunctionalTest() {
             val createdMedia = builder.admin.medias.create(customer)
             builder.admin.medias.assertFindFailStatus(404, customer, UUID.randomUUID())
             builder.admin.medias.assertFindFailStatus(404, UUID.randomUUID(), UUID.randomUUID())
-            val foundMedia = builder.admin.medias.findMedia(customer, createdMedia?.id!!)
+            val foundMedia = builder.admin.medias.findMedia(customer, createdMedia.id!!)
             builder.admin.medias.assertFindFailStatus(404, UUID.randomUUID(), foundMedia.id)
             builder.admin.medias.assertMediasEqual(createdMedia, foundMedia)
         }
@@ -64,7 +64,7 @@ class MediaTestsIT : AbstractFunctionalTest() {
         TestBuilder().use { builder ->
             val customer = builder.admin.customers.create()
             val createdMedia = builder.admin.medias.create(customer)
-            val updateMedia = builder.admin.medias.findMedia(customer, createdMedia!!.id!!).copy(
+            val updateMedia = builder.admin.medias.findMedia(customer, createdMedia.id!!).copy(
                 contentType = "image/changed",
                 type = MediaType.vIDEO,
                 url = "http://www.example.com/changed"
@@ -86,11 +86,42 @@ class MediaTestsIT : AbstractFunctionalTest() {
     fun testDeleteMedia() {
         TestBuilder().use { builder ->
             val customer = builder.admin.customers.create()
-            val createdMedia = builder.admin.medias.create(customer)!!
+            val createdMedia = builder.admin.medias.create(customer)
             val foundMedia = builder.admin.medias.findMedia(customer, createdMedia.id)
             assertEquals(createdMedia.id, foundMedia.id)
             builder.admin.medias.delete(customer, createdMedia)
             builder.admin.medias.assertDeleteFailStatus(404, customer, createdMedia)
+        }
+    }
+
+    @Test
+    fun testDeletePermissions() {
+        TestBuilder().use { builder ->
+            val customer = builder.admin.customers.create(name = "customer-1")
+            val media = builder.admin.medias.create(customer)
+
+            builder.customer2User.medias.assertDeleteFailStatus(
+                expectedStatus = 403,
+                customer = customer,
+                media = media
+            )
+
+            builder.customer2Admin.medias.assertDeleteFailStatus(
+                expectedStatus = 403,
+                customer = customer,
+                media = media
+            )
+
+            builder.customer1User.medias.assertDeleteFailStatus(
+                expectedStatus = 403,
+                customer = customer,
+                media = media
+            )
+
+            builder.customer1Admin.medias.delete(
+                customer = customer,
+                media = media
+            )
         }
     }
 

@@ -23,6 +23,7 @@ import java.util.*
     QuarkusTestResource(MysqlResource::class)
 )
 class DeviceTestsIT : AbstractFunctionalTest() {
+
     @Test
     @Throws(Exception::class)
     fun testDevice() {
@@ -117,6 +118,38 @@ class DeviceTestsIT : AbstractFunctionalTest() {
             assertEquals(createdDevice.id, device.id)
             builder.admin.devices.delete(customer, createdDevice)
             builder.admin.devices.assertDeleteFailStatus(404, customer, createdDevice)
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun testDeletePermissions() {
+        TestBuilder().use { builder ->
+            val customer = builder.admin.customers.create(name = "customer-1")
+            val device = builder.admin.devices.create(customer)
+
+            builder.customer2User.devices.assertDeleteFailStatus(
+                expectedStatus = 403,
+                customer = customer,
+                device = device
+            )
+
+            builder.customer2Admin.devices.assertDeleteFailStatus(
+                expectedStatus = 403,
+                customer = customer,
+                device = device
+            )
+
+            builder.customer1User.devices.assertDeleteFailStatus(
+                expectedStatus = 403,
+                customer = customer,
+                device = device
+            )
+
+            builder.customer1Admin.devices.delete(
+                customer = customer,
+                device = device
+            )
         }
     }
 }

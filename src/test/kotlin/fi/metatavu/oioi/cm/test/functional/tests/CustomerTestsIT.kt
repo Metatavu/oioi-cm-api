@@ -98,4 +98,35 @@ class CustomerTestsIT : AbstractFunctionalTest() {
             builder.admin.customers.assertDeleteFailStatus(404, createdCustomer)
         }
     }
+
+    @Test
+    fun testDeletePermissions() {
+        TestBuilder().use { builder ->
+            val customer = builder.admin.customers.create(name = "customer-1")
+
+            builder.customer2User.customers.assertDeleteFailStatus(
+                expectedStatus = 403,
+                customer = customer
+            )
+
+            builder.customer2Admin.customers.assertDeleteFailStatus(
+                expectedStatus = 403,
+                customer = customer
+            )
+
+            builder.customer1User.customers.assertDeleteFailStatus(
+                expectedStatus = 403,
+                customer = customer
+            )
+
+            builder.customer1Admin.customers.assertDeleteFailStatus(
+                expectedStatus = 403,
+                customer = customer
+            )
+
+            builder.admin.customers.delete(
+                customer = customer
+            )
+        }
+    }
 }
