@@ -46,7 +46,7 @@ class MediaTestBuilderResource (
         type: MediaType = MediaType.vIDEO,
         contentType: String = "video/mpeg",
         url: String = "http://example.com/video"
-    ): Media? {
+    ): Media {
         val media = Media(
             contentType = contentType,
             type = type,

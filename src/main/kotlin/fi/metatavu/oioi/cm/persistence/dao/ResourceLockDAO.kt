@@ -12,7 +12,7 @@ import javax.persistence.criteria.Predicate
  * @author Jari Nykänen
  */
 @ApplicationScoped
-class ResourceLockDao: AbstractDAO<ResourceLock>() {
+class ResourceLockDAO: AbstractDAO<ResourceLock>() {
 
     /**
      * Creates resource lock

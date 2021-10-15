@@ -27,10 +27,10 @@ class WallApplicationTestsIT : AbstractFunctionalTest() {
     @Test
     fun testWallApplicationExport() {
         TestBuilder().use { builder ->
-            val customer = builder.admin().customers.create()
-            val device = builder.admin().devices.create(customer)
-            val application = builder.admin().applications.create(customer, device)
-            val langFi = builder.admin().resources.create(
+            val customer = builder.admin.customers.create()
+            val device = builder.admin.devices.create(customer)
+            val application = builder.admin.applications.create(customer, device)
+            val langFi = builder.admin.resources.create(
                 customer,
                 device,
                 application,
@@ -44,7 +44,7 @@ class WallApplicationTestsIT : AbstractFunctionalTest() {
                 arrayOf(getKeyValue("background", "#fff"), getKeyValue("color", "#00f"))
             )
 
-            val intro = builder.admin().resources.create(
+            val intro = builder.admin.resources.create(
                 customer,
                 device,
                 application,
@@ -56,7 +56,7 @@ class WallApplicationTestsIT : AbstractFunctionalTest() {
                 ResourceType.iNTRO
             )
 
-            val introSlide = builder.admin().resources.create(
+            val introSlide = builder.admin.resources.create(
                 customer,
                 device,
                 application,
@@ -68,7 +68,7 @@ class WallApplicationTestsIT : AbstractFunctionalTest() {
                 ResourceType.sLIDESHOW
             )
 
-            val introPage1 = builder.admin().resources.create(
+            val introPage1 = builder.admin.resources.create(
                 customer,
                 device,
                 application,
@@ -80,7 +80,7 @@ class WallApplicationTestsIT : AbstractFunctionalTest() {
                 ResourceType.pAGE
             )
 
-            builder.admin().resources.create(
+            builder.admin.resources.create(
                 customer,
                 device,
                 application,
@@ -92,7 +92,7 @@ class WallApplicationTestsIT : AbstractFunctionalTest() {
                 ResourceType.pDF
             )
 
-            val introPage2 = builder.admin().resources.create(
+            val introPage2 = builder.admin.resources.create(
                 customer,
                 device,
                 application,
@@ -104,7 +104,7 @@ class WallApplicationTestsIT : AbstractFunctionalTest() {
                 ResourceType.pAGE
             )
 
-            val introPage2Image = builder.admin().resources.create(
+            val introPage2Image = builder.admin.resources.create(
                 customer,
                 device,
                 application,
@@ -116,7 +116,7 @@ class WallApplicationTestsIT : AbstractFunctionalTest() {
                 ResourceType.iMAGE
             )
 
-            val introPage2Text = builder.admin().resources.create(
+            val introPage2Text = builder.admin.resources.create(
                 customer,
                 device,
                 application,
@@ -128,7 +128,7 @@ class WallApplicationTestsIT : AbstractFunctionalTest() {
                 ResourceType.tEXT
             )
 
-            val menu = builder.admin().resources.create(
+            val menu = builder.admin.resources.create(
                 customer,
                 device,
                 application,
@@ -140,7 +140,7 @@ class WallApplicationTestsIT : AbstractFunctionalTest() {
                 ResourceType.mENU
             )
 
-            val menuPage1 = builder.admin().resources.create(
+            val menuPage1 = builder.admin.resources.create(
                 customer,
                 device,
                 application,
@@ -152,7 +152,7 @@ class WallApplicationTestsIT : AbstractFunctionalTest() {
                 ResourceType.pAGE
             )
 
-            builder.admin().resources.create(
+            builder.admin.resources.create(
                 customer,
                 device,
                 application,
@@ -164,7 +164,7 @@ class WallApplicationTestsIT : AbstractFunctionalTest() {
                 ResourceType.vIDEO
             )
 
-            val menuPage2 = builder.admin().resources.create(
+            val menuPage2 = builder.admin.resources.create(
                 customer,
                 device,
                 application,
@@ -176,7 +176,7 @@ class WallApplicationTestsIT : AbstractFunctionalTest() {
                 ResourceType.pAGE
             )
 
-            builder.admin().resources.create(
+            builder.admin.resources.create(
                 customer,
                 device,
                 application,
@@ -188,7 +188,7 @@ class WallApplicationTestsIT : AbstractFunctionalTest() {
                 ResourceType.vIDEO
             )
 
-            val menuPage2Video = builder.admin().resources.create(
+            val menuPage2Video = builder.admin.resources.create(
                 customer,
                 device,
                 application,
@@ -200,7 +200,7 @@ class WallApplicationTestsIT : AbstractFunctionalTest() {
                 ResourceType.tEXT
             )
 
-            val wallApplication = builder.admin().wallApplication.getApplicationJson(application.id!!)
+            val wallApplication = builder.admin.wallApplication.getApplicationJson(application.id!!)
             assertNotNull(wallApplication, "Assert JSON not null")
             assertNotNull(wallApplication.root, "Assert JSON root not null")
             Asserts.assertEqualsOffsetDateTime(menuPage2Video.modifiedAt, wallApplication.modifiedAt)
@@ -224,32 +224,32 @@ class WallApplicationTestsIT : AbstractFunctionalTest() {
     @Test
     fun testWallApplicationExportApiKey() {
         TestBuilder().use { builder ->
-            val customer = builder.admin().customers.create()
-            val device = builder.admin().devices.create(customer, apiKey = "example-api-key")
-            val application = builder.admin().applications.create(customer, device)
+            val customer = builder.admin.customers.create()
+            val device = builder.admin.devices.create(customer, apiKey = "example-api-key")
+            val application = builder.admin.applications.create(customer, device)
 
-            builder.admin().wallApplication.assertGetApplicationJsonStatus(expectedStatus = 401, applicationId = application.id!!)
-            builder.admin().wallApplication.assertGetApplicationJsonStatus(expectedStatus = 403, applicationId = application.id, apiKey = "incorrect-api-key")
-            assertNotNull(builder.admin().wallApplication.getApplicationJson(applicationId = application.id, apiKey = "example-api-key"))
+            builder.admin.wallApplication.assertGetApplicationJsonStatus(expectedStatus = 401, applicationId = application.id!!)
+            builder.admin.wallApplication.assertGetApplicationJsonStatus(expectedStatus = 403, applicationId = application.id, apiKey = "incorrect-api-key")
+            assertNotNull(builder.admin.wallApplication.getApplicationJson(applicationId = application.id, apiKey = "example-api-key"))
 
-            builder.admin().devices.updateDevice(customer = customer, body = device.copy(apiKey = ""))
-            assertNotNull(builder.admin().wallApplication.getApplicationJson(applicationId = application.id, apiKey = ""))
-            assertNotNull(builder.admin().wallApplication.getApplicationJson(applicationId = application.id, apiKey = null))
+            builder.admin.devices.updateDevice(customer = customer, body = device.copy(apiKey = ""))
+            assertNotNull(builder.admin.wallApplication.getApplicationJson(applicationId = application.id, apiKey = ""))
+            assertNotNull(builder.admin.wallApplication.getApplicationJson(applicationId = application.id, apiKey = null))
 
-            builder.admin().devices.updateDevice(customer = customer, body = device.copy(apiKey = null))
-            assertNotNull(builder.admin().wallApplication.getApplicationJson(applicationId = application.id, apiKey = ""))
-            assertNotNull(builder.admin().wallApplication.getApplicationJson(applicationId = application.id, apiKey = null))
+            builder.admin.devices.updateDevice(customer = customer, body = device.copy(apiKey = null))
+            assertNotNull(builder.admin.wallApplication.getApplicationJson(applicationId = application.id, apiKey = ""))
+            assertNotNull(builder.admin.wallApplication.getApplicationJson(applicationId = application.id, apiKey = null))
         }
     }
 
     @Test
     fun testFindSpecificContentVersion() {
         TestBuilder().use { builder ->
-            val customer = builder.admin().customers.create()
-            val device = builder.admin().devices.create(customer)
-            val application = builder.admin().applications.create(customer, device)
+            val customer = builder.admin.customers.create()
+            val device = builder.admin.devices.create(customer)
+            val application = builder.admin.applications.create(customer, device)
 
-            builder.admin().resources.create(
+            builder.admin.resources.create(
                 customer = customer,
                 device = device,
                 application = application,
@@ -261,8 +261,8 @@ class WallApplicationTestsIT : AbstractFunctionalTest() {
                 type = ResourceType.cONTENTVERSION
             )
 
-            val activeContentVersion = builder.admin().wallApplication.getApplicationJson(applicationId =  application.id!!)
-            val specificContentVersion = builder.admin().wallApplication.getApplicationJsonForContentVersion(applicationId = application.id, slug = "second_content_version")
+            val activeContentVersion = builder.admin.wallApplication.getApplicationJson(applicationId =  application.id!!)
+            val specificContentVersion = builder.admin.wallApplication.getApplicationJsonForContentVersion(applicationId = application.id, slug = "second_content_version")
 
             assertEquals(activeContentVersion.root.slug, "1")
             assertEquals(specificContentVersion.root.slug, "second_content_version")

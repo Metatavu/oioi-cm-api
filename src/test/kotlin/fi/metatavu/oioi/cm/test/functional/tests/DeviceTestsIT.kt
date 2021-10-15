@@ -23,13 +23,14 @@ import java.util.*
     QuarkusTestResource(MysqlResource::class)
 )
 class DeviceTestsIT : AbstractFunctionalTest() {
+
     @Test
     @Throws(Exception::class)
     fun testDevice() {
         TestBuilder().use { builder ->
-            val customer = builder.admin().customers.create()
+            val customer = builder.admin.customers.create()
             assertNotNull(
-                builder.admin().devices.create(
+                builder.admin.devices.create(
                     customer,
                     "test customer",
                     "api key",
@@ -44,13 +45,13 @@ class DeviceTestsIT : AbstractFunctionalTest() {
     @Throws(Exception::class)
     fun testFindDevice() {
         TestBuilder().use { builder ->
-            val customer = builder.admin().customers.create()
-            val createdDevice = builder.admin().devices.create(customer)
-            builder.admin().devices.assertFindFailStatus(404, customer, UUID.randomUUID())
-            builder.admin().devices.assertFindFailStatus(404, UUID.randomUUID(), UUID.randomUUID())
-            val foundDevice = builder.admin().devices.findDevice(customer, createdDevice.id)
-            builder.admin().devices.assertFindFailStatus(404, UUID.randomUUID(), foundDevice.id)
-            builder.admin().devices.assertDevicesEqual(createdDevice, foundDevice)
+            val customer = builder.admin.customers.create()
+            val createdDevice = builder.admin.devices.create(customer)
+            builder.admin.devices.assertFindFailStatus(404, customer, UUID.randomUUID())
+            builder.admin.devices.assertFindFailStatus(404, UUID.randomUUID(), UUID.randomUUID())
+            val foundDevice = builder.admin.devices.findDevice(customer, createdDevice.id)
+            builder.admin.devices.assertFindFailStatus(404, UUID.randomUUID(), foundDevice.id)
+            builder.admin.devices.assertDevicesEqual(createdDevice, foundDevice)
         }
     }
 
@@ -58,11 +59,11 @@ class DeviceTestsIT : AbstractFunctionalTest() {
     @Throws(Exception::class)
     fun testListDevices() {
         TestBuilder().use { builder ->
-            val customer = builder.admin().customers.create()
-            val createdDevice = builder.admin().devices.create(customer)
-            val foundDevices = builder.admin().devices.listDevices(customer)
+            val customer = builder.admin.customers.create()
+            val createdDevice = builder.admin.devices.create(customer)
+            val foundDevices = builder.admin.devices.listDevices(customer)
             assertEquals(1, foundDevices.size.toLong())
-            builder.admin().devices.assertDevicesEqual(createdDevice, foundDevices[0])
+            builder.admin.devices.assertDevicesEqual(createdDevice, foundDevices[0])
         }
     }
 
@@ -70,8 +71,8 @@ class DeviceTestsIT : AbstractFunctionalTest() {
     @Throws(Exception::class)
     fun testUpdateDevice() {
         TestBuilder().use { builder ->
-            val customer = builder.admin().customers.create()
-            val createdDevice = builder.admin().devices.create(
+            val customer = builder.admin.customers.create()
+            val createdDevice = builder.admin.devices.create(
                 customer,
                 "test customer",
                 "api key",
@@ -79,21 +80,21 @@ class DeviceTestsIT : AbstractFunctionalTest() {
                 arrayOf(getKeyValue("key-1", "value-1"), getKeyValue("key-2", "value-2"))
             )
 
-            val updateDevice = builder.admin().devices.findDevice(customer, createdDevice.id).copy(
+            val updateDevice = builder.admin.devices.findDevice(customer, createdDevice.id).copy(
                 name = "updated customer",
                 apiKey = "api key",
                 imageUrl = "http://www.example.com/updated.png",
                 metas = arrayOf(getKeyValue("key-1", "value-1"), getKeyValue("key-3", "value-3"))
             )
 
-            val updatedDevice = builder.admin().devices.updateDevice(customer, updateDevice)
+            val updatedDevice = builder.admin.devices.updateDevice(customer, updateDevice)
             assertEquals(createdDevice.id, updatedDevice.id)
             assertEquals(updateDevice.name, updatedDevice.name)
             assertEquals(updateDevice.apiKey, updatedDevice.apiKey)
             assertEquals(updateDevice.imageUrl, updatedDevice.imageUrl)
-            builder.admin().devices.assertJsonsEqual(updateDevice.metas, updatedDevice.metas)
+            builder.admin.devices.assertJsonsEqual(updateDevice.metas, updatedDevice.metas)
 
-            val foundDevice = builder.admin().devices.findDevice(
+            val foundDevice = builder.admin.devices.findDevice(
                 customer,
                 createdDevice.id
             )
@@ -103,7 +104,7 @@ class DeviceTestsIT : AbstractFunctionalTest() {
             assertEquals(updateDevice.apiKey, foundDevice.apiKey)
             assertEquals(updateDevice.imageUrl, foundDevice.imageUrl)
 
-            builder.admin().devices.assertJsonsEqual(updateDevice.metas, foundDevice.metas)
+            builder.admin.devices.assertJsonsEqual(updateDevice.metas, foundDevice.metas)
         }
     }
 
@@ -111,12 +112,44 @@ class DeviceTestsIT : AbstractFunctionalTest() {
     @Throws(Exception::class)
     fun testDeleteDevice() {
         TestBuilder().use { builder ->
-            val customer = builder.admin().customers.create()
-            val createdDevice = builder.admin().devices.create(customer)
-            val device = builder.admin().devices.findDevice(customer, createdDevice.id)
+            val customer = builder.admin.customers.create()
+            val createdDevice = builder.admin.devices.create(customer)
+            val device = builder.admin.devices.findDevice(customer, createdDevice.id)
             assertEquals(createdDevice.id, device.id)
-            builder.admin().devices.delete(customer, createdDevice)
-            builder.admin().devices.assertDeleteFailStatus(404, customer, createdDevice)
+            builder.admin.devices.delete(customer, createdDevice)
+            builder.admin.devices.assertDeleteFailStatus(404, customer, createdDevice)
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun testDeletePermissions() {
+        TestBuilder().use { builder ->
+            val customer = builder.admin.customers.create(name = "customer-1")
+            val device = builder.admin.devices.create(customer)
+
+            builder.customer2User.devices.assertDeleteFailStatus(
+                expectedStatus = 403,
+                customer = customer,
+                device = device
+            )
+
+            builder.customer2Admin.devices.assertDeleteFailStatus(
+                expectedStatus = 403,
+                customer = customer,
+                device = device
+            )
+
+            builder.customer1User.devices.assertDeleteFailStatus(
+                expectedStatus = 403,
+                customer = customer,
+                device = device
+            )
+
+            builder.customer1Admin.devices.delete(
+                customer = customer,
+                device = device
+            )
         }
     }
 }
