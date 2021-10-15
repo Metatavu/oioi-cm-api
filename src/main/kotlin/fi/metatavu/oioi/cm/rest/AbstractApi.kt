@@ -96,7 +96,7 @@ abstract class AbstractApi {
 
         customerName ?: return false
 
-        return loggedUserGroups.contains(customerName)
+        return hasRealmRole(customerName) || loggedUserGroups.contains(customerName)
     }
 
     /**

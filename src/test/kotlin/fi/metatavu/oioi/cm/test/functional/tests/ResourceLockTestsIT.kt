@@ -29,12 +29,12 @@ class ResourceLockTestsIT : AbstractFunctionalTest() {
     @Test
     fun createLock() {
         TestBuilder().use { builder ->
-            val customer = builder.admin().customers.create()
-            val device = builder.admin().devices.create(customer)
-            val application = builder.admin().applications.create(customer, device)
-            val secondApplication = builder.admin().applications.create(customer, device)
+            val customer = builder.admin.customers.create(name = "customer-1")
+            val device = builder.admin.devices.create(customer)
+            val application = builder.admin.applications.create(customer, device)
+            val secondApplication = builder.admin.applications.create(customer, device)
 
-            val resource = builder.admin().resources.create(
+            val resource = builder.admin.resources.create(
                 customer = customer,
                 device = device,
                 application = application,
@@ -46,7 +46,7 @@ class ResourceLockTestsIT : AbstractFunctionalTest() {
                 ResourceType.mENU
             )
 
-            val resourceLock = builder.admin().resources.updateResourceLock(
+            val resourceLock = builder.admin.resources.updateResourceLock(
                 application = application,
                 customer = customer,
                 device = device,
@@ -57,7 +57,7 @@ class ResourceLockTestsIT : AbstractFunctionalTest() {
             assertEquals(resourceLock.userDisplayName, "Admin User")
             assertEquals(resourceLock.userId, UUID.fromString("64763625-dda7-4983-b18c-6daa9e299ec4"))
 
-            val secondResource = builder.admin().resources.create(
+            val secondResource = builder.admin.resources.create(
                 customer = customer,
                 device = device,
                 application = application,
@@ -69,7 +69,7 @@ class ResourceLockTestsIT : AbstractFunctionalTest() {
                 ResourceType.mENU
             )
 
-            val resourceLockForAnotherUser = builder.user().resources.updateResourceLock(
+            val resourceLockForAnotherUser = builder.customer1User.resources.updateResourceLock(
                 application = application,
                 customer = customer,
                 device = device,
@@ -77,10 +77,10 @@ class ResourceLockTestsIT : AbstractFunctionalTest() {
             )
 
             assertNotNull(resourceLockForAnotherUser)
-            assertEquals(resourceLockForAnotherUser.userDisplayName, "user@example.com")
-            assertEquals(resourceLockForAnotherUser.userId, UUID.fromString("6901afcc-435c-4780-93ba-9171cb604344"))
+            assertEquals("Customer 1 User", resourceLockForAnotherUser.userDisplayName)
+            assertEquals(CUSTOMER_1_USER_ID, resourceLockForAnotherUser.userId)
 
-            val resourceInOtherApplication = builder.admin().resources.create(
+            val resourceInOtherApplication = builder.admin.resources.create(
                 customer = customer,
                 device = device,
                 application = secondApplication,
@@ -92,7 +92,7 @@ class ResourceLockTestsIT : AbstractFunctionalTest() {
                 ResourceType.mENU
             )
 
-            val resourceLockForAnotherUserInOtherApplication = builder.admin().resources.updateResourceLock(
+            val resourceLockForAnotherUserInOtherApplication = builder.admin.resources.updateResourceLock(
                 application = secondApplication,
                 customer = customer,
                 device = device,
@@ -103,7 +103,7 @@ class ResourceLockTestsIT : AbstractFunctionalTest() {
             assertEquals(resourceLockForAnotherUserInOtherApplication.userDisplayName, "Admin User")
             assertEquals(resourceLockForAnotherUserInOtherApplication.userId, UUID.fromString("64763625-dda7-4983-b18c-6daa9e299ec4"))
 
-            builder.user().resources.deleteResourceLock(
+            builder.customer1User.resources.deleteResourceLock(
                 application = application,
                 customer = customer,
                 device = device,
@@ -118,11 +118,11 @@ class ResourceLockTestsIT : AbstractFunctionalTest() {
     @Test
     fun updateLock() {
         TestBuilder().use { builder ->
-            val customer = builder.admin().customers.create()
-            val device = builder.admin().devices.create(customer)
-            val application = builder.admin().applications.create(customer, device)
+            val customer = builder.admin.customers.create()
+            val device = builder.admin.devices.create(customer)
+            val application = builder.admin.applications.create(customer, device)
 
-            val resource = builder.admin().resources.create(
+            val resource = builder.admin.resources.create(
                 customer = customer,
                 device = device,
                 application = application,
@@ -134,14 +134,14 @@ class ResourceLockTestsIT : AbstractFunctionalTest() {
                 ResourceType.mENU
             )
 
-            val resourceLock = builder.admin().resources.updateResourceLock(
+            val resourceLock = builder.admin.resources.updateResourceLock(
                 application = application,
                 customer = customer,
                 device = device,
                 resource = resource
             )
 
-            val updateLock = builder.admin().resources.updateResourceLock(
+            val updateLock = builder.admin.resources.updateResourceLock(
                 application = application,
                 customer = customer,
                 device = device,
@@ -163,11 +163,11 @@ class ResourceLockTestsIT : AbstractFunctionalTest() {
     @Test
     fun updateLockConflict() {
         TestBuilder().use { builder ->
-            val customer = builder.admin().customers.create()
-            val device = builder.admin().devices.create(customer)
-            val application = builder.admin().applications.create(customer, device)
+            val customer = builder.admin.customers.create()
+            val device = builder.admin.devices.create(customer)
+            val application = builder.admin.applications.create(customer, device)
 
-            val resource = builder.admin().resources.create(
+            val resource = builder.admin.resources.create(
                 customer = customer,
                 device = device,
                 application = application,
@@ -179,14 +179,14 @@ class ResourceLockTestsIT : AbstractFunctionalTest() {
                 ResourceType.mENU
             )
 
-            builder.admin().resources.updateResourceLock(
+            builder.admin.resources.updateResourceLock(
                 application = application,
                 customer = customer,
                 device = device,
                 resource = resource
             )
 
-            builder.user().resources.assertUpdateLockFailStatus(
+            builder.customer1User.resources.assertUpdateLockFailStatus(
                 expectedStatus = 409,
                 application = application,
                 customer = customer,
@@ -202,11 +202,11 @@ class ResourceLockTestsIT : AbstractFunctionalTest() {
     @Test
     fun clearLockAndUpdate() {
         TestBuilder().use { builder ->
-            val customer = builder.admin().customers.create()
-            val device = builder.admin().devices.create(customer)
-            val application = builder.admin().applications.create(customer, device)
+            val customer = builder.admin.customers.create()
+            val device = builder.admin.devices.create(customer)
+            val application = builder.admin.applications.create(customer, device)
 
-            val resource = builder.admin().resources.create(
+            val resource = builder.admin.resources.create(
                 customer = customer,
                 device = device,
                 application = application,
@@ -218,14 +218,14 @@ class ResourceLockTestsIT : AbstractFunctionalTest() {
                 ResourceType.mENU
             )
 
-            builder.user().resources.updateResourceLock(
+            builder.customer1User.resources.updateResourceLock(
                 application = application,
                 customer = customer,
                 device = device,
                 resource = resource
             )
 
-            builder.admin().resources.assertDeleteLockFailStatus(
+            builder.admin.resources.assertDeleteLockFailStatus(
                 expectedStatus = 409,
                 application = application,
                 customer = customer,
@@ -233,14 +233,14 @@ class ResourceLockTestsIT : AbstractFunctionalTest() {
                 resource = resource
             )
 
-            builder.user().resources.deleteResourceLock(
+            builder.customer1User.resources.deleteResourceLock(
                 application = application,
                 customer = customer,
                 device = device,
                 resource = resource
             )
 
-            val resourceLock = builder.admin().resources.updateResourceLock(
+            val resourceLock = builder.admin.resources.updateResourceLock(
                 application = application,
                 customer = customer,
                 device = device,
@@ -259,19 +259,19 @@ class ResourceLockTestsIT : AbstractFunctionalTest() {
     @Test
     fun listResourceLockIds() {
         TestBuilder().use { builder ->
-            val customer = builder.admin().customers.create()
-            val device = builder.admin().devices.create(customer)
-            val application = builder.admin().applications.create(customer, device)
-            val secondApplication = builder.admin().applications.create(customer, device)
+            val customer = builder.admin.customers.create()
+            val device = builder.admin.devices.create(customer)
+            val application = builder.admin.applications.create(customer, device)
+            val secondApplication = builder.admin.applications.create(customer, device)
 
-            val emptyList = builder.user().resources.listLockedResourceIds(
+            val emptyList = builder.customer1User.resources.listLockedResourceIds(
                 application = application,
                 resource = null
             )
 
             assertEquals(0, emptyList.size)
 
-            val resource = builder.admin().resources.create(
+            val resource = builder.admin.resources.create(
                 customer = customer,
                 device = device,
                 application = application,
@@ -283,7 +283,7 @@ class ResourceLockTestsIT : AbstractFunctionalTest() {
                 ResourceType.mENU
             )
 
-            val secondResource = builder.admin().resources.create(
+            val secondResource = builder.admin.resources.create(
                 customer = customer,
                 device = device,
                 application = application,
@@ -295,21 +295,21 @@ class ResourceLockTestsIT : AbstractFunctionalTest() {
                 ResourceType.mENU
             )
 
-            builder.admin().resources.updateResourceLock(
+            builder.admin.resources.updateResourceLock(
                 application = application,
                 customer = customer,
                 device = device,
                 resource = resource
             )
 
-            builder.admin().resources.updateResourceLock(
+            builder.admin.resources.updateResourceLock(
                 application = application,
                 customer = customer,
                 device = device,
                 resource = secondResource
             )
 
-            builder.admin().resources.create(
+            builder.admin.resources.create(
                 customer = customer,
                 device = device,
                 application = secondApplication,
@@ -321,28 +321,28 @@ class ResourceLockTestsIT : AbstractFunctionalTest() {
                 ResourceType.mENU
             )
 
-            val resourceLocks = builder.user().resources.listLockedResourceIds(
+            val resourceLocks = builder.customer1User.resources.listLockedResourceIds(
                 application = application,
                 resource = null
             )
 
             assertEquals(2, resourceLocks.size)
 
-            builder.admin().resources.deleteResourceLock(
+            builder.admin.resources.deleteResourceLock(
                 application = application,
                 customer = customer,
                 device = device,
                 resource = resource
             )
 
-            builder.admin().resources.deleteResourceLock(
+            builder.admin.resources.deleteResourceLock(
                 application = application,
                 customer = customer,
                 device = device,
                 resource = secondResource
             )
 
-            val resourceLocksAfterDelete = builder.user().resources.listLockedResourceIds(
+            val resourceLocksAfterDelete = builder.customer1User.resources.listLockedResourceIds(
                 application = application,
                 resource = null
             )
@@ -357,11 +357,11 @@ class ResourceLockTestsIT : AbstractFunctionalTest() {
     @Test
     fun findResourceLock() {
         TestBuilder().use { builder ->
-            val customer = builder.admin().customers.create()
-            val device = builder.admin().devices.create(customer)
-            val application = builder.admin().applications.create(customer, device)
+            val customer = builder.admin.customers.create()
+            val device = builder.admin.devices.create(customer)
+            val application = builder.admin.applications.create(customer, device)
 
-            val resource = builder.admin().resources.create(
+            val resource = builder.admin.resources.create(
                 customer = customer,
                 device = device,
                 application = application,
@@ -373,14 +373,14 @@ class ResourceLockTestsIT : AbstractFunctionalTest() {
                 ResourceType.mENU
             )
 
-            val createdLock = builder.admin().resources.updateResourceLock(
+            val createdLock = builder.admin.resources.updateResourceLock(
                 application = application,
                 customer = customer,
                 device = device,
                 resource = resource
             )
 
-            val foundLock = builder.admin().resources.findResourceLock(
+            val foundLock = builder.admin.resources.findResourceLock(
                 application = application,
                 customer = customer,
                 device = device,

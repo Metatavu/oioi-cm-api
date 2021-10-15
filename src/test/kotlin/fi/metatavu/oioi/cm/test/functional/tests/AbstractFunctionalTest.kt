@@ -19,9 +19,16 @@ import java.util.*
  */
 abstract class AbstractFunctionalTest {
 
+    companion object {
+        val CUSTOMER_1_ADMIN_ID = UUID.fromString("3bf6051a-2ebb-401b-93f5-9a4e5dcbfa3b")
+        val CUSTOMER_1_USER_ID = UUID.fromString("235da6b3-b638-4d46-83fb-a19d59de6e1a")
+        val CUSTOMER_2_ADMIN_ID = UUID.fromString("7106dd56-3548-4bea-a7f7-b0f89d69a382")
+        val CUSTOMER_2_USER_ID = UUID.fromString("4d92fddc-2666-41e4-a883-1969c5c1f749")
+    }
+
     @After
     fun assetCleanAfter() {
-        TestBuilder().use { builder -> assertEquals(0, builder.admin().customers.listCustomers().size) }
+        TestBuilder().use { builder -> assertEquals(0, builder.admin.customers.listCustomers().size) }
     }
 
     /**
@@ -82,7 +89,7 @@ abstract class AbstractFunctionalTest {
      * @return created resource
      */
     protected fun createResourceFromItem(builder: TestBuilder, item: ResourceItem, customer: Customer, device: Device, application: Application, parentId: UUID, orderNumber: Int): Resource {
-        val result = builder.admin().resources.create(
+        val result = builder.admin.resources.create(
             customer = customer,
             device = device,
             application = application,

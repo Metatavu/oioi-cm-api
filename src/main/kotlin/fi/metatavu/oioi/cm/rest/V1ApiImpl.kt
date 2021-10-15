@@ -579,8 +579,8 @@ class V1ApiImpl : AbstractApi(), V1Api {
     override fun deleteResource(customerId: UUID, deviceId: UUID, applicationId: UUID, resourceId: UUID): Response {
         val loggedUserId = loggedUserId ?: return createUnauthorized("No logged user ID!")
 
-        val customer = customerController.findCustomerById(customerId)
-            ?: return createNotFound("Customer with ID: $customerId could not be found!")
+        val customer = customerController.findCustomerById(customerId) ?: return createNotFound("Customer with ID: $customerId could not be found!")
+
         if (!isAdminOrHasCustomerGroup(customer.name)) {
             return createForbidden(FORBIDDEN_MESSAGE)
         }

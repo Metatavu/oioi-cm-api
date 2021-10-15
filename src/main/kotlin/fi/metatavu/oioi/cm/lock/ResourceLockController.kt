@@ -1,6 +1,6 @@
 package fi.metatavu.oioi.cm.lock
 
-import fi.metatavu.oioi.cm.persistence.dao.ResourceLockDao
+import fi.metatavu.oioi.cm.persistence.dao.ResourceLockDAO
 import fi.metatavu.oioi.cm.persistence.model.Application
 import fi.metatavu.oioi.cm.persistence.model.Resource
 import fi.metatavu.oioi.cm.persistence.model.ResourceLock
@@ -19,7 +19,7 @@ import javax.inject.Inject
 class ResourceLockController {
 
     @Inject
-    lateinit var resourceLockDao: ResourceLockDao
+    lateinit var resourceLockDao: ResourceLockDAO
 
     @Inject
     lateinit var resourceController: ResourceController
@@ -123,7 +123,7 @@ class ResourceLockController {
             .filter { it.userId != loggedUserId }
             .map{ lock -> lock.resource!! }
 
-        if (lockedResourcesForOtherUsers.isNullOrEmpty()) {
+        if (lockedResourcesForOtherUsers.isEmpty()) {
             return true
         }
 
