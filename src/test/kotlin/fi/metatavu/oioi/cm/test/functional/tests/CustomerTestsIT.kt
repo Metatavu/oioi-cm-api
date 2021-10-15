@@ -61,6 +61,19 @@ class CustomerTestsIT : AbstractFunctionalTest() {
 
     @Test
     @Throws(Exception::class)
+    fun testListCustomerPermissions() {
+        TestBuilder().use { builder ->
+            builder.admin.customers.create("customer-1", "http://example.com/great-image.jpg")
+            builder.admin.customers.assertCount(1)
+            builder.customer1User.customers.assertCount(1)
+            builder.customer1Admin.customers.assertCount(1)
+            builder.customer2User.customers.assertCount(0)
+            builder.customer2Admin.customers.assertCount(0)
+        }
+    }
+
+    @Test
+    @Throws(Exception::class)
     fun testUpdateCustomer() {
         TestBuilder().use { builder ->
             val createdCustomer = builder.admin.customers.create("test customer", "http://example.com/great-image.jpg")

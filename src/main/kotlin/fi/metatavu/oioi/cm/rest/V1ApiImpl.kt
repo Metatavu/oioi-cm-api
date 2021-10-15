@@ -234,11 +234,10 @@ class V1ApiImpl : AbstractApi(), V1Api {
     }
 
     override fun listCustomers(): Response {
-        return if (hasRealmRole(ADMIN_ROLE)) {
-            createOk(customerController.listAllCustomers().map (customerTranslator::translate))
-        } else {
-            createOk(customerController.listCustomersByNameIn(loggedUserGroups).map (customerTranslator::translate))
-        }
+        return createOk(customerController
+            .listAllCustomers().filter { isAdminOrHasCustomerGroup(it.name) }
+            .map (customerTranslator::translate)
+        )
     }
 
     override fun findCustomer(customerId: UUID): Response {
