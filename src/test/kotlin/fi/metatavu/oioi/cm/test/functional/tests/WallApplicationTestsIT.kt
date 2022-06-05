@@ -1,6 +1,7 @@
 package fi.metatavu.oioi.cm.test.functional.tests
 
 import fi.metatavu.ikioma.integrations.test.functional.resources.MysqlResource
+import fi.metatavu.oioi.cm.client.models.KeyValueProperty
 import fi.metatavu.oioi.cm.client.models.ResourceType
 import fi.metatavu.oioi.cm.test.common.Asserts
 import fi.metatavu.oioi.cm.test.functional.builder.TestBuilder
@@ -218,6 +219,97 @@ class WallApplicationTestsIT : AbstractFunctionalTest() {
             assertEquals(exportIntroPage2Image.slug, introPage2Image.slug,"Assert intro page 2 image slug")
             val exportIntroPage2Text = exportIntroPage2.children[1]
             assertEquals(exportIntroPage2Text.slug, introPage2Text.slug,"Assert intro page 2 text slug")
+        }
+    }
+
+    @Test
+    fun testWallApplicationExportRootProperties() {
+        TestBuilder().use { builder ->
+            val customer = builder.admin.customers.create()
+            val device = builder.admin.devices.create(customer)
+            val application = builder.admin.applications.create(customer, device)
+            val applicationId = application.id!!
+            val originalContentVersionResourceId = application.activeContentVersionResourceId
+
+            val contentVersion1 = builder.admin.resources.create(
+                customer = customer,
+                device = device,
+                application = application,
+                name = "Content version 1",
+                slug = "version-1",
+                type = ResourceType.cONTENTVERSION,
+                orderNumber = 1,
+                parentId = application.rootResourceId,
+                properties = arrayOf(
+                    KeyValueProperty(key = "version-1-prop-1", value = "version 2, value 1"),
+                    KeyValueProperty(key = "version-1-prop-2", value = "version 2, value 2")
+                ),
+                styles = arrayOf(
+                    KeyValueProperty(key = "version-1-style-1", value = "version 2, style 1"),
+                    KeyValueProperty(key = "version-1-style-2", value = "version 2, style 2")
+                )
+            )
+
+            val contentVersion2 = builder.admin.resources.create(
+                customer = customer,
+                device = device,
+                application = application,
+                name = "Content version 2",
+                slug = "version-2",
+                type = ResourceType.cONTENTVERSION,
+                orderNumber = 2,
+                parentId = application.rootResourceId,
+                properties = arrayOf(
+                    KeyValueProperty(key = "version-2-prop-1", value = "version 1, value 1"),
+                    KeyValueProperty(key = "version-2-prop-2", value = "version 1, value 2")
+                ),
+                styles = arrayOf(
+                    KeyValueProperty(key = "version-2-style-1", value = "version 1, style 1"),
+                    KeyValueProperty(key = "version-2-style-2", value = "version 1, style 2")
+                )
+            )
+
+            builder.admin.applications.updateApplication(customer, device, application.copy(
+                activeContentVersionResourceId = contentVersion1.id!!
+            ))
+
+            val wallApplication1 = builder.admin.wallApplication.getApplicationJson(applicationId)
+            assertNotNull(wallApplication1, "Assert JSON not null")
+            assertNotNull(wallApplication1.root, "Assert JSON root not null")
+            assertNotNull(contentVersion1.properties)
+            assertEquals(2, contentVersion1.properties!!.size)
+            assertEquals(2, contentVersion1.styles!!.size)
+
+            for (property in contentVersion1.properties) {
+                assertEquals(property.value, wallApplication1.root.properties[property.key])
+            }
+
+            for (style in contentVersion1.styles) {
+                assertEquals(style.value, wallApplication1.root.styles[style.key])
+            }
+
+            builder.admin.applications.updateApplication(customer, device, application.copy(
+                activeContentVersionResourceId = contentVersion2.id!!
+            ))
+
+            val wallApplication2 = builder.admin.wallApplication.getApplicationJson(applicationId)
+            assertNotNull(wallApplication2, "Assert JSON not null")
+            assertNotNull(wallApplication2.root, "Assert JSON root not null")
+            assertNotNull(contentVersion2.properties)
+            assertEquals(2, contentVersion2.properties!!.size)
+            assertEquals(2, contentVersion2.styles!!.size)
+
+            for (property in contentVersion2.properties) {
+                assertEquals(property.value, wallApplication2.root.properties[property.key])
+            }
+
+            for (style in contentVersion2.styles) {
+                assertEquals(style.value, wallApplication2.root.styles[style.key])
+            }
+
+            builder.admin.applications.updateApplication(customer, device, application.copy(
+                activeContentVersionResourceId = originalContentVersionResourceId
+            ))
         }
     }
 
