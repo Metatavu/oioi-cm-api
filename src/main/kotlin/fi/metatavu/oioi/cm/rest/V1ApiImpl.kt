@@ -9,6 +9,7 @@ import fi.metatavu.oioi.cm.model.*
 import fi.metatavu.oioi.cm.resources.ResourceController
 import fi.metatavu.oioi.cm.rest.translate.*
 import fi.metatavu.oioi.cm.spec.V1Api
+import io.quarkus.arc.Lock
 import java.util.*
 import javax.enterprise.context.RequestScoped
 import javax.inject.Inject
@@ -629,6 +630,7 @@ class V1ApiImpl : AbstractApi(), V1Api {
         return createOk(resourceLockTranslator.translate(foundLock))
     }
 
+    @Lock
     override fun updateResourceLock(
         customerId: UUID,
         deviceId: UUID,
