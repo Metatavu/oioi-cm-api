@@ -24,16 +24,16 @@ class WallDeviceTestsIT : AbstractFunctionalTest() {
     @Test
     fun testWallApplicationExport() {
         TestBuilder().use { builder ->
-            val customer = builder.admin().customers.create()
-            val device = builder.admin().devices.create(customer)
+            val customer = builder.admin.customers.create()
+            val device = builder.admin.devices.create(customer)
 
-            builder.admin().applications.create(
+            builder.admin.applications.create(
                 customer = customer,
                 device = device,
                 name = "application's name"
             )
 
-            val wallDevice = builder.admin().wallDevice.getDeviceJson(deviceId = device.id!!)
+            val wallDevice = builder.admin.wallDevice.getDeviceJson(deviceId = device.id!!)
             assertNotNull(wallDevice)
             assertEquals(1, wallDevice.applications.size)
 
@@ -46,20 +46,20 @@ class WallDeviceTestsIT : AbstractFunctionalTest() {
     @Test
     fun testWallDeviceExportApiKey() {
         TestBuilder().use { builder ->
-            val customer = builder.admin().customers.create()
-            val device = builder.admin().devices.create(customer, apiKey = "example-api-key")
+            val customer = builder.admin.customers.create()
+            val device = builder.admin.devices.create(customer, apiKey = "example-api-key")
 
-            builder.admin().wallDevice.assertGetDeviceJsonStatus(expectedStatus = 401, deviceId = device.id!!)
-            builder.admin().wallDevice.assertGetDeviceJsonStatus(expectedStatus = 403, deviceId = device.id, apiKey = "incorrect-api-key")
-            assertNotNull(builder.admin().wallDevice.getDeviceJson(deviceId = device.id, apiKey = "example-api-key"))
+            builder.admin.wallDevice.assertGetDeviceJsonStatus(expectedStatus = 401, deviceId = device.id!!)
+            builder.admin.wallDevice.assertGetDeviceJsonStatus(expectedStatus = 403, deviceId = device.id, apiKey = "incorrect-api-key")
+            assertNotNull(builder.admin.wallDevice.getDeviceJson(deviceId = device.id, apiKey = "example-api-key"))
 
-            builder.admin().devices.updateDevice(customer = customer, body = device.copy(apiKey = ""))
-            assertNotNull(builder.admin().wallDevice.getDeviceJson(deviceId = device.id, apiKey = ""))
-            assertNotNull(builder.admin().wallDevice.getDeviceJson(deviceId = device.id, apiKey = null))
+            builder.admin.devices.updateDevice(customer = customer, body = device.copy(apiKey = ""))
+            assertNotNull(builder.admin.wallDevice.getDeviceJson(deviceId = device.id, apiKey = ""))
+            assertNotNull(builder.admin.wallDevice.getDeviceJson(deviceId = device.id, apiKey = null))
 
-            builder.admin().devices.updateDevice(customer = customer, body = device.copy(apiKey = null))
-            assertNotNull(builder.admin().wallDevice.getDeviceJson(deviceId = device.id, apiKey = ""))
-            assertNotNull(builder.admin().wallDevice.getDeviceJson(deviceId = device.id, apiKey = null))
+            builder.admin.devices.updateDevice(customer = customer, body = device.copy(apiKey = null))
+            assertNotNull(builder.admin.wallDevice.getDeviceJson(deviceId = device.id, apiKey = ""))
+            assertNotNull(builder.admin.wallDevice.getDeviceJson(deviceId = device.id, apiKey = null))
         }
     }
 }

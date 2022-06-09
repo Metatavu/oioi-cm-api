@@ -23,9 +23,32 @@ class WallResourceTranslator : AbstractTranslator<Resource?, WallResource?>() {
 
         val result = WallResource()
         result.slug = entity.slug
-        result.children = translate(resourceController.listResourcesByParent(entity))
+        result.children = translate(resourceController.listResourcesByParent(parent = entity, resourceType = null))
         result.data = entity.data
         result.name = entity.name
+        result.properties = getProperties(entity)
+        result.styles = getStyles(entity)
+        result.type = entity.type
+        result.modifiedAt = entity.modifiedAt
+        return result
+    }
+
+    /**
+     * Translates wall resource
+     *
+     * @param entity resource entity
+     * @param applicationName application name
+     * @return translated wall resource
+     */
+    fun translate(entity: Resource?, applicationName: String?): WallResource? {
+        entity ?: return null
+        applicationName ?: return null
+
+        val result = WallResource()
+        result.slug = entity.slug
+        result.children = translate(resourceController.listResourcesByParent(parent = entity, resourceType = null))
+        result.data = entity.data
+        result.name = applicationName
         result.properties = getProperties(entity)
         result.styles = getStyles(entity)
         result.type = entity.type
@@ -40,7 +63,7 @@ class WallResourceTranslator : AbstractTranslator<Resource?, WallResource?>() {
      * @return styles as key value pairs
      */
     private fun getStyles(entity: Resource): Map<String, String> {
-        return resourceController.listStyles(entity).associate { it.key to it.value }
+        return resourceController.listStyles(entity).associate { it.key!! to it.value!! }
     }
 
     /**
@@ -50,6 +73,6 @@ class WallResourceTranslator : AbstractTranslator<Resource?, WallResource?>() {
      * @return styles as key value pairs
      */
     private fun getProperties(entity: Resource): Map<String, String> {
-        return resourceController.listProperties(entity).associate { it.key to it.value }
+        return resourceController.listProperties(entity).associate { it.key!! to it.value!! }
     }
 }

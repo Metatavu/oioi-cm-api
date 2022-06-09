@@ -3,6 +3,7 @@ package fi.metatavu.oioi.cm.rest.translate
 import fi.metatavu.oioi.cm.model.WallApplication
 import fi.metatavu.oioi.cm.model.WallResource
 import fi.metatavu.oioi.cm.persistence.model.Application
+import fi.metatavu.oioi.cm.persistence.model.Resource
 import java.time.OffsetDateTime
 import java.util.*
 import java.util.function.Consumer
@@ -20,13 +21,27 @@ class WallApplicationTranslator : AbstractTranslator<Application?, WallApplicati
     @Inject
     lateinit var wallResourceTranslator: WallResourceTranslator
 
+    /**
+     * Translator for WallApplication when specific content version is requested
+     *
+     * @param entity application
+     * @param contentVersion content version
+     */
+    fun translate(entity: Application, contentVersion: Resource): WallApplication {
+        val contentVersionWallResource = wallResourceTranslator.translate(entity = contentVersion, applicationName = entity.name)
+        val result = WallApplication()
+        result.modifiedAt = getModifiedAt(contentVersionWallResource)
+        result.root = contentVersionWallResource
+        return result
+    }
+
     override fun translate(entity: Application?): WallApplication? {
         entity ?: return null
 
-        val root = wallResourceTranslator.translate(entity.rootResource)
+        val activeContentVersion = wallResourceTranslator.translate(entity = entity.activeContentVersionResource, applicationName = entity.name)
         val result = WallApplication()
-        result.modifiedAt = getModifiedAt(root)
-        result.root = root
+        result.modifiedAt = getModifiedAt(activeContentVersion)
+        result.root = activeContentVersion
         return result
     }
 

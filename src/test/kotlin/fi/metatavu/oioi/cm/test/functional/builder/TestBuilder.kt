@@ -18,31 +18,28 @@ import java.io.IOException
 open class TestBuilder: AbstractTestBuilder<ApiClient> () {
 
     val settings = ApiTestSettings()
-
-    private var admin: TestBuilderAuthentication? = null
+    val admin = createTestBuilderAuthentication(username = "admin", password = "admin")
+    val customer1User = createTestBuilderAuthentication(username = "customer-1-user", password = "pass")
+    val customer1Admin = createTestBuilderAuthentication(username = "customer-1-admin", password = "pass")
+    val customer2User = createTestBuilderAuthentication(username = "customer-2-user", password = "pass")
+    val customer2Admin = createTestBuilderAuthentication(username = "customer-2-admin", password = "pass")
 
     override fun createTestBuilderAuthentication(testBuilder: AbstractTestBuilder<ApiClient>, accessTokenProvider: AccessTokenProvider): AuthorizedTestBuilderAuthentication<ApiClient> {
         return TestBuilderAuthentication(this, accessTokenProvider)
     }
 
     /**
-     * Returns authentication resource authenticated as non registered Tero Äyrämö
+     * Creates test builder authenticatior for given user
      *
-     * @return authentication resource authenticated as non registered Tero Äyrämö
-     * @throws IOException
+     * @param username username
+     * @param password password
+     * @return test builder authenticatior for given user
      */
-    @kotlin.jvm.Throws(IOException::class)
-    fun admin(): TestBuilderAuthentication {
-        if (admin == null) {
-            val authServerUrl: String = ConfigProvider.getConfig().getValue("oioi.keycloak.url", String::class.java)
-            val realm: String = ConfigProvider.getConfig().getValue("oioi.keycloak.realm", String::class.java)
-            val clientId = "ui"
-            val username = "admin"
-            val password = "admin"
-            admin = TestBuilderAuthentication(this, KeycloakAccessTokenProvider(authServerUrl, realm, clientId, username, password, null))
-        }
-
-        return admin!!
+    private fun createTestBuilderAuthentication(username: String, password: String): TestBuilderAuthentication {
+        val authServerUrl: String = ConfigProvider.getConfig().getValue("oioi.keycloak.url", String::class.java)
+        val realm: String = ConfigProvider.getConfig().getValue("oioi.keycloak.realm", String::class.java)
+        val clientId = "ui"
+        return TestBuilderAuthentication(this, KeycloakAccessTokenProvider(authServerUrl, realm, clientId, username, password, null))
     }
     
 }

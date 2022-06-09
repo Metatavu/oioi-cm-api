@@ -1,0 +1,53 @@
+version: "3"
+services:
+  mysql:
+    image: mysql:5.6
+    volumes:
+      - db_data:/var/lib/mysql
+    command: --lower_case_table_names=1
+    container_name: oioi-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: oioi
+      MYSQL_USER: oioi
+      MYSQL_PASSWORD: password
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:15.0.2
+    container_name: oioi-keycloak
+    ports:
+      - 8080:8080
+    depends_on:
+      - mysql
+    environment:
+      DB_VENDOR: mysql
+      DB_DATABASE: keycloak
+      DB_USER: root
+      DB_ADDR: mysql
+      DB_PASSWORD: root
+      JDBC_PARAMS: useSSL=false&allowPublicKeyRetrieval=true
+
+  oioi:
+    build:
+      context: .
+      dockerfile: src/main/docker/Dockerfile.jvm
+    ports:
+      - 8081:8080
+    container_name: oioi-api
+    depends_on:
+      - mysql
+    environment:
+      QUARKUS_DATASOURCE_JDBC_URL: jdbc:mysql://mysql:3306/oioi?useSSL=false&allowPublicKeyRetrieval=true&zeroDateTimeBehavior=convertToNull
+      QUARKUS_DATASOURCE_PASSWORD: root
+      QUARKUS_DATASOURCE_USERNAME: root
+      QUARKUS_OIDC_AUTH_SERVER_URL: http://keycloak:8080/auth/realms/oioi
+      OIOI_KEYCLOAK_URL: http://keycloak:8080/auth
+      OIOI_KEYCLOAK_REALM: oioi
+      QUARKUS_OIDC_CLIENT_ID: api
+      QUARKUS_OIDC_CREDENTIALS_SECRET: e69bc12b-a285-4147-b06c-3be83693a2f1
+      QUARKUS_OIDC_CONNECTION_DELAY: 60s
+      OIOI_KEYCLOAK_API_ADMIN_USER: fake
+      OIOI_KEYCLOAK_API_ADMIN_PASSWORD: fake
+      
+volumes:
+  db_data: {}

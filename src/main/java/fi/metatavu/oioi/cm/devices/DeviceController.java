@@ -9,9 +9,9 @@ import java.util.stream.Collectors;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import fi.metatavu.oioi.cm.applications.ApplicationController;
 import org.keycloak.authorization.client.AuthzClient;
 
-import fi.metatavu.oioi.cm.applications.ApplicationController;
 import fi.metatavu.oioi.cm.model.KeyValueProperty;
 import fi.metatavu.oioi.cm.persistence.dao.DeviceDAO;
 import fi.metatavu.oioi.cm.persistence.dao.DeviceMetaDAO;
