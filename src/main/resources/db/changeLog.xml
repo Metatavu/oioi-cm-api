@@ -325,4 +325,8 @@
     </createTable>
   </changeSet>
 
+  <changeSet id="content-version-properties-and-styles" author="antti.leppa">
+    <customChange class="fi.metatavu.oioi.cm.liquibase.changes.ContentVersionPropertiesChange"/>
+  </changeSet>
+
 </databaseChangeLog>
