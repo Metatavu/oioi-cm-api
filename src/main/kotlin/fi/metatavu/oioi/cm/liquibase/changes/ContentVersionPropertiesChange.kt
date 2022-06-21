@@ -1,5 +1,6 @@
 package fi.metatavu.oioi.cm.liquibase.changes
 
+import io.quarkus.runtime.annotations.RegisterForReflection
 import liquibase.database.Database
 import liquibase.database.jvm.JdbcConnection
 import liquibase.exception.CustomChangeException
@@ -9,6 +10,7 @@ import java.util.*
 /**
  * Custom Liquibase migration for moving resource properties and styles from root resources to active content versions
  */
+@RegisterForReflection
 class ContentVersionPropertiesChange: AbstractCustomTaskChange() {
 
     companion object {
