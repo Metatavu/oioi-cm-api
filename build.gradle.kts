@@ -19,6 +19,7 @@ val quarkusPlatformVersion: String by project
 val jaxrsFunctionalTestBuilderVersion: String by project
 val testContainersVersion: String by project
 val testContainersKeycloakVersion: String by project
+val testContainersHivemqVersion: String by project
 val moshiVersion: String by project
 
 dependencies {
@@ -47,9 +48,10 @@ dependencies {
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("com.github.dasniko:testcontainers-keycloak:$testContainersKeycloakVersion")
 
-    testImplementation ("com.squareup.moshi:moshi-kotlin:$moshiVersion")
-    testImplementation ("com.squareup.moshi:moshi-adapters:$moshiVersion")
+    testImplementation("com.squareup.moshi:moshi-kotlin:$moshiVersion")
+    testImplementation("com.squareup.moshi:moshi-adapters:$moshiVersion")
     testImplementation("com.squareup.okhttp3:okhttp:3.12.13")
+    testImplementation("org.testcontainers:hivemq:$testContainersHivemqVersion")
 
     kapt ("com.squareup.moshi:moshi-kotlin-codegen:$moshiVersion")
     kapt ("org.hibernate:hibernate-jpamodelgen:5.5.6.Final")
