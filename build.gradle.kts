@@ -1,8 +1,8 @@
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
 plugins {
-    kotlin("jvm") version "1.5.21"
-    kotlin("plugin.allopen") version "1.5.21"
+    kotlin("jvm") version "1.6.21"
+    kotlin("plugin.allopen") version "1.6.21"
     id("io.quarkus")
     id("org.openapi.generator") version "5.0.0"
     id("org.jetbrains.kotlin.kapt") version "1.4.30"
@@ -19,6 +19,7 @@ val quarkusPlatformVersion: String by project
 val jaxrsFunctionalTestBuilderVersion: String by project
 val testContainersVersion: String by project
 val testContainersKeycloakVersion: String by project
+val testContainersHivemqVersion: String by project
 val moshiVersion: String by project
 
 dependencies {
@@ -33,9 +34,12 @@ dependencies {
     implementation("io.quarkus:quarkus-liquibase")
     implementation("io.quarkus:quarkus-jdbc-mysql")
     implementation("io.quarkus:quarkus-scheduler")
+    implementation("io.quarkus:quarkus-smallrye-reactive-messaging-mqtt")
+    implementation("io.quarkus:quarkus-cache")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("io.quarkus:quarkus-arc")
 
+    implementation ("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation ("org.apache.commons:commons-lang3")
 
     testImplementation("fi.metatavu.jaxrs.testbuilder:jaxrs-functional-test-builder:$jaxrsFunctionalTestBuilderVersion")
@@ -44,9 +48,10 @@ dependencies {
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("com.github.dasniko:testcontainers-keycloak:$testContainersKeycloakVersion")
 
-    testImplementation ("com.squareup.moshi:moshi-kotlin:$moshiVersion")
-    testImplementation ("com.squareup.moshi:moshi-adapters:$moshiVersion")
+    testImplementation("com.squareup.moshi:moshi-kotlin:$moshiVersion")
+    testImplementation("com.squareup.moshi:moshi-adapters:$moshiVersion")
     testImplementation("com.squareup.okhttp3:okhttp:3.12.13")
+    testImplementation("org.testcontainers:hivemq:$testContainersHivemqVersion")
 
     kapt ("com.squareup.moshi:moshi-kotlin-codegen:$moshiVersion")
     kapt ("org.hibernate:hibernate-jpamodelgen:5.5.6.Final")

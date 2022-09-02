@@ -1,9 +1,8 @@
 package fi.metatavu.oioi.cm.lock
 
+import fi.metatavu.oioi.cm.mqtt.ResourceLocksRealtimeController
 import fi.metatavu.oioi.cm.persistence.dao.ResourceLockDAO
-import fi.metatavu.oioi.cm.persistence.model.Application
-import fi.metatavu.oioi.cm.persistence.model.Resource
-import fi.metatavu.oioi.cm.persistence.model.ResourceLock
+import fi.metatavu.oioi.cm.persistence.model.*
 import fi.metatavu.oioi.cm.resources.ResourceController
 import java.time.OffsetDateTime
 import java.util.*
@@ -24,6 +23,9 @@ class ResourceLockController {
     @Inject
     lateinit var resourceController: ResourceController
 
+    @Inject
+    lateinit var resourceLocksRealtimeController: ResourceLocksRealtimeController
+
     /**
      * Creates resource lock
      *
@@ -33,12 +35,19 @@ class ResourceLockController {
      * @return created resource lock
      */
     fun createResourceLock(application: Application, resource: Resource, userId: UUID): ResourceLock {
-        return resourceLockDao.create(
+        val result = resourceLockDao.create(
             id = UUID.randomUUID(),
             application = application,
             resource = resource,
             userId = userId
         )
+
+        notifyResourceLockChange(
+            resource = resource,
+            locked = true
+        )
+
+        return result
     }
 
     /**
@@ -77,14 +86,31 @@ class ResourceLockController {
      * @return updated resource lock
      */
     fun updateResourceLock(resourceLock: ResourceLock): ResourceLock {
-        return resourceLockDao.updateExpiresAt(resourceLock, expiresAt = OffsetDateTime.now().plusMinutes(1))
+        val result = resourceLockDao.updateExpiresAt(
+            resourceLock = resourceLock,
+            expiresAt = OffsetDateTime.now().plusMinutes(1)
+        )
+
+        notifyResourceLockChange(
+            resource = resourceLock.resource,
+            locked = true
+        )
+
+        return result
     }
 
     /**
      * Deletes resource lock
      */
     fun deleteResourceLock(resourceLock: ResourceLock) {
+        val resource = resourceLock.resource
+
         resourceLockDao.delete(resourceLock)
+
+        notifyResourceLockChange(
+            resource = resource,
+            locked = false
+        )
     }
 
     /**
@@ -151,5 +177,21 @@ class ResourceLockController {
         }
 
         return true
+    }
+
+    /**
+     * Notifies resource lock change via realtime channel
+     *
+     * @param resource resource
+     * @param locked whether resource was locked or unlocked
+     */
+    private fun notifyResourceLockChange(
+        resource: Resource?,
+        locked: Boolean
+    ) {
+        resourceLocksRealtimeController.notifyResourceLockChange(
+            resourceId = resource?.id ?: return,
+            locked = locked
+        )
     }
 }
