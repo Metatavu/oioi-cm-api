@@ -685,7 +685,7 @@ class V1ApiImpl : AbstractApi(), V1Api {
             resource = resourceController.findResourceById(resourceId) ?: return createNotFound("Resource with ID $resourceId could not be found!")
         }
 
-        val foundLocks = resourceLockController.list(application = application, resource = resource, notExpired = true)
+        val foundLocks = resourceLockController.list(application = application, resource = resource)
         return createOk(resourceLockTranslator.translateLockedResourceIds(foundLocks))
     }
 
