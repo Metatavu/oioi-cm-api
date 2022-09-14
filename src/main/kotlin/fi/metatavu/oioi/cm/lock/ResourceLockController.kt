@@ -1,9 +1,8 @@
 package fi.metatavu.oioi.cm.lock
 
+import fi.metatavu.oioi.cm.mqtt.ResourceLocksRealtimeController
 import fi.metatavu.oioi.cm.persistence.dao.ResourceLockDAO
-import fi.metatavu.oioi.cm.persistence.model.Application
-import fi.metatavu.oioi.cm.persistence.model.Resource
-import fi.metatavu.oioi.cm.persistence.model.ResourceLock
+import fi.metatavu.oioi.cm.persistence.model.*
 import fi.metatavu.oioi.cm.resources.ResourceController
 import java.time.OffsetDateTime
 import java.util.*
@@ -24,6 +23,9 @@ class ResourceLockController {
     @Inject
     lateinit var resourceController: ResourceController
 
+    @Inject
+    lateinit var resourceLocksRealtimeController: ResourceLocksRealtimeController
+
     /**
      * Creates resource lock
      *
@@ -33,12 +35,19 @@ class ResourceLockController {
      * @return created resource lock
      */
     fun createResourceLock(application: Application, resource: Resource, userId: UUID): ResourceLock {
-        return resourceLockDao.create(
+        val result = resourceLockDao.create(
             id = UUID.randomUUID(),
             application = application,
             resource = resource,
             userId = userId
         )
+
+        notifyResourceLockChange(
+            resource = resource,
+            locked = true
+        )
+
+        return result
     }
 
     /**
@@ -46,11 +55,10 @@ class ResourceLockController {
      *
      * @param application application
      * @param resource filter by resource
-     * @param notExpired filter by not expired
      * @return found resource locks
      */
-    fun list(application: Application, resource: Resource?, notExpired: Boolean): List<ResourceLock> {
-        return resourceLockDao.list(application = application, resource = resource, notExpired = notExpired)
+    fun list(application: Application, resource: Resource?): List<ResourceLock> {
+        return resourceLockDao.list(application = application, resource = resource)
     }
 
     /**
@@ -77,14 +85,31 @@ class ResourceLockController {
      * @return updated resource lock
      */
     fun updateResourceLock(resourceLock: ResourceLock): ResourceLock {
-        return resourceLockDao.updateExpiresAt(resourceLock, expiresAt = OffsetDateTime.now().plusMinutes(1))
+        val result = resourceLockDao.updateExpiresAt(
+            resourceLock = resourceLock,
+            expiresAt = OffsetDateTime.now().plusMinutes(1)
+        )
+
+        notifyResourceLockChange(
+            resource = resourceLock.resource,
+            locked = true
+        )
+
+        return result
     }
 
     /**
      * Deletes resource lock
      */
     fun deleteResourceLock(resourceLock: ResourceLock) {
+        val resource = resourceLock.resource
+
         resourceLockDao.delete(resourceLock)
+
+        notifyResourceLockChange(
+            resource = resource,
+            locked = false
+        )
     }
 
     /**
@@ -119,9 +144,9 @@ class ResourceLockController {
      * @return true if none of the child elements are not locked for other users, otherwise false
      */
     fun isUserAllowedToDeleteResource(resource: Resource, loggedUserId: UUID, application: Application): Boolean {
-        val lockedResourcesForOtherUsers = list(application = application, resource = null, notExpired = false)
+        val lockedResourcesForOtherUsers = list(application = application, resource = null)
             .filter { it.userId != loggedUserId }
-            .map{ lock -> lock.resource!! }
+            .map { lock -> lock.resource!! }
 
         if (lockedResourcesForOtherUsers.isEmpty()) {
             return true
@@ -151,5 +176,21 @@ class ResourceLockController {
         }
 
         return true
+    }
+
+    /**
+     * Notifies resource lock change via realtime channel
+     *
+     * @param resource resource
+     * @param locked whether resource was locked or unlocked
+     */
+    private fun notifyResourceLockChange(
+        resource: Resource?,
+        locked: Boolean
+    ) {
+        resourceLocksRealtimeController.notifyResourceLockChange(
+            resourceId = resource?.id ?: return,
+            locked = locked
+        )
     }
 }

@@ -10,8 +10,10 @@ import javax.transaction.Transactional
  * Service for deleting expired resource locks
  *
  * @author Jari Nykänen
+ * @author Antti Leppä
  */
 @ApplicationScoped
+@Suppress ("UNUSED")
 class ResourceLockService {
 
     @Inject
@@ -20,7 +22,7 @@ class ResourceLockService {
     /**
      * Clear the database and request and analyze new orders data
      */
-    @Scheduled(every = "15m")
+    @Scheduled(every = "1m")
     @Transactional
     fun clearResourceLocks() {
         resourceLockController.deleteExpired()

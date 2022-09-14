@@ -1,10 +1,12 @@
 package fi.metatavu.oioi.cm.keycloak
 
+import io.quarkus.cache.CacheResult
 import org.eclipse.microprofile.config.inject.ConfigProperty
 import org.keycloak.admin.client.Keycloak
 import org.keycloak.admin.client.KeycloakBuilder
 import org.keycloak.admin.client.resource.UserResource
 import org.keycloak.admin.client.resource.UsersResource
+import org.slf4j.Logger
 import java.util.*
 import javax.enterprise.context.ApplicationScoped
 import javax.inject.Inject
@@ -18,28 +20,31 @@ import javax.inject.Inject
 class KeycloakController {
 
     @Inject
+    lateinit var logger: Logger
+
+    @Inject
     @ConfigProperty(name = "oioi.keycloak.url")
-    private lateinit var authServerUrl: String
+    lateinit var authServerUrl: String
 
     @Inject
     @ConfigProperty(name = "oioi.keycloak.realm")
-    private lateinit var realm: String
+    lateinit var realm: String
 
     @Inject
     @ConfigProperty(name = "quarkus.oidc.credentials.secret")
-    private lateinit var clientSecret: String
+    lateinit var clientSecret: String
 
     @Inject
     @ConfigProperty(name = "quarkus.oidc.client-id")
-    private lateinit var clientId: String
+    lateinit var clientId: String
 
     @Inject
     @ConfigProperty(name = "oioi.keycloak.api-admin.user")
-    private lateinit var apiAdminUser: String
+    lateinit var apiAdminUser: String
 
     @Inject
     @ConfigProperty(name = "oioi.keycloak.api-admin.password")
-    private lateinit var apiAdminPassword: String
+    lateinit var apiAdminPassword: String
 
     /**
      * Gets display name from keycloak
@@ -47,17 +52,23 @@ class KeycloakController {
      * @param userId UUID keycloak ID
      * @return display name
      */
+    @CacheResult(cacheName = "user-display-name-cache")
     fun getDisplayName(userId: UUID): String? {
-        val userResource = getUserResource(userId) ?: return null
-        val userRepresentation = userResource.toRepresentation() ?: return null
-        val firstName = userRepresentation.firstName
-        val lastName = userRepresentation.lastName
+        try {
+            val userResource = getUserResource(userId) ?: return null
+            val userRepresentation = userResource.toRepresentation() ?: return null
+            val firstName = userRepresentation.firstName
+            val lastName = userRepresentation.lastName
 
-        if (firstName == null || lastName == null) {
-            return userRepresentation.email
+            if (firstName == null || lastName == null) {
+                return userRepresentation.email
+            }
+
+            return "$firstName $lastName"
+        } catch (e: Exception) {
+            logger.warn("Failed to fetch display name of user $userId", e)
+            return null
         }
-
-        return "$firstName $lastName"
     }
 
     /**

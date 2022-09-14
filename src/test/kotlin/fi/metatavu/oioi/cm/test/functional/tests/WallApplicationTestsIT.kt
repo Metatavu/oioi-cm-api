@@ -5,6 +5,7 @@ import fi.metatavu.oioi.cm.client.models.KeyValueProperty
 import fi.metatavu.oioi.cm.client.models.ResourceType
 import fi.metatavu.oioi.cm.test.common.Asserts
 import fi.metatavu.oioi.cm.test.functional.builder.TestBuilder
+import fi.metatavu.oioi.cm.test.functional.resources.HiveMQTestResource
 import fi.metatavu.oioi.cm.test.functional.resources.KeycloakTestResource
 import io.quarkus.test.common.QuarkusTestResource
 import io.quarkus.test.junit.QuarkusTest
@@ -21,7 +22,8 @@ import org.junit.jupiter.api.Test
 @QuarkusTest
 @QuarkusTestResource.List(
     QuarkusTestResource(KeycloakTestResource::class),
-    QuarkusTestResource(MysqlResource::class)
+    QuarkusTestResource(MysqlResource::class),
+    QuarkusTestResource(HiveMQTestResource::class)
 )
 class WallApplicationTestsIT : AbstractFunctionalTest() {
 
