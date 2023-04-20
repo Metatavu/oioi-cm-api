@@ -136,7 +136,7 @@ class ResourceTestBuilderResource (
      * @param resourceType resource type
      * @return found resources
      */
-    fun listResources(customerId: UUID, deviceId: UUID, applicationId: UUID, parentId: UUID, resourceType: ResourceType?): Array<Resource> {
+    fun listResources(customerId: UUID, deviceId: UUID, applicationId: UUID, parentId: UUID, resourceType: ResourceType? = null): Array<Resource> {
         return api.listResources(
             customerId = customerId,
             deviceId = deviceId,

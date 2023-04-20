@@ -19,18 +19,7 @@ class WallResourceTranslator : AbstractTranslator<Resource?, WallResource?>() {
     lateinit var resourceController: ResourceController
 
     override fun translate(entity: Resource?): WallResource? {
-        entity ?: return null
-
-        val result = WallResource()
-        result.slug = entity.slug
-        result.children = translate(resourceController.listResourcesByParent(parent = entity, resourceType = null))
-        result.data = entity.data
-        result.name = entity.name
-        result.properties = getProperties(entity)
-        result.styles = getStyles(entity)
-        result.type = entity.type
-        result.modifiedAt = entity.modifiedAt
-        return result
+        return translate(entity = entity, applicationName = entity?.name)
     }
 
     /**
@@ -44,35 +33,24 @@ class WallResourceTranslator : AbstractTranslator<Resource?, WallResource?>() {
         entity ?: return null
         applicationName ?: return null
 
+        val resourceStyles = resourceController.listStyles(entity)
+        val resourceProperties = resourceController.listProperties(entity)
+
+        val modifiedAt = resourceStyles.mapNotNull { it.modifiedAt }
+            .plus(resourceProperties.mapNotNull{ it.modifiedAt })
+            .plus(entity.modifiedAt!!)
+            .maxOf { it }
+
         val result = WallResource()
         result.slug = entity.slug
         result.children = translate(resourceController.listResourcesByParent(parent = entity, resourceType = null))
         result.data = entity.data
         result.name = applicationName
-        result.properties = getProperties(entity)
-        result.styles = getStyles(entity)
+        result.properties = resourceProperties.associate { it.key!! to it.value!! }
+        result.styles = resourceStyles.associate { it.key!! to it.value!! }
         result.type = entity.type
-        result.modifiedAt = entity.modifiedAt
+        result.modifiedAt = modifiedAt
         return result
     }
 
-    /**
-     * Translates styles
-     *
-     * @param entity resource
-     * @return styles as key value pairs
-     */
-    private fun getStyles(entity: Resource): Map<String, String> {
-        return resourceController.listStyles(entity).associate { it.key!! to it.value!! }
-    }
-
-    /**
-     * Translates styles
-     *
-     * @param entity resource
-     * @return styles as key value pairs
-     */
-    private fun getProperties(entity: Resource): Map<String, String> {
-        return resourceController.listProperties(entity).associate { it.key!! to it.value!! }
-    }
 }
