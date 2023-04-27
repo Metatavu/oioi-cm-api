@@ -9,8 +9,7 @@ import fi.metatavu.oioi.cm.test.functional.resources.HiveMQTestResource
 import fi.metatavu.oioi.cm.test.functional.resources.KeycloakTestResource
 import io.quarkus.test.common.QuarkusTestResource
 import io.quarkus.test.junit.QuarkusTest
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
 /**
@@ -218,9 +217,9 @@ class WallApplicationTestsIT : AbstractFunctionalTest() {
             val exportIntroPage2 = exportIntroSlide.children[1]
             assertEquals(introPage2.slug, exportIntroPage2.slug, "Assert intro page 2 slug")
             val exportIntroPage2Image = exportIntroPage2.children[0]
-            assertEquals(exportIntroPage2Image.slug, introPage2Image.slug,"Assert intro page 2 image slug")
+            assertEquals(exportIntroPage2Image.slug, introPage2Image.slug, "Assert intro page 2 image slug")
             val exportIntroPage2Text = exportIntroPage2.children[1]
-            assertEquals(exportIntroPage2Text.slug, introPage2Text.slug,"Assert intro page 2 text slug")
+            assertEquals(exportIntroPage2Text.slug, introPage2Text.slug, "Assert intro page 2 text slug")
         }
     }
 
@@ -271,9 +270,11 @@ class WallApplicationTestsIT : AbstractFunctionalTest() {
                 )
             )
 
-            builder.admin.applications.updateApplication(customer, device, application.copy(
-                activeContentVersionResourceId = contentVersion1.id!!
-            ))
+            builder.admin.applications.updateApplication(
+                customer, device, application.copy(
+                    activeContentVersionResourceId = contentVersion1.id!!
+                )
+            )
 
             val wallApplication1 = builder.admin.wallApplication.getApplicationJson(applicationId)
             assertNotNull(wallApplication1, "Assert JSON not null")
@@ -290,9 +291,11 @@ class WallApplicationTestsIT : AbstractFunctionalTest() {
                 assertEquals(style.value, wallApplication1.root.styles[style.key])
             }
 
-            builder.admin.applications.updateApplication(customer, device, application.copy(
-                activeContentVersionResourceId = contentVersion2.id!!
-            ))
+            builder.admin.applications.updateApplication(
+                customer, device, application.copy(
+                    activeContentVersionResourceId = contentVersion2.id!!
+                )
+            )
 
             val wallApplication2 = builder.admin.wallApplication.getApplicationJson(applicationId)
             assertNotNull(wallApplication2, "Assert JSON not null")
@@ -309,9 +312,11 @@ class WallApplicationTestsIT : AbstractFunctionalTest() {
                 assertEquals(style.value, wallApplication2.root.styles[style.key])
             }
 
-            builder.admin.applications.updateApplication(customer, device, application.copy(
-                activeContentVersionResourceId = originalContentVersionResourceId
-            ))
+            builder.admin.applications.updateApplication(
+                customer, device, application.copy(
+                    activeContentVersionResourceId = originalContentVersionResourceId
+                )
+            )
         }
     }
 
@@ -322,17 +327,39 @@ class WallApplicationTestsIT : AbstractFunctionalTest() {
             val device = builder.admin.devices.create(customer, apiKey = "example-api-key")
             val application = builder.admin.applications.create(customer, device)
 
-            builder.admin.wallApplication.assertGetApplicationJsonStatus(expectedStatus = 401, applicationId = application.id!!)
-            builder.admin.wallApplication.assertGetApplicationJsonStatus(expectedStatus = 403, applicationId = application.id, apiKey = "incorrect-api-key")
-            assertNotNull(builder.admin.wallApplication.getApplicationJson(applicationId = application.id, apiKey = "example-api-key"))
+            builder.admin.wallApplication.assertGetApplicationJsonStatus(
+                expectedStatus = 401,
+                applicationId = application.id!!
+            )
+            builder.admin.wallApplication.assertGetApplicationJsonStatus(
+                expectedStatus = 403,
+                applicationId = application.id,
+                apiKey = "incorrect-api-key"
+            )
+            assertNotNull(
+                builder.admin.wallApplication.getApplicationJson(
+                    applicationId = application.id,
+                    apiKey = "example-api-key"
+                )
+            )
 
             builder.admin.devices.updateDevice(customer = customer, body = device.copy(apiKey = ""))
             assertNotNull(builder.admin.wallApplication.getApplicationJson(applicationId = application.id, apiKey = ""))
-            assertNotNull(builder.admin.wallApplication.getApplicationJson(applicationId = application.id, apiKey = null))
+            assertNotNull(
+                builder.admin.wallApplication.getApplicationJson(
+                    applicationId = application.id,
+                    apiKey = null
+                )
+            )
 
             builder.admin.devices.updateDevice(customer = customer, body = device.copy(apiKey = null))
             assertNotNull(builder.admin.wallApplication.getApplicationJson(applicationId = application.id, apiKey = ""))
-            assertNotNull(builder.admin.wallApplication.getApplicationJson(applicationId = application.id, apiKey = null))
+            assertNotNull(
+                builder.admin.wallApplication.getApplicationJson(
+                    applicationId = application.id,
+                    apiKey = null
+                )
+            )
         }
     }
 
@@ -355,12 +382,127 @@ class WallApplicationTestsIT : AbstractFunctionalTest() {
                 type = ResourceType.cONTENTVERSION
             )
 
-            val activeContentVersion = builder.admin.wallApplication.getApplicationJson(applicationId =  application.id!!)
-            val specificContentVersion = builder.admin.wallApplication.getApplicationJsonForContentVersion(applicationId = application.id, slug = "second_content_version")
+            val activeContentVersion =
+                builder.admin.wallApplication.getApplicationJson(applicationId = application.id!!)
+            val specificContentVersion = builder.admin.wallApplication.getApplicationJsonForContentVersion(
+                applicationId = application.id,
+                slug = "second_content_version"
+            )
 
             assertEquals(activeContentVersion.root.slug, "1")
             assertEquals(specificContentVersion.root.slug, "second_content_version")
 
         }
+    }
+
+    @Test
+    fun testWallApplicationModifiedAtOnStyleOrPropertyChange(): Unit = TestBuilder().use { builder ->
+        val customer = builder.admin.customers.create()
+        val device = builder.admin.devices.create(customer)
+
+        val application = builder.admin.applications.create(
+            customer = customer,
+            device = device,
+            name = "application's name"
+        )
+
+        val originalContentVersionResourceId = application.activeContentVersionResourceId
+
+        val rootItem = ResourceItem(
+            slug = "1", ResourceType.cONTENTVERSION, children = arrayOf(
+                ResourceItem(
+                    slug = "l", ResourceType.lANGUAGEMENU, children = arrayOf(
+                        ResourceItem(
+                            slug = "fi",
+                            ResourceType.lANGUAGE,
+                            properties = arrayOf(getKeyValue("description", "Finnish language page")),
+                            styles = arrayOf(getKeyValue("background", "#fff"), getKeyValue("color", "#00f")),
+                            children = arrayOf(
+                                ResourceItem(
+                                    slug = "menu", ResourceType.mENU, children = arrayOf(
+                                        ResourceItem(
+                                            slug = "menu-page-1", ResourceType.pAGE, children = arrayOf(
+                                                ResourceItem(
+                                                    slug = "video",
+                                                    ResourceType.vIDEO,
+                                                    data = "https://cdn.example.com/0f57bd21-7bb1-4308-bf52-0ab6d40bd88e/71b700d7-1264-43f9-9686-a137780cef4b"
+                                                ),
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        )
+
+        val contentVersion = createResourceFromItem(
+            builder = builder,
+            item = rootItem,
+            customer = customer,
+            device = device,
+            application = application,
+            parentId = application.rootResourceId!!,
+            orderNumber = 0
+        )
+
+        builder.admin.applications.updateApplication(
+            customer, device, application.copy( activeContentVersionResourceId = contentVersion.id!!)
+        )
+
+        val menuResource = findResourceBySlugs(
+            builder = builder,
+            parentResource = contentVersion,
+            customerId = customer.id!!,
+            deviceId = device.id!!,
+            applicationId = application.id!!,
+            slugs = listOf("l", "fi", "menu")
+        )
+
+        assertNotNull(menuResource)
+        assertNotNull(menuResource?.modifiedAt)
+
+        val wallJsonModifiedBefore = builder.admin.wallApplication
+            .getApplicationJson(applicationId = application.id).modifiedAt
+        assertNotNull(wallJsonModifiedBefore)
+
+        Thread.sleep(2000)
+
+        builder.admin.resources.updateResource(
+            customer = customer,
+            device = device,
+            application = application,
+            resource = menuResource!!.copy(
+                properties = arrayOf(
+                    getKeyValue(
+                        key = "description",
+                        value = "Finnish language page"
+                    )
+                )
+            )
+        )
+
+        val updatedMenuResource = builder.admin.resources.findResource(
+            customer = customer,
+            device = device,
+            application = application,
+            resourceId = menuResource.id!!
+        )
+
+        val wallJsonModifiedAfter = builder.admin.wallApplication.getApplicationJson(applicationId = application.id)
+            .modifiedAt
+
+        assertNotNull(wallJsonModifiedAfter)
+        assertNotNull(updatedMenuResource.modifiedAt)
+        assertNotEquals(updatedMenuResource.modifiedAt, menuResource.modifiedAt)
+        assertEquals(updatedMenuResource.modifiedAt, wallJsonModifiedAfter)
+
+        builder.admin.applications.updateApplication(
+            customer, device, application.copy(
+                activeContentVersionResourceId = originalContentVersionResourceId
+            )
+        )
     }
 }

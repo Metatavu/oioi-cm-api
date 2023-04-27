@@ -54,8 +54,7 @@ class WallApplicationTranslator : AbstractTranslator<Application?, WallApplicati
     private fun getModifiedAt(root: WallResource?): OffsetDateTime {
         val modificationTimes: MutableList<OffsetDateTime> = ArrayList()
         getModificationTimes(root, modificationTimes)
-        modificationTimes.sortWith { a: OffsetDateTime?, b: OffsetDateTime -> b.compareTo(a) }
-        return modificationTimes[0]
+        return modificationTimes.maxOf { it }
     }
 
     /**

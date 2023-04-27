@@ -119,6 +119,77 @@ abstract class AbstractFunctionalTest {
     }
 
     /**
+     * Finds a resource by slugs from the API
+     *
+     * @param builder test builder
+     * @param parentResource The parent resource
+     * @param customerId customer id
+     * @param deviceId device id
+     * @param applicationId application id
+     * @param slugs slugs
+     * @return Resource or null if not found
+     */
+    protected fun findResourceBySlugs(
+        builder: TestBuilder,
+        parentResource: Resource,
+        customerId: UUID,
+        deviceId: UUID,
+        applicationId: UUID,
+        slugs: List<String>
+    ): Resource? {
+        val resource = findResourceBySlug(
+            builder = builder,
+            parentResource = parentResource,
+            customerId = customerId,
+            deviceId = deviceId,
+            applicationId = applicationId,
+            slug = slugs.first()
+        ) ?: return null
+
+        if (slugs.size == 1) {
+            return resource
+        }
+
+        return findResourceBySlugs(
+            builder = builder,
+            parentResource = resource,
+            customerId = customerId,
+            deviceId = deviceId,
+            applicationId = applicationId,
+            slugs = slugs.drop(1)
+        )
+    }
+
+    /**
+     * Finds a resource by slug from the API
+     *
+     * @param builder test builder
+     * @param parentResource The parent resource
+     * @param customerId customer id
+     * @param deviceId device id
+     * @param applicationId application id
+     * @param slug slug
+     * @return Resource or null if not found
+     */
+    private fun findResourceBySlug(
+        builder: TestBuilder,
+        parentResource: Resource,
+        customerId: UUID,
+        deviceId: UUID,
+        applicationId: UUID,
+        slug: String
+    ): Resource? {
+        val resources = builder.admin.resources.listResources(
+            customerId = customerId,
+            deviceId = deviceId,
+            applicationId = applicationId,
+            parentId = parentResource.id!!
+        )
+
+        return resources.find { resource -> resource.slug == slug }
+    }
+
+    /**
      * Data class for representing single resource item.
      *
      * Resource items can be used to make large amount of test resources more easily
