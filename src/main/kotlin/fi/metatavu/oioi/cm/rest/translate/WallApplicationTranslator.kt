@@ -29,20 +29,24 @@ class WallApplicationTranslator : AbstractTranslator<Application?, WallApplicati
      */
     fun translate(entity: Application, contentVersion: Resource): WallApplication {
         val contentVersionWallResource = wallResourceTranslator.translate(entity = contentVersion, applicationName = entity.name)
-        val result = WallApplication()
-        result.modifiedAt = getModifiedAt(contentVersionWallResource)
-        result.root = contentVersionWallResource
-        return result
+        return WallApplication(
+            root = contentVersionWallResource!!,
+            modifiedAt = getModifiedAt(contentVersionWallResource)
+        )
     }
 
     override fun translate(entity: Application?): WallApplication? {
         entity ?: return null
 
-        val activeContentVersion = wallResourceTranslator.translate(entity = entity.activeContentVersionResource, applicationName = entity.name)
-        val result = WallApplication()
-        result.modifiedAt = getModifiedAt(activeContentVersion)
-        result.root = activeContentVersion
-        return result
+        val activeContentVersion = wallResourceTranslator.translate(
+            entity = entity.activeContentVersionResource,
+            applicationName = entity.name
+        )
+
+        return WallApplication(
+            modifiedAt = getModifiedAt(activeContentVersion),
+            root = activeContentVersion!!
+        )
     }
 
     /**

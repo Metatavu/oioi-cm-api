@@ -117,11 +117,11 @@ class WallApplicationImporter {
      * @param entry map entry
      * @return converted key value property
      */
-    private fun toKeyValueProperty(entry: MutableMap.MutableEntry<String, String>): KeyValueProperty  {
-        val result = KeyValueProperty()
-        result.key = entry.key
-        result.value = entry.value
-        return result
+    private fun toKeyValueProperty(entry: Map.Entry<String, String>): KeyValueProperty  {
+        return KeyValueProperty(
+            key = entry.key,
+            value = entry.value
+        )
     }
 
 }

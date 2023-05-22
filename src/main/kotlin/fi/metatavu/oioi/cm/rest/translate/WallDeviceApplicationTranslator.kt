@@ -21,21 +21,29 @@ class WallDeviceApplicationTranslator : AbstractTranslator<Application?, WallDev
 
     override fun translate(entity: Application?): WallDeviceApplication? {
         entity ?: return null
-        val result = WallDeviceApplication()
-        result.id = entity.id
-        result.name = entity.name
+
         val rootResource = entity.rootResource
         var modifiedAt = entity.modifiedAt
+        var styles: Map<String, String>? = null
+        var properties: Map<String, String>? = null
+
         if (rootResource != null) {
             val resourceModifiedAt = rootResource.modifiedAt!!
             if (resourceModifiedAt.isAfter(modifiedAt)) {
                 modifiedAt = resourceModifiedAt
             }
-            result.properties = getProperties(rootResource)
-            result.styles = getStyles(rootResource)
+
+            properties = getProperties(rootResource)
+            styles = getStyles(rootResource)
         }
-        result.modifiedAt = modifiedAt
-        return result
+
+        return WallDeviceApplication(
+            id = entity.id!!,
+            name = entity.name!!,
+            modifiedAt = modifiedAt!!,
+            styles = styles ?: emptyMap(),
+            properties = properties ?: emptyMap(),
+        )
     }
 
     /**

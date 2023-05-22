@@ -29,21 +29,21 @@ class ResourceTranslator: AbstractTranslator<Resource, fi.metatavu.oioi.cm.model
             .plus(entity.modifiedAt!!)
             .maxOf { it }
 
-        val result = fi.metatavu.oioi.cm.model.Resource()
-        result.id = entity.id
-        result.data = entity.data
-        result.name = entity.name
-        result.orderNumber = entity.orderNumber
-        result.parentId = entity.parent?.id
-        result.slug = entity.slug
-        result.type = entity.type
-        result.properties = getProperties(resourceProperties)
-        result.styles = getStyles(resourceStyles)
-        result.createdAt = entity.createdAt
-        result.creatorId = entity.creatorId
-        result.lastModifierId = entity.lastModifierId
-        result.modifiedAt = modifiedAt
-        return result
+        return fi.metatavu.oioi.cm.model.Resource(
+            id = entity.id,
+            data = entity.data,
+            name = entity.name!!,
+            orderNumber = entity.orderNumber,
+            parentId = entity.parent?.id,
+            slug = entity.slug!!,
+            type = entity.type!!,
+            properties = getProperties(resourceProperties),
+            styles = getStyles(resourceStyles),
+            createdAt = entity.createdAt,
+            creatorId = entity.creatorId,
+            lastModifierId = entity.lastModifierId,
+            modifiedAt = modifiedAt
+        )
     }
 
     /**
@@ -54,10 +54,10 @@ class ResourceTranslator: AbstractTranslator<Resource, fi.metatavu.oioi.cm.model
      */
     private fun getStyles(resourceStyles: List<ResourceStyle>): List<KeyValueProperty> {
         return resourceStyles.map { resourceStyle: ResourceStyle ->
-            val result = KeyValueProperty()
-            result.key = resourceStyle.key
-            result.value = resourceStyle.value
-            result
+            KeyValueProperty(
+                key = resourceStyle.key!!,
+                value = resourceStyle.value!!
+            )
         }
     }
 
@@ -69,10 +69,10 @@ class ResourceTranslator: AbstractTranslator<Resource, fi.metatavu.oioi.cm.model
      */
     private fun getProperties(resourceProperties: List<ResourceProperty>): List<KeyValueProperty> {
         return resourceProperties.map { resourceProperty: ResourceProperty ->
-            val result = KeyValueProperty()
-            result.key = resourceProperty.key
-            result.value = resourceProperty.value
-            result
+            KeyValueProperty(
+                key = resourceProperty.key!!,
+                value = resourceProperty.value!!
+            )
         }
     }
 

@@ -1,58 +1,54 @@
-package fi.metatavu.oioi.cm.rest.translate;
+package fi.metatavu.oioi.cm.rest.translate
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
-import fi.metatavu.oioi.cm.devices.DeviceController;
-import fi.metatavu.oioi.cm.model.KeyValueProperty;
-import fi.metatavu.oioi.cm.persistence.model.Device;
+import fi.metatavu.oioi.cm.devices.DeviceController
+import fi.metatavu.oioi.cm.model.KeyValueProperty
+import fi.metatavu.oioi.cm.persistence.model.Device
+import fi.metatavu.oioi.cm.persistence.model.DeviceMeta
+import java.util.stream.Collectors
+import javax.enterprise.context.ApplicationScoped
+import javax.inject.Inject
 
 /**
- * Translator for Device REST entity 
- * 
+ * Translator for Device REST entity
+ *
  * @author Antti Leppä
  */
 @ApplicationScoped
-public class DeviceTranslator extends AbstractTranslator<fi.metatavu.oioi.cm.persistence.model.Device, fi.metatavu.oioi.cm.model.Device> {
+class DeviceTranslator : AbstractTranslator<Device?, fi.metatavu.oioi.cm.model.Device?>() {
 
-  @Inject
-  private DeviceController deviceController; 
-  
-  @Override
-  public fi.metatavu.oioi.cm.model.Device translate(fi.metatavu.oioi.cm.persistence.model.Device entity) {
-    if (entity == null) {
-      return null;
+    @Inject
+    lateinit var deviceController: DeviceController
+
+    override fun translate(entity: Device?): fi.metatavu.oioi.cm.model.Device? {
+        if (entity == null) {
+            return null
+        }
+
+        return fi.metatavu.oioi.cm.model.Device(
+            id = entity.id,
+            apiKey = entity.apiKey,
+            name = entity.name!!,
+            metas = getMetas(entity),
+            imageUrl = entity.imageUrl,
+            creatorId = entity.creatorId,
+            lastModifierId = entity.lastModifierId,
+            createdAt = entity.createdAt,
+            modifiedAt = entity.modifiedAt
+        )
     }
 
-    fi.metatavu.oioi.cm.model.Device result = new fi.metatavu.oioi.cm.model.Device();    
-    result.setId(entity.getId());
-    result.setApiKey(entity.getApiKey());
-    result.setName(entity.getName());
-    result.setMetas(getMetas(entity));
-    result.setImageUrl(entity.getImageUrl());
-    result.setCreatorId(entity.getCreatorId());
-    result.setLastModifierId(entity.getLastModifierId());
-    result.setCreatedAt(entity.getCreatedAt());
-    result.setModifiedAt(entity.getModifiedAt());
-    return result;
-  }
-  
-  /**
-   * Translates meta values to REST format
-   * 
-   * @param entity device
-   * @return meta values as REST key value pairs
-   */
-  private List<KeyValueProperty> getMetas(Device entity) {
-    return deviceController.listMetas(entity).stream().map(resourceProperty -> {
-      KeyValueProperty result = new KeyValueProperty();
-      result.setKey(resourceProperty.getKey());
-      result.setValue(resourceProperty.getValue());
-      return result;
-    }).collect(Collectors.toList());
-  }
-  
+    /**
+     * Translates meta values to REST format
+     *
+     * @param entity device
+     * @return meta values as REST key value pairs
+     */
+    private fun getMetas(entity: Device): List<KeyValueProperty> {
+        return deviceController.listMetas(entity).stream().map { resourceProperty: DeviceMeta ->
+            KeyValueProperty(
+                key = resourceProperty.key!!,
+                value = resourceProperty.value!!
+            )
+        }.collect(Collectors.toList())
+    }
 }

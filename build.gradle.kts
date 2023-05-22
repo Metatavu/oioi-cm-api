@@ -4,8 +4,8 @@ plugins {
     kotlin("jvm") version "1.6.21"
     kotlin("plugin.allopen") version "1.6.21"
     id("io.quarkus")
-    id("org.openapi.generator") version "5.0.0"
-    id("org.jetbrains.kotlin.kapt") version "1.4.30"
+    id("org.openapi.generator") version "6.6.0"
+    id("org.jetbrains.kotlin.kapt") version "1.8.21"
 }
 
 repositories {
@@ -66,7 +66,7 @@ java {
 }
 
 sourceSets["main"].java {
-    srcDir("build/generated/api-spec/src/gen/java")
+    srcDir("build/generated/api-spec/src/main/kotlin")
 }
 
 sourceSets["test"].java {
@@ -87,14 +87,15 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
 }
 
 val generateApiSpec = tasks.register("generateApiSpec",GenerateTask::class){
-    setProperty("generatorName", "jaxrs-spec")
+    setProperty("generatorName", "kotlin-server")
     setProperty("inputSpec",  "$rootDir/oioi-cm-api-spec/swagger.yaml")
     setProperty("outputDir", "$buildDir/generated/api-spec")
     setProperty("apiPackage", "fi.metatavu.oioi.cm.spec")
     setProperty("invokerPackage", "fi.metatavu.oioi.cm.invoker")
     setProperty("modelPackage", "fi.metatavu.oioi.cm.model")
-
+    this.configOptions.put("library", "jaxrs-spec")
     this.configOptions.put("dateLibrary", "java8")
+    this.configOptions.put("enumPropertyNaming", "UPPERCASE")
     this.configOptions.put("interfaceOnly", "true")
     this.configOptions.put("returnResponse", "true")
     this.configOptions.put("useSwaggerAnnotations", "false")
