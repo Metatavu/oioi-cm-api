@@ -272,6 +272,29 @@ class ResourceTestBuilderResource (
     }
 
     /**
+     * Imports a wall application
+     */
+    fun importWallApplication(
+        customerId: UUID,
+        deviceId: UUID,
+        applicationId: UUID,
+        wallApplication: WallApplication
+    ): Resource {
+        val result = api.importWallApplication(
+            applicationId = applicationId,
+            customerId = customerId,
+            deviceId = deviceId,
+            wallApplication = wallApplication
+        )
+
+        customerResourceIds[result.id] = customerId
+        deviceResourceIds[result.id] = deviceId
+        applicationResourceIds[result.id] = applicationId
+
+        return addClosable(result)
+    }
+
+    /**
      * Asserts resource count within the system
      *
      * @param expected expected count
@@ -492,6 +515,27 @@ class ResourceTestBuilderResource (
             )
 
             fail(String.format("Expected list to fail with status %d", expectedStatus))
+        } catch (e: ClientException) {
+            assertEquals(expectedStatus, e.statusCode)
+        }
+    }
+
+    fun assertImportWallApplicationFail(
+        expectedStatus: Int,
+        customerId: UUID,
+        deviceId: UUID,
+        applicationId: UUID,
+        wallApplication: WallApplication
+    ) {
+        try {
+            api.importWallApplication(
+                applicationId = applicationId,
+                customerId = customerId,
+                deviceId = deviceId,
+                wallApplication = wallApplication
+            )
+
+            fail(String.format("Expected wall application JSON import to fail with status %d", expectedStatus))
         } catch (e: ClientException) {
             assertEquals(expectedStatus, e.statusCode)
         }
