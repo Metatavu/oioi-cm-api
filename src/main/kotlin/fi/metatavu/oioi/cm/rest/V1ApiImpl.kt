@@ -7,6 +7,7 @@ import fi.metatavu.oioi.cm.lock.ResourceLockController
 import fi.metatavu.oioi.cm.medias.MediaController
 import fi.metatavu.oioi.cm.model.*
 import fi.metatavu.oioi.cm.resources.ResourceController
+import fi.metatavu.oioi.cm.resources.WallApplicationImporter
 import fi.metatavu.oioi.cm.rest.translate.*
 import fi.metatavu.oioi.cm.spec.V1Api
 import io.quarkus.arc.Lock
@@ -71,6 +72,9 @@ class V1ApiImpl : AbstractApi(), V1Api {
 
     @Inject
     lateinit var wallApplicationTranslator: WallApplicationTranslator
+
+    @Inject
+    lateinit var wallApplicationImporter: WallApplicationImporter
 
     /** APPLICATIONS  */
 
@@ -823,6 +827,37 @@ class V1ApiImpl : AbstractApi(), V1Api {
         }
 
         return createOk(wallDeviceTranslator.translate(device))
+    }
+
+    override fun importWallApplication(
+        customerId: UUID,
+        deviceId: UUID,
+        applicationId: UUID,
+        wallApplication: WallApplication
+    ): Response {
+        val loggedUserId = loggedUserId!!
+        val customer = customerController.findCustomerById(customerId) ?: return createNotFound("Customer with id: $customerId could not be found!")
+        val device = deviceController.findDeviceById(deviceId) ?: return createNotFound("Device with id: $deviceId could not be found!")
+        val application = applicationController.findApplicationById(applicationId) ?: return createNotFound("Application with id: $applicationId could not be found!")
+
+        if (!hasRealmRole(ADMIN_ROLE)) {
+            return createForbidden(FORBIDDEN_MESSAGE)
+        }
+
+        if (wallApplication.root.type != ResourceType.CONTENT_VERSION) {
+            return createBadRequest("Root resource must be of type CONTENT_VERSION")
+        }
+
+        val contentVersion = wallApplicationImporter.importFromWallApplicationJSON(
+            authzClient = authzClient,
+            wallApplication = wallApplication,
+            customer = customer,
+            device = device,
+            application = application,
+            loggedUserId = loggedUserId
+        )
+
+        return createOk(resourceTranslator.translate(contentVersion))
     }
 
     companion object {
