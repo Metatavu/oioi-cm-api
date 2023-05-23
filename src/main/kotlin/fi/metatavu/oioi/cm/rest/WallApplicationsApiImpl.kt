@@ -14,7 +14,7 @@ import javax.ws.rs.Produces
 import javax.ws.rs.core.Response
 
 /**
- * REST - endpoints for customers
+ * REST - endpoints for wall applications
  *
  * @author Antti Leppä
  */
