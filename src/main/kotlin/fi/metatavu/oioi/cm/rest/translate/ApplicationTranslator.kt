@@ -12,16 +12,16 @@ import javax.enterprise.context.ApplicationScoped
 class ApplicationTranslator: AbstractTranslator<Application, fi.metatavu.oioi.cm.model.Application>() {
     
     override fun translate(entity: Application): fi.metatavu.oioi.cm.model.Application {
-        val result = fi.metatavu.oioi.cm.model.Application()
-        result.id = entity.id
-        result.name = entity.name
-        result.rootResourceId = entity.rootResource?.id
-        result.activeContentVersionResourceId = entity.activeContentVersionResource?.id
-        result.createdAt = entity.createdAt
-        result.modifiedAt = entity.modifiedAt
-        result.creatorId = entity.creatorId
-        result.lastModifierId = entity.lastModifierId
-        return result
+        return fi.metatavu.oioi.cm.model.Application(
+            id = entity.id,
+            name = entity.name!!,
+            rootResourceId = entity.rootResource?.id,
+            activeContentVersionResourceId = entity.activeContentVersionResource?.id,
+            createdAt = entity.createdAt,
+            modifiedAt = entity.modifiedAt,
+            creatorId = entity.creatorId,
+            lastModifierId = entity.lastModifierId
+        )
     }
 
 }

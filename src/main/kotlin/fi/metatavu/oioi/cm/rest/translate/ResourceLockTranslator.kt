@@ -18,11 +18,11 @@ class ResourceLockTranslator: AbstractTranslator<ResourceLock, fi.metatavu.oioi.
     lateinit var keycloakController: KeycloakController
     
     override fun translate(entity: ResourceLock): fi.metatavu.oioi.cm.model.ResourceLock {
-        val result = fi.metatavu.oioi.cm.model.ResourceLock()
-        result.userId = entity.userId
-        result.expiresAt = entity.expiresAt
-        result.userDisplayName = keycloakController.getDisplayName(entity.userId!!)
-        return result
+        return fi.metatavu.oioi.cm.model.ResourceLock(
+            userId = entity.userId,
+            expiresAt = entity.expiresAt,
+            userDisplayName = keycloakController.getDisplayName(entity.userId!!)
+        )
     }
 
     /**

@@ -29,9 +29,11 @@ class ResourceLocksRealtimeController {
      * @param locked whether resource was locked or unlocked
      */
     fun notifyResourceLockChange(resourceId: UUID, locked: Boolean) {
-        val payload = MqttResourceLockUpdate()
-        payload.resourceId = resourceId
-        payload.locked = locked
+        val payload = MqttResourceLockUpdate(
+            resourceId = resourceId,
+            locked = locked
+        )
+
         channel.send(payload)
     }
 

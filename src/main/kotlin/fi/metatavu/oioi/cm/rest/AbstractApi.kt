@@ -269,9 +269,9 @@ abstract class AbstractApi {
      * @return error response
      */
     private fun createError(status: Response.Status, message: String): Response {
-        val entity = ErrorResponse()
-
-        entity.message = message
+        val entity = ErrorResponse(
+            message = message
+        )
 
         return Response
             .status(status)
