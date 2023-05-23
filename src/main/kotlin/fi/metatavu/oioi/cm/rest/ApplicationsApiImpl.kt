@@ -41,8 +41,6 @@ class ApplicationsApiImpl : AbstractApi(), ApplicationsApi {
     @Inject
     lateinit var resourceController: ResourceController
 
-    /** APPLICATIONS  */
-
     override fun createApplication(customerId: UUID, deviceId: UUID, application: Application): Response {
         if (!hasRealmRole(ADMIN_ROLE)) {
             return createForbidden(FORBIDDEN_MESSAGE)

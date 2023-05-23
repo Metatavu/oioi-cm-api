@@ -68,7 +68,7 @@ class WallApplicationTranslator : AbstractTranslator<Application?, WallApplicati
      * @param result collected times
      */
     private fun getModificationTimes(resource: WallResource?, result: MutableList<OffsetDateTime>) {
-        result.add(resource!!.modifiedAt)
+        result.add(resource?.modifiedAt!!)
         resource.children.forEach(Consumer { child: WallResource? -> getModificationTimes(child, result) })
     }
 
