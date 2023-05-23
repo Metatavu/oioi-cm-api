@@ -37,7 +37,7 @@ services:
     depends_on:
       - mysql
     environment:
-      QUARKUS_DATASOURCE_JDBC_URL: jdbc:mysql://mysql:3306/oioi?useSSL=false&allowPublicKeyRetrieval=true&zeroDateTimeBehavior=convertToNull
+      QUARKUS_DATASOURCE_JDBC_URL: jdbc:mysql://mysql:3306/oioi?useUnicode=yes&characterEncoding=UTF-8&useSSL=false&allowPublicKeyRetrieval=true&zeroDateTimeBehavior=convertToNull
       QUARKUS_DATASOURCE_PASSWORD: root
       QUARKUS_DATASOURCE_USERNAME: root
       QUARKUS_OIDC_AUTH_SERVER_URL: http://keycloak:8080/auth/realms/oioi
