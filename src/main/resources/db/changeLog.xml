@@ -333,8 +333,4 @@
     <customChange class="fi.metatavu.oioi.cm.liquibase.changes.ContentVersionPropertiesChange"/>
   </changeSet>
 
-  <changeSet id="content-version-order-numbers" author="antti.leppa">
-    <customChange class="fi.metatavu.oioi.cm.liquibase.changes.ContentVersionOrderNumbersChange"/>
-  </changeSet>
-
 </databaseChangeLog>
