@@ -41,16 +41,19 @@ class WallResourceTranslator : AbstractTranslator<Resource?, WallResource?>() {
             .plus(entity.modifiedAt!!)
             .maxOf { it }
 
-        val result = WallResource()
-        result.slug = entity.slug
-        result.children = translate(resourceController.listResourcesByParent(parent = entity, resourceType = null))
-        result.data = entity.data
-        result.name = applicationName
-        result.properties = resourceProperties.associate { it.key!! to it.value!! }
-        result.styles = resourceStyles.associate { it.key!! to it.value!! }
-        result.type = entity.type
-        result.modifiedAt = modifiedAt
-        return result
+        val children = translate(resourceController.listResourcesByParent(parent = entity, resourceType = null))
+            .mapNotNull { it }
+
+        return WallResource(
+            slug = entity.slug!!,
+            children = children,
+            data = entity.data,
+            name = applicationName,
+            properties = resourceProperties.associate { it.key!! to it.value!! },
+            styles = resourceStyles.associate { it.key!! to it.value!! },
+            type = entity.type!!,
+            modifiedAt = modifiedAt
+        )
     }
 
 }

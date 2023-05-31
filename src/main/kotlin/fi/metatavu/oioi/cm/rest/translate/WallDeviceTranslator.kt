@@ -25,12 +25,12 @@ class WallDeviceTranslator : AbstractTranslator<Device?, WallDevice?>() {
         entity ?: return null
 
         val applications = applicationController.listDeviceApplications(entity)
-            .map(wallDeviceApplicationTranslator::translate)
+            .mapNotNull(wallDeviceApplicationTranslator::translate)
 
-        val result = WallDevice()
-        result.modifiedAt = entity.modifiedAt
-        result.name = entity.name
-        result.applications = applications
-        return result
+        return WallDevice(
+            modifiedAt = entity.modifiedAt!!,
+            name = entity.name!!,
+            applications = applications
+        )
     }
 }

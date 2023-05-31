@@ -491,6 +491,187 @@ class ResourceTestsIT : AbstractFunctionalTest() {
         }
     }
 
+    @Test
+    fun testWallApplicationJsonImport(): Unit = TestBuilder().use { builder ->
+        val customer = builder.admin.customers.create()
+        val device = builder.admin.devices.create(customer)
+
+        val application = builder.admin.applications.create(
+            customer = customer,
+            device = device,
+            name = "application's name"
+        )
+
+        val applicationId = application.id!!
+        val originalContentVersionId = application.activeContentVersionResourceId!!
+
+        val rootItem = ResourceItem(
+            slug = "1", ResourceType.cONTENTVERSION, children = arrayOf(
+                ResourceItem(
+                    slug = "l", ResourceType.lANGUAGEMENU, children = arrayOf(
+                        ResourceItem(
+                            slug = "fi",
+                            ResourceType.lANGUAGE,
+                            properties = arrayOf(getKeyValue("description", "Finnish language page")),
+                            styles = arrayOf(getKeyValue("background", "#fff"), getKeyValue("color", "#00f")),
+                            children = arrayOf(
+                                ResourceItem(
+                                    slug = "menu", ResourceType.mENU, children = arrayOf(
+                                        ResourceItem(
+                                            slug = "menu-page-1", ResourceType.pAGE, children = arrayOf(
+                                                ResourceItem(
+                                                    slug = "video",
+                                                    ResourceType.vIDEO,
+                                                    data = "https://cdn.example.com/0f57bd21-7bb1-4308-bf52-0ab6d40bd88e/71b700d7-1264-43f9-9686-a137780cef4b"
+                                                ),
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        )
+
+        val createdContentVersion = createResourceFromItem(
+            builder = builder,
+            item = rootItem,
+            customer = customer,
+            device = device,
+            application = application,
+            parentId = application.rootResourceId!!,
+            orderNumber = 0
+        )
+
+        builder.admin.applications.updateApplication(
+            customer = customer,
+            device = device,
+            application = application.copy(activeContentVersionResourceId = createdContentVersion.id!!)
+        )
+
+        assertNotNull(createdContentVersion)
+
+        val exportedWallJson = builder.admin.wallApplication.getApplicationJson(applicationId = applicationId)
+        assertNotNull(exportedWallJson)
+        assertEquals(rootItem.children.size, exportedWallJson.root.children.size)
+
+        val importedContentVersion = builder.admin.resources.importWallApplication(
+            customerId = customer.id!!,
+            deviceId = device.id!!,
+            applicationId = applicationId,
+            wallApplication = exportedWallJson
+        )
+
+        assertNotNull(importedContentVersion)
+
+        assertImportedResourceTree(
+            builder = builder,
+            customer = customer,
+            device = device,
+            application = application,
+            importedResource = importedContentVersion,
+            originalResource = createdContentVersion
+        )
+
+        builder.admin.applications.updateApplication(
+            customer = customer,
+            device = device,
+            application = application.copy(activeContentVersionResourceId = originalContentVersionId)
+        )
+    }
+
+    @Test
+    fun testWallApplicationJsonImportInvalidJson(): Unit = TestBuilder().use { builder ->
+        val customer = builder.admin.customers.create()
+        val device = builder.admin.devices.create(customer)
+
+        val application = builder.admin.applications.create(
+            customer = customer,
+            device = device,
+            name = "application's name"
+        )
+
+        builder.admin.resources.assertImportWallApplicationFail(
+            expectedStatus = 400,
+            customerId = customer.id!!,
+            deviceId = device.id!!,
+            applicationId = application.id!!,
+            wallApplication = WallApplication(
+                modifiedAt = "2000-01-01T00:00:00.000Z",
+                root = WallResource(
+                    name = "1",
+                    slug = "1",
+                    data = "placeholder",
+                    type = ResourceType.mENU,
+                    modifiedAt = "2000-01-01T00:00:00.000Z",
+                    children = arrayOf(),
+                    styles = mapOf(),
+                    properties = mapOf()
+                )
+            )
+        )
+    }
+
+    @Test
+    fun testWallApplicationJsonImportPermissions(): Unit = TestBuilder().use { builder ->
+        val customer = builder.admin.customers.create(name = "customer-1")
+        val device = builder.admin.devices.create(customer)
+
+        val application = builder.admin.applications.create(
+            customer = customer,
+            device = device,
+            name = "application's name"
+        )
+
+        val wallApplication = WallApplication(
+            modifiedAt = "2000-01-01T00:00:00.000Z",
+            root = WallResource(
+                name = "1",
+                slug = "1",
+                data = "placeholder",
+                type = ResourceType.cONTENTVERSION,
+                modifiedAt = "2000-01-01T00:00:00.000Z",
+                children = arrayOf(),
+                styles = mapOf(),
+                properties = mapOf()
+            )
+        )
+
+        builder.customer1User.resources.assertImportWallApplicationFail(
+            expectedStatus = 403,
+            customerId = customer.id!!,
+            deviceId = device.id!!,
+            applicationId = application.id!!,
+            wallApplication = wallApplication
+        )
+
+        builder.customer1Admin.resources.assertImportWallApplicationFail(
+            expectedStatus = 403,
+            customerId = customer.id,
+            deviceId = device.id,
+            applicationId = application.id,
+            wallApplication = wallApplication
+        )
+
+        builder.customer2User.resources.assertImportWallApplicationFail(
+            expectedStatus = 403,
+            customerId = customer.id,
+            deviceId = device.id,
+            applicationId = application.id,
+            wallApplication = wallApplication
+        )
+
+        builder.customer2Admin.resources.assertImportWallApplicationFail(
+            expectedStatus = 403,
+            customerId = customer.id,
+            deviceId = device.id,
+            applicationId = application.id,
+            wallApplication = wallApplication
+        )
+    }
+
     /**
      * Asserts that resource tree is copied correctly
      *
@@ -558,6 +739,63 @@ class ResourceTestsIT : AbstractFunctionalTest() {
         } else {
             assertEquals(source.name, target.name)
             assertEquals(source.slug, target.slug)
+        }
+    }
+
+    /**
+     * Asserts that imported resource tree is imported as expected
+     *
+     * @param builder test builder
+     * @param customer customer
+     * @param device device
+     * @param application application
+     * @param importedResource imported resource
+     * @param originalResource original resource
+     */
+    private fun assertImportedResourceTree(
+        builder: TestBuilder,
+        customer: Customer,
+        device: Device,
+        application: Application,
+        importedResource: Resource,
+        originalResource: Resource
+    ) {
+        assertNotEquals(originalResource.id, importedResource.id)
+        assertEquals(originalResource.slug, importedResource.slug)
+        assertEquals(originalResource.type, importedResource.type)
+        assertEquals(originalResource.orderNumber, importedResource.orderNumber)
+        assertDeepEquals(originalResource.properties, importedResource.properties)
+        assertDeepEquals(originalResource.styles, importedResource.styles)
+        assertEquals(originalResource.data, importedResource.data)
+
+        val originalChildren = builder.admin.resources.listResources(
+            customerId = customer.id!!,
+            deviceId = device.id!!,
+            applicationId = application.id!!,
+            parentId = originalResource.id!!
+        )
+
+        val importedChildren = builder.admin.resources.listResources(
+            customerId = customer.id,
+            deviceId = device.id,
+            applicationId = application.id,
+            parentId = importedResource.id!!
+        )
+
+        assertEquals(originalChildren.size, importedChildren.size)
+
+        originalChildren.forEachIndexed { index, originalChild ->
+            val importedChild = importedChildren[index]
+
+            assertNotEquals(originalChild.parentId, importedChild.parentId)
+            assertImportedResourceTree(
+                builder = builder,
+                customer = customer,
+                device = device,
+                application = application,
+                importedResource = importedChild,
+                originalResource = originalChild
+            )
         }
     }
 }
