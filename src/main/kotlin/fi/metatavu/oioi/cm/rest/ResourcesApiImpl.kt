@@ -10,8 +10,6 @@ import fi.metatavu.oioi.cm.resources.WallApplicationImporter
 import fi.metatavu.oioi.cm.rest.translate.*
 import fi.metatavu.oioi.cm.spec.ResourcesApi
 import io.quarkus.narayana.jta.runtime.TransactionConfiguration
-import io.vertx.core.Vertx
-import kotlinx.coroutines.CoroutineScope
 import java.util.*
 import javax.enterprise.context.RequestScoped
 import javax.inject.Inject
@@ -19,9 +17,7 @@ import javax.transaction.Transactional
 import javax.ws.rs.Consumes
 import javax.ws.rs.Produces
 import javax.ws.rs.core.Response
-import io.vertx.kotlin.coroutines.dispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.async
 
 /**
  * REST - endpoints for resources
@@ -57,9 +53,6 @@ class ResourcesApiImpl : AbstractApi(), ResourcesApi {
 
     @Inject
     lateinit var wallApplicationImporter: WallApplicationImporter
-
-    @Inject
-    lateinit var vertx: Vertx
 
     override fun createResource(
         customerId: UUID,
@@ -418,18 +411,16 @@ class ResourcesApiImpl : AbstractApi(), ResourcesApi {
             return createBadRequest("Root resource must be of type CONTENT_VERSION")
         }
 
-        return CoroutineScope(vertx.dispatcher()).async {
-            val contentVersion = wallApplicationImporter.importFromWallApplicationJSON(
-                authzClient = authzClient,
-                wallApplication = wallApplication,
-                customer = customer,
-                device = device,
-                application = application,
-                loggedUserId = loggedUserId
-            )
+        val contentVersion = wallApplicationImporter.importFromWallApplicationJSON(
+            authzClient = authzClient,
+            wallApplication = wallApplication,
+            customer = customer,
+            device = device,
+            application = application,
+            loggedUserId = loggedUserId
+        )
 
-            createOk(resourceTranslator.translate(contentVersion))
-        }.getCompleted()
+        return createOk(resourceTranslator.translate(contentVersion))
     }
 
     companion object {
