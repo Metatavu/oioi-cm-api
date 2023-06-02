@@ -100,59 +100,6 @@ class ResourceController {
     }
 
     /**
-     * Create resource
-     *
-     * @param authzClient authzClient
-     * @param customer customer
-     * @param device device
-     * @param applicationId application id
-     * @param orderNumber order number
-     * @param parent parent
-     * @param data data
-     * @param name name
-     * @param slug slug
-     * @param type type
-     * @param creatorId creator id
-     * @return created resource
-     */
-    fun createResource(
-        authzClient: AuthzClient,
-        customer: Customer,
-        device: Device,
-        applicationId: UUID,
-        orderNumber: Int?,
-        parent: Resource?,
-        data: String?,
-        name: String?,
-        slug: String?,
-        type: ResourceType?,
-        creatorId: UUID
-    ): Resource {
-        val id = UUID.randomUUID()
-        val keycloakResourceId = createProtectedResource(
-            authzClient = authzClient,
-            resourceId = id,
-            customerId = customer.id!!,
-            deviceId = device.id!!,
-            applicationId = applicationId,
-            userId = creatorId
-        )
-
-        return resourceDAO.create(
-            id = id,
-            orderNumber = orderNumber,
-            data = data,
-            keycloakResourceId = keycloakResourceId,
-            name = name,
-            parent = parent,
-            slug = slug,
-            type = type,
-            creatorId = creatorId,
-            lastModifierId = creatorId
-        )
-    }
-
-    /**
      * Creates root resource
      *
      * @param authzClient authzClient
@@ -739,6 +686,10 @@ class ResourceController {
         resourceId: UUID,
         userId: UUID
     ): UUID? {
+        if (AUTHZ_DISABLED) {
+            return UUID(0, 0)
+        }
+
         val scopes = Arrays.stream(ResourceScope.values())
             .map { obj: ResourceScope -> obj.scope }
             .map { name: String? -> ScopeRepresentation(name) }
@@ -770,5 +721,9 @@ class ResourceController {
         return if (resources.isNotEmpty()) {
             UUID.fromString(resources[0].id)
         } else null
+    }
+
+    companion object {
+        const val AUTHZ_DISABLED = true
     }
 }

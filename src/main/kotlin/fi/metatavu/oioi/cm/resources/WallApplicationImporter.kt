@@ -6,9 +6,6 @@ import fi.metatavu.oioi.cm.model.WallResource
 import fi.metatavu.oioi.cm.persistence.model.Application
 import fi.metatavu.oioi.cm.persistence.model.Customer
 import fi.metatavu.oioi.cm.persistence.model.Device
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.map
 import org.keycloak.authorization.client.AuthzClient
 import java.util.*
 import javax.enterprise.context.ApplicationScoped
@@ -38,7 +35,7 @@ class WallApplicationImporter {
      *
      * @return imported content version
      */
-    suspend fun importFromWallApplicationJSON(
+    fun importFromWallApplicationJSON(
         authzClient: AuthzClient,
         wallApplication: WallApplication,
         customer: Customer,
@@ -72,7 +69,7 @@ class WallApplicationImporter {
      *
      * @return imported resource
      */
-    private suspend fun importWallResource(
+    private fun importWallResource(
         authzClient: AuthzClient,
         wallResource: WallResource,
         parent: fi.metatavu.oioi.cm.persistence.model.Resource?,
@@ -98,22 +95,18 @@ class WallApplicationImporter {
             creatorId = loggedUserId
         )
 
-        wallResource.children
-            .mapIndexed { index, child -> Pair(index, child) }
-            .asFlow()
-            .map { (index, child) ->
-                importWallResource(
-                    authzClient = authzClient,
-                    wallResource = child,
-                    parent = resource,
-                    orderNumber = index,
-                    customer = customer,
-                    device = device,
-                    application = application,
-                    loggedUserId = loggedUserId
-                )
-            }
-            .collect()
+        wallResource.children.forEachIndexed { index, child ->
+            importWallResource(
+                authzClient = authzClient,
+                wallResource = child,
+                parent = resource,
+                orderNumber = index,
+                customer = customer,
+                device = device,
+                application = application,
+                loggedUserId = loggedUserId
+            )
+        }
 
         return resource
     }
