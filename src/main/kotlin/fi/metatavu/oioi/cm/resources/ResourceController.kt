@@ -399,9 +399,7 @@ class ResourceController {
 
         val keycloakResourceId = resource.keycloakResorceId
         try {
-            if (keycloakResourceId != UUID(0, 0)) {
-                authzClient.protection().resource().delete(keycloakResourceId.toString())
-            }
+            authzClient.protection().resource().delete(keycloakResourceId.toString())
         } catch (e: Exception) {
             if (logger.isErrorEnabled) {
                 logger.error(String.format("Failed to remove Keycloak resource %s ", resource.keycloakResorceId), e)
