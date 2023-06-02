@@ -688,10 +688,6 @@ class ResourceController {
         resourceId: UUID,
         userId: UUID
     ): UUID? {
-        if (AUTHZ_DISABLED) {
-            return UUID(0, 0)
-        }
-
         val scopes = Arrays.stream(ResourceScope.values())
             .map { obj: ResourceScope -> obj.scope }
             .map { name: String? -> ScopeRepresentation(name) }
@@ -723,9 +719,5 @@ class ResourceController {
         return if (resources.isNotEmpty()) {
             UUID.fromString(resources[0].id)
         } else null
-    }
-
-    companion object {
-        const val AUTHZ_DISABLED = true
     }
 }
