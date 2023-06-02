@@ -38,8 +38,6 @@ dependencies {
     implementation("io.quarkus:quarkus-cache")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("io.quarkus:quarkus-arc")
-    implementation("io.vertx:vertx-lang-kotlin")
-    implementation("io.vertx:vertx-lang-kotlin-coroutines")
 
     implementation ("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation ("org.apache.commons:commons-lang3")
