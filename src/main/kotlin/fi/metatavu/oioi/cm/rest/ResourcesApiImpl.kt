@@ -17,7 +17,6 @@ import javax.transaction.Transactional
 import javax.ws.rs.Consumes
 import javax.ws.rs.Produces
 import javax.ws.rs.core.Response
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 /**
  * REST - endpoints for resources
@@ -390,7 +389,6 @@ class ResourcesApiImpl : AbstractApi(), ResourcesApi {
         return createOk(resourceLockTranslator.translateLockedResourceIds(foundLocks))
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     @TransactionConfiguration (timeout = 60 * 5)
     override fun importWallApplication(
         customerId: UUID,
