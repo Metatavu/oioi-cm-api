@@ -9,6 +9,7 @@ import fi.metatavu.oioi.cm.resources.ResourceController
 import fi.metatavu.oioi.cm.resources.WallApplicationImporter
 import fi.metatavu.oioi.cm.rest.translate.*
 import fi.metatavu.oioi.cm.spec.ResourcesApi
+import io.quarkus.narayana.jta.runtime.TransactionConfiguration
 import java.util.*
 import javax.enterprise.context.RequestScoped
 import javax.inject.Inject
@@ -388,6 +389,7 @@ class ResourcesApiImpl : AbstractApi(), ResourcesApi {
         return createOk(resourceLockTranslator.translateLockedResourceIds(foundLocks))
     }
 
+    @TransactionConfiguration (timeout = 60 * 5)
     override fun importWallApplication(
         customerId: UUID,
         deviceId: UUID,
