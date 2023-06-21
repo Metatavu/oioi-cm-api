@@ -474,15 +474,57 @@ class ResourceTestsIT : AbstractFunctionalTest() {
                 resource = resource
             )
 
+            builder.customer1Admin.resources.delete(
+                customer = customer,
+                device = device,
+                application = application,
+                resource = resource
+            )
+        }
+    }
+
+    @Test
+    fun testDeletePermissionsCustomer() {
+        TestBuilder().use { builder ->
+            val customer = builder.admin.customers.create(name = "customer-1")
+            val device = builder.admin.devices.create(customer)
+            val application = builder.admin.applications.create(customer, device)
+            val resource = createResourceFromItem(
+                builder = builder,
+                item = ResourceItem(slug = "1", ResourceType.cONTENTVERSION),
+                customer = customer,
+                device = device,
+                application = application,
+                parentId = application.rootResourceId!!,
+                orderNumber = 0
+            )
+
             builder.customer1User.resources.delete(
                 customer = customer,
                 device = device,
                 application = application,
                 resource = resource
             )
+        }
+    }
 
-            builder.customer1Admin.resources.assertDeleteFailStatus(
-                expectedStatus = 404,
+    @Test
+    fun testDeletePermissionsAdmin() {
+        TestBuilder().use { builder ->
+            val customer = builder.admin.customers.create(name = "customer-1")
+            val device = builder.admin.devices.create(customer)
+            val application = builder.admin.applications.create(customer, device)
+            val resource = createResourceFromItem(
+                builder = builder,
+                item = ResourceItem(slug = "1", ResourceType.cONTENTVERSION),
+                customer = customer,
+                device = device,
+                application = application,
+                parentId = application.rootResourceId!!,
+                orderNumber = 0
+            )
+
+            builder.customer1Admin.resources.delete(
                 customer = customer,
                 device = device,
                 application = application,
