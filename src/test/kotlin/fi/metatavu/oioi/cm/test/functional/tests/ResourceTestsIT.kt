@@ -474,15 +474,15 @@ class ResourceTestsIT : AbstractFunctionalTest() {
                 resource = resource
             )
 
-            builder.customer1User.resources.assertDeleteFailStatus(
-                expectedStatus = 403,
+            builder.customer1User.resources.delete(
                 customer = customer,
                 device = device,
                 application = application,
                 resource = resource
             )
 
-            builder.customer1Admin.resources.delete(
+            builder.customer1Admin.resources.assertDeleteFailStatus(
+                expectedStatus = 404,
                 customer = customer,
                 device = device,
                 application = application,
