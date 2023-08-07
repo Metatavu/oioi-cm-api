@@ -285,7 +285,7 @@ class ResourcesApiImpl : AbstractApi(), ResourcesApi {
 
         val customer = customerController.findCustomerById(customerId) ?: return createNotFound("Customer with ID: $customerId could not be found!")
 
-        if (!isCustomerAdmin(customer.name)) {
+        if (!isAdminOrHasCustomerGroup(customer.name)) {
             return createForbidden(FORBIDDEN_MESSAGE)
         }
 
