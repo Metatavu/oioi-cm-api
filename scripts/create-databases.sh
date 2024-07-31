@@ -2,9 +2,9 @@
 
 cd ..
 echo "Starting docker container for MySQL..."
-docker-compose up -d  mysql
+docker compose up -d mysql
 
-sleep 5
+sleep 10
 
 CONTAINER_ID=$(docker ps -q --filter name=oioi-mysql)
 echo "MySQL container started with ID: $CONTAINER_ID"

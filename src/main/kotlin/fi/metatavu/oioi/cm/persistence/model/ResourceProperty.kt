@@ -17,6 +17,11 @@ import javax.validation.constraints.NotNull
 @Entity
 @Cacheable(true)
 @Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
+@Table(
+    uniqueConstraints = [
+        UniqueConstraint(columnNames = ["resource_id", "propertykey"], name = "UN_RESOURCE_PROPERTY_RESOURCE_ID_PROPERTY_KEY")
+    ]
+)
 class ResourceProperty {
 
     /**

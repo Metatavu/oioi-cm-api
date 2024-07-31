@@ -1,7 +1,7 @@
 version: "3"
 services:
   mysql:
-    image: mysql:5.6
+    image: mysql:8
     platform: linux/amd64
     volumes:
       - db_data:/var/lib/mysql
@@ -14,7 +14,11 @@ services:
       MYSQL_PASSWORD: password
 
   keycloak:
-    image: quay.io/keycloak/keycloak:15.0.2
+    build:
+      context: ../oioi-keycloak
+      dockerfile: Dockerfile
+    command:
+      - start-dev
     platform: linux/amd64
     container_name: oioi-keycloak
     ports:
@@ -22,12 +26,10 @@ services:
     depends_on:
       - mysql
     environment:
-      DB_VENDOR: mysql
-      DB_DATABASE: keycloak
-      DB_USER: root
-      DB_ADDR: mysql
-      DB_PASSWORD: root
-      JDBC_PARAMS: useSSL=false&allowPublicKeyRetrieval=true
+      KC_DB_URL: jdbc:mysql://mysql:3306/keycloak?useSSL=false&allowPublicKeyRetrieval=true&zeroDateTimeBehavior=convertToNull
+      KC_DB_USERNAME: root
+      KC_DB_PASSWORD: root
+      KC_PROXY_HEADERS: xforwarded
 
   oioi:
     build:

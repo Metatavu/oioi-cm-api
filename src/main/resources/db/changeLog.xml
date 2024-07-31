@@ -333,4 +333,31 @@
     <customChange class="fi.metatavu.oioi.cm.liquibase.changes.ContentVersionPropertiesChange"/>
   </changeSet>
 
+  <changeSet id="unique-resource-properties" author="Antti Leppä">
+    <sql>
+      WITH RankedProperties AS (
+        SELECT
+          id,
+          ROW_NUMBER() OVER (PARTITION BY resource_id, propertykey ORDER BY modifiedat DESC) AS rn
+        FROM
+          resourceproperty
+        )
+        DELETE FROM
+          resourceproperty
+        WHERE id IN (
+          SELECT id
+        FROM
+          RankedProperties
+        WHERE rn > 1
+      );
+    </sql>
+
+    <addUniqueConstraint
+      constraintName="UN_RESOURCE_PROPERTY_RESOURCE_ID_PROPERTY_KEY"
+      tableName="ResourceProperty"
+      columnNames="resource_id, propertykey"
+    />
+
+  </changeSet>
+
 </databaseChangeLog>
