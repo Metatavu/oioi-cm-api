@@ -10,7 +10,7 @@ internal class SpecifiedMySQLContainer(image: String):MySQLContainer<SpecifiedMy
  */
 class MysqlResource : QuarkusTestResourceLifecycleManager {
 
-    private val db: MySQLContainer<*> = SpecifiedMySQLContainer("mysql:5.7.34")
+    private val db: MySQLContainer<*> = SpecifiedMySQLContainer("mysql:8.1")
         .withDatabaseName(DATABASE)
         .withUsername(USERNAME)
         .withPassword(PASSWORD)
