@@ -26,6 +26,6 @@ class HiveMQTestResource: QuarkusTestResourceLifecycleManager {
     }
 
     companion object {
-        val hiveMQ: HiveMQContainer = HiveMQContainer(DockerImageName.parse("hivemq/hivemq-ce"))
+        val hiveMQ: HiveMQContainer = HiveMQContainer(DockerImageName.parse("hivemq/hivemq-ce:2021.3"))
     }
 }
