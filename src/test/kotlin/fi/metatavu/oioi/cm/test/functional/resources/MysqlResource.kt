@@ -1,4 +1,4 @@
-package fi.metatavu.ikioma.integrations.test.functional.resources
+package fi.metatavu.oioi.cm.test.functional.resources
 
 import io.quarkus.test.common.QuarkusTestResourceLifecycleManager
 import org.testcontainers.containers.MySQLContainer
@@ -10,7 +10,7 @@ internal class SpecifiedMySQLContainer(image: String):MySQLContainer<SpecifiedMy
  */
 class MysqlResource : QuarkusTestResourceLifecycleManager {
 
-    private val db: MySQLContainer<*> = SpecifiedMySQLContainer("mysql:5.7")
+    private val db: MySQLContainer<*> = SpecifiedMySQLContainer("mysql:5.7.34")
         .withDatabaseName(DATABASE)
         .withUsername(USERNAME)
         .withPassword(PASSWORD)
