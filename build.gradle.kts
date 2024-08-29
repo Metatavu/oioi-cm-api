@@ -17,7 +17,6 @@ val quarkusPlatformGroupId: String by project
 val quarkusPlatformArtifactId: String by project
 val quarkusPlatformVersion: String by project
 val jaxrsFunctionalTestBuilderVersion: String by project
-val testContainersVersion: String by project
 val testContainersKeycloakVersion: String by project
 val testContainersHivemqVersion: String by project
 val moshiVersion: String by project

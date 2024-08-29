@@ -7,5 +7,4 @@ package fi.metatavu.oioi.cm.copy
  *
  * @author Antti Leppä
  */
-class CopyException(message: String): Exception(message) {
-}
+class CopyException(message: String): Exception(message)
