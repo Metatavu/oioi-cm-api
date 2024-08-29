@@ -30,7 +30,7 @@ class KeycloakTestResource: QuarkusTestResourceLifecycleManager {
     }
 
     companion object {
-        val keycloak: KeycloakContainer = KeycloakContainer()
+        val keycloak: KeycloakContainer = KeycloakContainer("quay.io/keycloak/keycloak:24.0.2")
             .withRealmImportFile("kc.json")
     }
 }

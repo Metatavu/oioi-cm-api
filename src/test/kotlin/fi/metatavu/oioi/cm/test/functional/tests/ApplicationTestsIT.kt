@@ -1,7 +1,7 @@
 package fi.metatavu.oioi.cm.test.functional.tests
 
 import fi.metatavu.oioi.cm.test.functional.resources.KeycloakTestResource
-import fi.metatavu.ikioma.integrations.test.functional.resources.MysqlResource
+import fi.metatavu.oioi.cm.test.functional.resources.MysqlResource
 import fi.metatavu.oioi.cm.client.models.ResourceType
 import kotlin.Throws
 import fi.metatavu.oioi.cm.test.functional.builder.TestBuilder

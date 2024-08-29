@@ -1,6 +1,6 @@
 package fi.metatavu.oioi.cm.test
 
-import fi.metatavu.ikioma.integrations.test.functional.resources.MysqlResource
+import fi.metatavu.oioi.cm.test.functional.resources.MysqlResource
 import fi.metatavu.oioi.cm.test.functional.resources.HiveMQTestResource
 import fi.metatavu.oioi.cm.test.functional.resources.KeycloakTestResource
 import fi.metatavu.oioi.cm.test.functional.tests.CustomerTestsIT
