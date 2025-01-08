@@ -2,6 +2,7 @@ package fi.metatavu.oioi.cm.mqtt
 
 import io.vertx.core.Vertx
 import io.vertx.mqtt.MqttClient
+import io.vertx.mqtt.MqttClientOptions
 import org.eclipse.microprofile.config.ConfigProvider
 import org.eclipse.microprofile.config.spi.ConfigSource
 import java.net.URI
@@ -61,7 +62,11 @@ class MqttChannelConfigurator: ConfigSource {
         logger.info("Testing MQTT server: $url")
 
         val vertx = Vertx.vertx()
-        val client = MqttClient.create(vertx)
+        val options = MqttClientOptions().apply {
+            isSsl = url.scheme.contains("ssl")
+        }
+
+        val client = MqttClient.create(vertx, options)
         val connected = AtomicReference(false)
         val latch = java.util.concurrent.CountDownLatch(1)
 
