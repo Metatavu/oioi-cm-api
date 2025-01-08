@@ -1,12 +1,11 @@
 package fi.metatavu.oioi.cm.mqtt
 
-import io.vertx.core.Vertx
-import io.vertx.mqtt.MqttClient
-import io.vertx.mqtt.MqttClientOptions
 import org.eclipse.microprofile.config.ConfigProvider
 import org.eclipse.microprofile.config.spi.ConfigSource
+import java.net.InetSocketAddress
+import java.net.Socket
 import java.net.URI
-import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.TimeUnit
 
 /**
  * Configurator for MQTT channel
@@ -61,59 +60,18 @@ class MqttChannelConfigurator: ConfigSource {
     private fun isMqttServerAlive(url: URI): Boolean {
         logger.info("Testing MQTT server: $url")
 
-        val vertx = Vertx.vertx()
-        val options = MqttClientOptions().apply {
-            isSsl = url.scheme.contains("ssl")
-            username = getMqttUsername()
-            password = getMqttPassword()
-        }
-
-        if (options.isSsl) {
-            logger.info("   Using SSL for MQTT connection")
-        } else {
-            logger.info("   Using plain text for MQTT connection")
-        }
-
-        if (options.username != null) {
-            logger.info("   Using username for MQTT connection")
-        } else {
-            logger.info("   No username for MQTT connection")
-        }
-
-        if (options.password != null) {
-            logger.info("   Using password for MQTT connection")
-        } else {
-            logger.info("   No password for MQTT connection")
-        }
-
-        val client = MqttClient.create(vertx, options)
-        val connected = AtomicReference(false)
-        val latch = java.util.concurrent.CountDownLatch(1)
-
         val port = url.port
         val host = url.host
 
-        client?.connect(port, host) { result ->
-            try {
-                val success = result.succeeded()
-                connected.set(success)
-
-                if (success) {
-                    logger.info("Connection succeeded to MQTT server: $url")
-                    client.disconnect()
-                } else {
-                    logger.info("Failed to connect to MQTT server: $url")
-                }
-            } catch (e: Exception) {
-                connected.set(false)
-            } finally {
-                latch.countDown()
+        return try {
+            Socket().use { socket ->
+                socket.connect(InetSocketAddress(host, port), TimeUnit.SECONDS.toMillis(5).toInt())
+                true
             }
+        } catch (e: Exception) {
+            println("Failed to connect to MQTT server at $host:$port - ${e.message}")
+            false
         }
-
-        latch.await()
-
-        return connected.get()
     }
 
     /**
@@ -126,21 +84,4 @@ class MqttChannelConfigurator: ConfigSource {
         return urls.split(",").map { URI.create(it) }
     }
 
-    /**
-     * Returns MQTT username
-     *
-     * @return MQTT username
-     */
-    private fun getMqttUsername(): String? {
-        return ConfigProvider.getConfig().getOptionalValue("mp.messaging.connector.smallrye-mqtt.username", String::class.java).orElse(null)
-    }
-
-    /**
-     * Returns MQTT password
-     *
-     * @return MQTT password
-     */
-    private fun getMqttPassword(): String? {
-        return ConfigProvider.getConfig().getOptionalValue("mp.messaging.connector.smallrye-mqtt.password", String::class.java).orElse(null)
-    }
 }
