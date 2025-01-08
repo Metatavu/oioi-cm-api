@@ -97,7 +97,7 @@ class MqttChannelConfigurator: ConfigSource {
      * @return MQTT server URLs
      */
     private fun parseUrls(): List<URI> {
-        val urls = ConfigProvider.getConfig().getValue("mp.messaging.connector.smallrye-mqtt.urls", String::class.java)
+        val urls = ConfigProvider.getConfig().getValue("mqtt.urls", String::class.java)
         return urls.split(",").map { URI.create(it) }
     }
 }
