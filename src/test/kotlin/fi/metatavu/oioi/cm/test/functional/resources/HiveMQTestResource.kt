@@ -16,7 +16,7 @@ class HiveMQTestResource: QuarkusTestResourceLifecycleManager {
 
         val config: MutableMap<String, String> = HashMap()
 
-        config["mp.messaging.incoming.resource-locks.urls"] = "mqtt://" + hiveMQ.host + ":" + hiveMQ.mqttPort
+        config["mp.messaging.connector.smallrye-mqtt.urls"] = "mqtt://" + hiveMQ.host + ":" + hiveMQ.mqttPort
 
         return config
     }
