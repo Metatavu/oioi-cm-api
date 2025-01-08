@@ -68,6 +68,24 @@ class MqttChannelConfigurator: ConfigSource {
             password = getMqttPassword()
         }
 
+        if (options.isSsl) {
+            logger.info("   Using SSL for MQTT connection")
+        } else {
+            logger.info("   Using plain text for MQTT connection")
+        }
+
+        if (options.username != null) {
+            logger.info("   Using username for MQTT connection")
+        } else {
+            logger.info("   No username for MQTT connection")
+        }
+
+        if (options.password != null) {
+            logger.info("   Using password for MQTT connection")
+        } else {
+            logger.info("   No password for MQTT connection")
+        }
+
         val client = MqttClient.create(vertx, options)
         val connected = AtomicReference(false)
         val latch = java.util.concurrent.CountDownLatch(1)
