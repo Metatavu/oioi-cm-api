@@ -64,6 +64,8 @@ class MqttChannelConfigurator: ConfigSource {
         val vertx = Vertx.vertx()
         val options = MqttClientOptions().apply {
             isSsl = url.scheme.contains("ssl")
+            username = getMqttUsername()
+            password = getMqttPassword()
         }
 
         val client = MqttClient.create(vertx, options)
@@ -104,5 +106,23 @@ class MqttChannelConfigurator: ConfigSource {
     private fun parseUrls(): List<URI> {
         val urls = ConfigProvider.getConfig().getValue("mqtt.urls", String::class.java)
         return urls.split(",").map { URI.create(it) }
+    }
+
+    /**
+     * Returns MQTT username
+     *
+     * @return MQTT username
+     */
+    private fun getMqttUsername(): String? {
+        return ConfigProvider.getConfig().getOptionalValue("mp.messaging.connector.smallrye-mqtt.username", String::class.java).orElse(null)
+    }
+
+    /**
+     * Returns MQTT password
+     *
+     * @return MQTT password
+     */
+    private fun getMqttPassword(): String? {
+        return ConfigProvider.getConfig().getOptionalValue("mp.messaging.connector.smallrye-mqtt.password", String::class.java).orElse(null)
     }
 }
