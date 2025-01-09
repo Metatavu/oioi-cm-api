@@ -24,6 +24,8 @@ class MqttChannelConfigurator: ConfigSource {
             "mp.messaging.connector.smallrye-mqtt.host" -> getActiveUrl().host
             "mp.messaging.connector.smallrye-mqtt.port" -> getActiveUrl().port.toString()
             "mp.messaging.connector.smallrye-mqtt.ssl" -> getActiveUrl().scheme.contains("ssl").toString()
+            "mp.messaging.connector.smallrye-mqtt.username" -> getUsername()
+            "mp.messaging.connector.smallrye-mqtt.password" -> getPassword()
             else -> null
         }
 
@@ -89,6 +91,24 @@ class MqttChannelConfigurator: ConfigSource {
     private fun parseUrls(): List<URI> {
         val urls = ConfigProvider.getConfig().getValue("mqtt.urls", String::class.java)
         return urls.split(",").map { URI.create(it) }
+    }
+
+    /**
+     * Returns MQTT username
+     *
+     * @return MQTT username
+     */
+    private fun getUsername(): String {
+        return ConfigProvider.getConfig().getValue("mqtt.username", String::class.java)
+    }
+
+    /**
+     * Returns MQTT password
+     *
+     * @return MQTT password
+     */
+    private fun getPassword(): String {
+        return ConfigProvider.getConfig().getValue("mqtt.password", String::class.java)
     }
 
 }
