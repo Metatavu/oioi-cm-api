@@ -20,11 +20,18 @@ class MqttChannelConfigurator: ConfigSource {
     }
 
     override fun getValue(propertyName: String?): String? {
-        return when (propertyName) {
+        val result = when (propertyName) {
             "mp.messaging.connector.smallrye-mqtt.host" -> getActiveUrl().host
             "mp.messaging.connector.smallrye-mqtt.port" -> getActiveUrl().port.toString()
+            "mp.messaging.connector.smallrye-mqtt.ssl" -> getActiveUrl().scheme.contains("ssl").toString()
             else -> null
         }
+
+        if (result != null) {
+            logger.info("MQTT property $propertyName = $result")
+        }
+
+        return result
     }
 
     override fun getName(): String {
