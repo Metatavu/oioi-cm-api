@@ -26,6 +26,7 @@ class MqttChannelConfigurator: ConfigSource {
             "mp.messaging.connector.smallrye-mqtt.ssl" -> getActiveUrl().scheme.contains("ssl").toString()
             "mp.messaging.connector.smallrye-mqtt.username" -> getUsername()
             "mp.messaging.connector.smallrye-mqtt.password" -> getPassword()
+            "mp.messaging.outgoing.resourcelocks.topic" -> "${getMqttPrefix()}resourcelocks"
             else -> null
         }
 
@@ -107,6 +108,16 @@ class MqttChannelConfigurator: ConfigSource {
     private fun getPassword(): String? {
         return ConfigProvider.getConfig().getOptionalValue("mqtt.password", String::class.java)
             .orElse(null)
+    }
+
+    /**
+     * Returns MQTT prefix
+     *
+     * @return MQTT prefix
+     */
+    private fun getMqttPrefix(): String {
+        return ConfigProvider.getConfig().getOptionalValue("mqtt.prefix", String::class.java)
+            .orElse("")
     }
 
 }
