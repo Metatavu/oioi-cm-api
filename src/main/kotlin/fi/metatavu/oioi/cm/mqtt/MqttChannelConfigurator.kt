@@ -98,8 +98,9 @@ class MqttChannelConfigurator: ConfigSource {
      *
      * @return MQTT username
      */
-    private fun getUsername(): String {
-        return ConfigProvider.getConfig().getOptionalValue("mqtt.username", String::class.java).orElse(null)
+    private fun getUsername(): String? {
+        return ConfigProvider.getConfig().getOptionalValue("mqtt.username", String::class.java)
+            .orElse(null)
     }
 
     /**
@@ -107,8 +108,9 @@ class MqttChannelConfigurator: ConfigSource {
      *
      * @return MQTT password
      */
-    private fun getPassword(): String {
-        return ConfigProvider.getConfig().getOptionalValue("mqtt.password", String::class.java).orElse(null)
+    private fun getPassword(): String? {
+        return ConfigProvider.getConfig().getOptionalValue("mqtt.password", String::class.java)
+            .orElse(null)
     }
 
 }
