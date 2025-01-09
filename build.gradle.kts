@@ -35,6 +35,7 @@ dependencies {
     implementation("io.quarkus:quarkus-scheduler")
     implementation("io.quarkus:quarkus-smallrye-reactive-messaging-mqtt")
     implementation("io.quarkus:quarkus-cache")
+    implementation("io.quarkus:quarkus-smallrye-health")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("io.quarkus:quarkus-arc")
 
