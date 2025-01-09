@@ -20,19 +20,25 @@ class MqttChannelConfigurator: ConfigSource {
     }
 
     override fun getValue(propertyName: String?): String? {
-        return when (propertyName) {
+        val result = when (propertyName) {
             "mp.messaging.connector.smallrye-mqtt.host" -> getActiveUrl().host
             "mp.messaging.connector.smallrye-mqtt.port" -> getActiveUrl().port.toString()
+            "mp.messaging.connector.smallrye-mqtt.ssl" -> getActiveUrl().scheme.contains("ssl").toString()
+            "mp.messaging.connector.smallrye-mqtt.username" -> getUsername()
+            "mp.messaging.connector.smallrye-mqtt.password" -> getPassword()
+            "mp.messaging.outgoing.resourcelocks.topic" -> "${getMqttPrefix()}resourcelocks"
             else -> null
         }
+
+        if (result != null) {
+            logger.info("MQTT property $propertyName = $result")
+        }
+
+        return result
     }
 
     override fun getName(): String {
         return MqttChannelConfigurator::class.java.name
-    }
-
-    override fun getOrdinal(): Int {
-        return 500
     }
 
     /**
@@ -82,6 +88,36 @@ class MqttChannelConfigurator: ConfigSource {
     private fun parseUrls(): List<URI> {
         val urls = ConfigProvider.getConfig().getValue("mqtt.urls", String::class.java)
         return urls.split(",").map { URI.create(it) }
+    }
+
+    /**
+     * Returns MQTT username
+     *
+     * @return MQTT username
+     */
+    private fun getUsername(): String? {
+        return ConfigProvider.getConfig().getOptionalValue("mqtt.username", String::class.java)
+            .orElse(null)
+    }
+
+    /**
+     * Returns MQTT password
+     *
+     * @return MQTT password
+     */
+    private fun getPassword(): String? {
+        return ConfigProvider.getConfig().getOptionalValue("mqtt.password", String::class.java)
+            .orElse(null)
+    }
+
+    /**
+     * Returns MQTT prefix
+     *
+     * @return MQTT prefix
+     */
+    private fun getMqttPrefix(): String {
+        return ConfigProvider.getConfig().getOptionalValue("mqtt.prefix", String::class.java)
+            .orElse("")
     }
 
 }
