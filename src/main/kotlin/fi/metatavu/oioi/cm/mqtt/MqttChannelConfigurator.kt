@@ -40,10 +40,6 @@ class MqttChannelConfigurator: ConfigSource {
         return MqttChannelConfigurator::class.java.name
     }
 
-    override fun getOrdinal(): Int {
-        return 500
-    }
-
     /**
      * Returns active MQTT server URL
      *
