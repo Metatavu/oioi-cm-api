@@ -4,6 +4,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty
 import org.eclipse.microprofile.health.HealthCheck
 import org.eclipse.microprofile.health.HealthCheckResponse
 import org.eclipse.microprofile.health.Liveness
+import org.slf4j.Logger
 import java.net.InetSocketAddress
 import java.net.Socket
 import java.util.concurrent.TimeUnit
@@ -19,7 +20,8 @@ import javax.inject.Inject
 @Liveness
 class MqttConnectionHealthCheck: HealthCheck {
 
-    private val logger = org.slf4j.LoggerFactory.getLogger(MqttConnectionHealthCheck::class.java)
+    @Inject
+    lateinit var logger: Logger
 
     @Inject
     @ConfigProperty(name = "mp.messaging.connector.smallrye-mqtt.host")
@@ -30,8 +32,6 @@ class MqttConnectionHealthCheck: HealthCheck {
     lateinit var port: String
 
     override fun call(): HealthCheckResponse? {
-        logger.info("Checking MQTT connection to $host:$port")
-
         return if (isMqttServerAlive(host, port.toInt())) {
             HealthCheckResponse.up("MQTT connection is healthy")
         } else {
@@ -56,7 +56,7 @@ class MqttConnectionHealthCheck: HealthCheck {
                 true
             }
         } catch (e: Exception) {
-            println("Failed to connect to MQTT server at $host:$port - ${e.message}")
+            logger.error("Failed to connect to MQTT server at $host:$port - ${e.message}")
             false
         }
     }
