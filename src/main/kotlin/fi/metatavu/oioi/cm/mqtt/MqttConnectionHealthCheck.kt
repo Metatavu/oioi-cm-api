@@ -3,6 +3,7 @@ package fi.metatavu.oioi.cm.mqtt
 import org.eclipse.microprofile.config.inject.ConfigProperty
 import org.eclipse.microprofile.health.HealthCheck
 import org.eclipse.microprofile.health.HealthCheckResponse
+import org.eclipse.microprofile.health.Liveness
 import java.net.InetSocketAddress
 import java.net.Socket
 import java.util.concurrent.TimeUnit
@@ -15,6 +16,7 @@ import javax.inject.Inject
  * @author Antti Leppä
  */
 @ApplicationScoped
+@Liveness
 class MqttConnectionHealthCheck: HealthCheck {
 
     private val logger = org.slf4j.LoggerFactory.getLogger(MqttConnectionHealthCheck::class.java)
