@@ -10,6 +10,7 @@ import fi.metatavu.oioi.cm.persistence.dao.ResourceDAO
 import fi.metatavu.oioi.cm.persistence.dao.ResourcePropertyDAO
 import fi.metatavu.oioi.cm.persistence.dao.ResourceStyleDAO
 import fi.metatavu.oioi.cm.persistence.model.*
+import org.eclipse.microprofile.config.inject.ConfigProperty
 import org.keycloak.authorization.client.AuthzClient
 import org.keycloak.representations.idm.authorization.ResourceRepresentation
 import org.keycloak.representations.idm.authorization.ScopeRepresentation
@@ -26,6 +27,13 @@ import javax.inject.Inject
  */
 @ApplicationScoped
 class ResourceController {
+
+    companion object {
+        private val protectedResourceScopes = Arrays.stream(ResourceScope.values())
+            .map { obj: ResourceScope -> obj.scope }
+            .map { name: String? -> ScopeRepresentation(name) }
+            .collect(Collectors.toSet())
+    }
 
     @Inject
     lateinit var logger: Logger
@@ -44,6 +52,10 @@ class ResourceController {
 
     @Inject
     lateinit var resourceLockController: ResourceLockController
+
+    @Inject
+    @ConfigProperty(name = "oioi.resources.create-authz-resources", defaultValue = "false")
+    var createAuthzResources: Boolean = false
 
     /**
      * Create resource
@@ -75,10 +87,15 @@ class ResourceController {
         type: ResourceType?,
         properties: List<KeyValueProperty>,
         styles: List<KeyValueProperty>,
-        creatorId: UUID
+        creatorId: UUID,
+        createAuthzResource: Boolean = createAuthzResources
     ): Resource {
         val resourceId = UUID.randomUUID()
-        val keycloakResourceId = createProtectedResource(authzClient, customer.id!!, device.id!!, application.id!!, resourceId, creatorId)
+        val keycloakResourceId = if (createAuthzResource) {
+            createProtectedResource(authzClient, customer.id!!, device.id!!, application.id!!, resourceId, creatorId)
+        } else {
+            null
+        }
 
         val resource = resourceDAO.create(
             id = resourceId,
@@ -129,14 +146,18 @@ class ResourceController {
         creatorId: UUID
     ): Resource {
         val id = UUID.randomUUID()
-        val keycloakResourceId = createProtectedResource(
-            authzClient = authzClient,
-            resourceId = id,
-            customerId = customer.id!!,
-            deviceId = device.id!!,
-            applicationId = applicationId,
-            userId = creatorId
-        )
+        val keycloakResourceId = if (createAuthzResources) {
+            createProtectedResource(
+                authzClient = authzClient,
+                resourceId = id,
+                customerId = customer.id!!,
+                deviceId = device.id!!,
+                applicationId = applicationId,
+                userId = creatorId
+            )
+        } else {
+            null
+        }
 
         return resourceDAO.create(
             id = id,
@@ -182,14 +203,18 @@ class ResourceController {
         creatorId: UUID
     ): Resource {
         val id = UUID.randomUUID()
-        val keycloakResourceId = createProtectedResource(
-            authzClient = authzClient,
-            resourceId = id,
-            customerId = customer.id!!,
-            deviceId = device.id!!,
-            applicationId = applicationId,
-            userId = creatorId
-        )
+        val keycloakResourceId = if (createAuthzResources) {
+            createProtectedResource(
+                authzClient = authzClient,
+                resourceId = id,
+                customerId = customer.id!!,
+                deviceId = device.id!!,
+                applicationId = applicationId,
+                userId = creatorId
+            )
+        } else {
+            null
+        }
 
         return resourceDAO.create(
             id = id,
@@ -220,7 +245,8 @@ class ResourceController {
         targetApplication: Application,
         source: Resource,
         targetParent: Resource,
-        creatorId: UUID
+        creatorId: UUID,
+        createAuthzResource: Boolean = true
     ): Resource? {
         if (source.parent?.type != targetParent.type) {
             throw CopyException("Cannot copy from source parent with ${source.parent?.type} to target parent with type ${targetParent.type}")
@@ -241,14 +267,18 @@ class ResourceController {
             parent = targetParent
         ) else source.name
 
-        val keycloakResourceId = createProtectedResource(
-            authzClient = authzClient,
-            resourceId = id,
-            customerId = targetCustomer?.id ?: throw CopyException("Could not resolve target customer"),
-            deviceId = targetDevice.id ?: throw CopyException("Could not resolve target device"),
-            applicationId = targetApplication.id ?: throw CopyException("Could not resolve target application"),
-            userId = creatorId
-        )
+        val keycloakResourceId = if (createAuthzResource) {
+            createProtectedResource(
+                authzClient = authzClient,
+                resourceId = id,
+                customerId = targetCustomer?.id ?: throw CopyException("Could not resolve target customer"),
+                deviceId = targetDevice.id ?: throw CopyException("Could not resolve target device"),
+                applicationId = targetApplication.id ?: throw CopyException("Could not resolve target application"),
+                userId = creatorId
+            )
+        } else {
+            null
+        }
 
         val result = resourceDAO.create(
             id = id,
@@ -290,10 +320,15 @@ class ResourceController {
             targetApplication = targetApplication,
             source = source,
             targetParent = result,
-            creatorId = creatorId
+            creatorId = creatorId,
+            createAuthzResource = createAuthzResources
         )
 
         return result
+    }
+
+    fun shouldCreateAuthzResources(): Boolean {
+        return createAuthzResources
     }
 
     /**
@@ -397,12 +432,13 @@ class ResourceController {
         listProperties(resource).forEach(this::deleteProperty)
         listStyles(resource).forEach(this::deleteStyle)
 
-        val keycloakResourceId = resource.keycloakResorceId
-        try {
-            authzClient.protection().resource().delete(keycloakResourceId.toString())
-        } catch (e: Exception) {
-            if (logger.isErrorEnabled) {
-                logger.error(String.format("Failed to remove Keycloak resource %s ", resource.keycloakResorceId), e)
+        resource.keycloakResorceId?.let { keycloakResourceId ->
+            try {
+                authzClient.protection().resource().delete(keycloakResourceId.toString())
+            } catch (e: Exception) {
+                if (logger.isErrorEnabled) {
+                    logger.error(String.format("Failed to remove Keycloak resource %s ", resource.keycloakResorceId), e)
+                }
             }
         }
 
@@ -636,7 +672,8 @@ class ResourceController {
         source: Resource,
         targetApplication: Application,
         targetParent: Resource,
-        creatorId: UUID
+        creatorId: UUID,
+        createAuthzResource: Boolean
     ) {
         val sourceChildResources = resourceDAO.listByParent(parent = source, resourceType = null)
         sourceChildResources.forEach { sourceChildResource ->
@@ -645,7 +682,8 @@ class ResourceController {
                 targetApplication = targetApplication,
                 source = sourceChildResource,
                 targetParent = targetParent,
-                creatorId = creatorId
+                creatorId = creatorId,
+                createAuthzResource = createAuthzResource
             )
         }
     }
@@ -686,11 +724,6 @@ class ResourceController {
         resourceId: UUID,
         userId: UUID
     ): UUID? {
-        val scopes = Arrays.stream(ResourceScope.values())
-            .map { obj: ResourceScope -> obj.scope }
-            .map { name: String? -> ScopeRepresentation(name) }
-            .collect(Collectors.toSet())
-
         val resourceUri = String.format(
             "/v1/%s/devices/%s/applications/%s/resources/%s",
             customerId,
@@ -701,7 +734,7 @@ class ResourceController {
 
         val keycloakResource = ResourceRepresentation(
             resourceId.toString(),
-            scopes,
+            protectedResourceScopes,
             resourceUri,
             fi.metatavu.oioi.cm.authz.ResourceType.RESOURCE.type
         )

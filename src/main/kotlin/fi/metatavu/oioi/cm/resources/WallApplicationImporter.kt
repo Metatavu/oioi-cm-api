@@ -92,7 +92,8 @@ class WallApplicationImporter {
             type = wallResource.type,
             properties = wallResource.properties.entries.map(this::toKeyValueProperty),
             styles = wallResource.styles.entries.map(this::toKeyValueProperty),
-            creatorId = loggedUserId
+            creatorId = loggedUserId,
+            createAuthzResource = resourceController.shouldCreateAuthzResources()
         )
 
         wallResource.children.forEachIndexed { index, child ->

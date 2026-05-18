@@ -28,7 +28,7 @@ class Resource {
     @Column(nullable = false)
     var orderNumber: Int? = null
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     var keycloakResorceId: UUID? = null
 
     /**
