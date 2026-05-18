@@ -53,6 +53,7 @@ class ResourcesApiImpl : AbstractApi(), ResourcesApi {
     @Inject
     lateinit var wallApplicationImporter: WallApplicationImporter
 
+    @TransactionConfiguration(timeout = 60 * 30)
     override fun createResource(
         customerId: UUID,
         deviceId: UUID,

@@ -252,6 +252,9 @@ class ResourceTestsIT : AbstractFunctionalTest() {
                 source = version1,
                 target = version2
             )
+
+            builder.admin.resources.delete(customer, device, application, version2)
+            builder.admin.resources.assertFindFailStatus(404, customer, device, application, version2.id!!)
         }
     }
 
@@ -548,9 +551,13 @@ class ResourceTestsIT : AbstractFunctionalTest() {
         val originalContentVersionId = application.activeContentVersionResourceId!!
 
         val rootItem = ResourceItem(
-            slug = "1", ResourceType.cONTENTVERSION, children = arrayOf(
+            slug = "1",
+            ResourceType.cONTENTVERSION,
+            children = arrayOf(
                 ResourceItem(
-                    slug = "l", ResourceType.lANGUAGEMENU, children = arrayOf(
+                    slug = "l",
+                    ResourceType.lANGUAGEMENU,
+                    children = arrayOf(
                         ResourceItem(
                             slug = "fi",
                             ResourceType.lANGUAGE,
@@ -558,14 +565,14 @@ class ResourceTestsIT : AbstractFunctionalTest() {
                             styles = arrayOf(getKeyValue("background", "#fff"), getKeyValue("color", "#00f")),
                             children = arrayOf(
                                 ResourceItem(
-                                    slug = "menu", ResourceType.mENU, children = arrayOf(
+                                    slug = "menu",
+                                    ResourceType.mENU,
+                                    children = arrayOf(
                                         ResourceItem(
-                                            slug = "menu-page-1", ResourceType.pAGE, children = arrayOf(
-                                                ResourceItem(
-                                                    slug = "video",
-                                                    ResourceType.vIDEO,
-                                                    data = "https://cdn.example.com/0f57bd21-7bb1-4308-bf52-0ab6d40bd88e/71b700d7-1264-43f9-9686-a137780cef4b"
-                                                ),
+                                            slug = "page-1",
+                                            ResourceType.pAGE,
+                                            children = arrayOf(
+                                                ResourceItem(slug = "text-1", ResourceType.tEXT, data = "hello")
                                             )
                                         )
                                     )
