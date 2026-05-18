@@ -360,4 +360,8 @@
 
   </changeSet>
 
+  <changeSet id="resource-keycloak-id-nullable" author="GitHub Copilot">
+    <dropNotNullConstraint tableName="resource" columnName="keycloakresorceid" columnDataType="binary(16)"/>
+  </changeSet>
+
 </databaseChangeLog>

@@ -27,6 +27,13 @@ import javax.inject.Inject
 @ApplicationScoped
 class ResourceController {
 
+    companion object {
+        private val protectedResourceScopes = Arrays.stream(ResourceScope.values())
+            .map { obj: ResourceScope -> obj.scope }
+            .map { name: String? -> ScopeRepresentation(name) }
+            .collect(Collectors.toSet())
+    }
+
     @Inject
     lateinit var logger: Logger
 
@@ -220,7 +227,8 @@ class ResourceController {
         targetApplication: Application,
         source: Resource,
         targetParent: Resource,
-        creatorId: UUID
+        creatorId: UUID,
+        createAuthzResource: Boolean = true
     ): Resource? {
         if (source.parent?.type != targetParent.type) {
             throw CopyException("Cannot copy from source parent with ${source.parent?.type} to target parent with type ${targetParent.type}")
@@ -241,14 +249,18 @@ class ResourceController {
             parent = targetParent
         ) else source.name
 
-        val keycloakResourceId = createProtectedResource(
-            authzClient = authzClient,
-            resourceId = id,
-            customerId = targetCustomer?.id ?: throw CopyException("Could not resolve target customer"),
-            deviceId = targetDevice.id ?: throw CopyException("Could not resolve target device"),
-            applicationId = targetApplication.id ?: throw CopyException("Could not resolve target application"),
-            userId = creatorId
-        )
+        val keycloakResourceId = if (createAuthzResource) {
+            createProtectedResource(
+                authzClient = authzClient,
+                resourceId = id,
+                customerId = targetCustomer?.id ?: throw CopyException("Could not resolve target customer"),
+                deviceId = targetDevice.id ?: throw CopyException("Could not resolve target device"),
+                applicationId = targetApplication.id ?: throw CopyException("Could not resolve target application"),
+                userId = creatorId
+            )
+        } else {
+            null
+        }
 
         val result = resourceDAO.create(
             id = id,
@@ -397,12 +409,13 @@ class ResourceController {
         listProperties(resource).forEach(this::deleteProperty)
         listStyles(resource).forEach(this::deleteStyle)
 
-        val keycloakResourceId = resource.keycloakResorceId
-        try {
-            authzClient.protection().resource().delete(keycloakResourceId.toString())
-        } catch (e: Exception) {
-            if (logger.isErrorEnabled) {
-                logger.error(String.format("Failed to remove Keycloak resource %s ", resource.keycloakResorceId), e)
+        resource.keycloakResorceId?.let { keycloakResourceId ->
+            try {
+                authzClient.protection().resource().delete(keycloakResourceId.toString())
+            } catch (e: Exception) {
+                if (logger.isErrorEnabled) {
+                    logger.error(String.format("Failed to remove Keycloak resource %s ", resource.keycloakResorceId), e)
+                }
             }
         }
 
@@ -645,7 +658,8 @@ class ResourceController {
                 targetApplication = targetApplication,
                 source = sourceChildResource,
                 targetParent = targetParent,
-                creatorId = creatorId
+                creatorId = creatorId,
+                createAuthzResource = false
             )
         }
     }
@@ -686,11 +700,6 @@ class ResourceController {
         resourceId: UUID,
         userId: UUID
     ): UUID? {
-        val scopes = Arrays.stream(ResourceScope.values())
-            .map { obj: ResourceScope -> obj.scope }
-            .map { name: String? -> ScopeRepresentation(name) }
-            .collect(Collectors.toSet())
-
         val resourceUri = String.format(
             "/v1/%s/devices/%s/applications/%s/resources/%s",
             customerId,
@@ -701,7 +710,7 @@ class ResourceController {
 
         val keycloakResource = ResourceRepresentation(
             resourceId.toString(),
-            scopes,
+            protectedResourceScopes,
             resourceUri,
             fi.metatavu.oioi.cm.authz.ResourceType.RESOURCE.type
         )
